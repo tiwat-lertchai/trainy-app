@@ -1,4 +1,5 @@
 import { AppError } from "../../lib/app-error";
+import { type DomainNotifier, noOpNotifier } from "../../lib/domain-notifier";
 import type { EvaluationRepository } from "./evaluation.repository";
 type Scores = {
   technicalScore: number;
@@ -10,6 +11,7 @@ export class EvaluationService {
   constructor(
     private readonly repository: EvaluationRepository,
     private readonly now = () => new Date(),
+    private readonly notifier: DomainNotifier = noOpNotifier,
   ) {}
   async save(actorUserId: string, placementId: string, scores: Scores) {
     const placement = await this.requirePlacement(placementId);
@@ -66,10 +68,20 @@ export class EvaluationService {
         409,
         "EVALUATION_IMMUTABLE",
       );
-    return this.repository.update(id, {
+    const submitted = await this.repository.update(id, {
       status: "submitted",
       submittedAt: this.now(),
     });
+    const placement = await this.requirePlacement(record.placementId);
+    await this.notifier.notify({
+      userId: placement.studentUserId,
+      type: "evaluation_submitted",
+      title: "Evaluation submitted",
+      message: `Your ${record.evaluatorType} evaluation is available.`,
+      entityType: "placement_evaluation",
+      entityId: record.id,
+    });
+    return submitted;
   }
   async list(actorUserId: string, placementId: string) {
     const placement = await this.requirePlacement(placementId);

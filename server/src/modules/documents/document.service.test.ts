@@ -42,6 +42,17 @@ describe("DocumentService", () => {
       ),
     ).rejects.toMatchObject({ code: "DOCUMENT_ALREADY_REVIEWED" });
   });
+  test("notifies the student after review", async () => {
+    const repo = new MemoryDocumentRepository();
+    repo.document = record();
+    const notifications: unknown[] = [];
+    await new DocumentService(repo, () => new Date(), {
+      async notify(input) {
+        notifications.push(input);
+      },
+    }).review("advisor", "document", "approved");
+    expect(notifications).toHaveLength(1);
+  });
 });
 class MemoryDocumentRepository implements DocumentRepository {
   placement: DocumentPlacement = {

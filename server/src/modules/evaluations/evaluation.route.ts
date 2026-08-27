@@ -9,7 +9,12 @@ import {
   saveEvaluationSchema,
 } from "./evaluation.schema";
 import { EvaluationService } from "./evaluation.service";
-const service = new EvaluationService(new DrizzleEvaluationRepository(db));
+import { domainNotifier } from "../notifications/notification.instance";
+const service = new EvaluationService(
+  new DrizzleEvaluationRepository(db),
+  () => new Date(),
+  domainNotifier,
+);
 export const evaluationRoute = new Hono<{ Variables: AuthVariables }>()
   .use("*", requireAuth)
   .post("/", zValidator("json", saveEvaluationSchema), async (c) => {

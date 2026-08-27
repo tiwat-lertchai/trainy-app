@@ -1,4 +1,5 @@
 import { AppError } from "../../lib/app-error";
+import { type DomainNotifier, noOpNotifier } from "../../lib/domain-notifier";
 import type { DocumentRepository } from "./document.repository";
 import type { documentTypes } from "./document.schema";
 
@@ -6,6 +7,7 @@ export class DocumentService {
   constructor(
     private readonly repository: DocumentRepository,
     private readonly now = () => new Date(),
+    private readonly notifier: DomainNotifier = noOpNotifier,
   ) {}
   async submit(input: {
     actorUserId: string;
@@ -64,12 +66,24 @@ export class DocumentService {
         422,
         "DOCUMENT_FEEDBACK_REQUIRED",
       );
-    return this.repository.review(document.id, {
+    const reviewed = await this.repository.review(document.id, {
       status: decision,
       reviewerUserId: actorUserId,
       feedback: feedback ?? null,
       reviewedAt: this.now(),
     });
+    await this.notifier.notify({
+      userId: document.studentUserId,
+      type: "document_reviewed",
+      title: "Document reviewed",
+      message:
+        decision === "approved"
+          ? "Your document was approved."
+          : "Your document was rejected.",
+      entityType: "placement_document",
+      entityId: document.id,
+    });
+    return reviewed;
   }
   async list(actorUserId: string, placementId: string) {
     const placement = await this.requirePlacement(placementId);

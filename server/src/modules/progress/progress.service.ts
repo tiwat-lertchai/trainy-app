@@ -1,10 +1,12 @@
 import { AppError } from "../../lib/app-error";
+import { type DomainNotifier, noOpNotifier } from "../../lib/domain-notifier";
 import type { ProgressRecord, ProgressRepository } from "./progress.repository";
 
 export class ProgressService {
   constructor(
     private readonly repository: ProgressRepository,
     private readonly now = () => new Date(),
+    private readonly notifier: DomainNotifier = noOpNotifier,
   ) {}
   async create(input: {
     actorUserId: string;
@@ -61,7 +63,7 @@ export class ProgressService {
       changes.periodStart ?? report.periodStart,
       changes.periodEnd ?? report.periodEnd,
     );
-    return this.repository.update(report.id, {
+    const reviewed = await this.repository.update(report.id, {
       ...changes,
       status: "draft",
       feedback: null,
@@ -117,12 +119,24 @@ export class ProgressService {
         422,
         "PROGRESS_FEEDBACK_REQUIRED",
       );
-    return this.repository.update(report.id, {
+    const reviewed = await this.repository.update(report.id, {
       status: decision,
       feedback: feedback ?? null,
       reviewerUserId: actorUserId,
       reviewedAt: this.now(),
     });
+    await this.notifier.notify({
+      userId: report.studentUserId,
+      type: "progress_reviewed",
+      title: "Progress report reviewed",
+      message:
+        decision === "approved"
+          ? "Your progress report was approved."
+          : "Your progress report needs revision.",
+      entityType: "progress_report",
+      entityId: report.id,
+    });
+    return reviewed;
   }
   async list(actorUserId: string, placementId: string) {
     const placement = await this.requirePlacement(placementId);

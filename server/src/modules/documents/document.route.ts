@@ -10,7 +10,12 @@ import {
   submitDocumentSchema,
 } from "./document.schema";
 import { DocumentService } from "./document.service";
-const service = new DocumentService(new DrizzleDocumentRepository(db));
+import { domainNotifier } from "../notifications/notification.instance";
+const service = new DocumentService(
+  new DrizzleDocumentRepository(db),
+  () => new Date(),
+  domainNotifier,
+);
 const placementParam = z.object({ placementId: z.string().uuid() });
 export const documentRoute = new Hono<{ Variables: AuthVariables }>()
   .use("*", requireAuth)

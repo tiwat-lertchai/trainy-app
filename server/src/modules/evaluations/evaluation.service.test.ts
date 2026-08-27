@@ -36,6 +36,17 @@ describe("EvaluationService", () => {
       [],
     );
   });
+  test("notifies the student when an evaluation is submitted", async () => {
+    const repository = new MemoryEvaluationRepository();
+    const created = await save(repository, "advisor");
+    const notifications: unknown[] = [];
+    await new EvaluationService(repository, () => new Date(), {
+      async notify(input) {
+        notifications.push(input);
+      },
+    }).submit("advisor", created.id);
+    expect(notifications).toHaveLength(1);
+  });
 });
 class MemoryEvaluationRepository implements EvaluationRepository {
   placement: EvaluationPlacement = {

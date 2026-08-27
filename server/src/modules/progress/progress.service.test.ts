@@ -51,9 +51,15 @@ describe("ProgressService", () => {
   test("supports submit, revision, edit, resubmit, and approval", async () => {
     const repository = new MemoryProgressRepository();
     repository.report = report();
+    const notifications: unknown[] = [];
     const service = new ProgressService(
       repository,
       () => new Date("2026-10-10"),
+      {
+        async notify(input) {
+          notifications.push(input);
+        },
+      },
     );
     await service.submit("student", "report");
     await service.review(
@@ -69,6 +75,7 @@ describe("ProgressService", () => {
     expect(
       await service.review("supervisor", "report", "approved"),
     ).toMatchObject({ status: "approved", reviewerUserId: "supervisor" });
+    expect(notifications).toHaveLength(2);
   });
 });
 

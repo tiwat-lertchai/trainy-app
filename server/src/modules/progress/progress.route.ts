@@ -11,8 +11,13 @@ import {
   updateProgressSchema,
 } from "./progress.schema";
 import { ProgressService } from "./progress.service";
+import { domainNotifier } from "../notifications/notification.instance";
 
-const service = new ProgressService(new DrizzleProgressRepository(db));
+const service = new ProgressService(
+  new DrizzleProgressRepository(db),
+  () => new Date(),
+  domainNotifier,
+);
 const placementParam = z.object({ placementId: z.string().uuid() });
 
 export const progressRoute = new Hono<{ Variables: AuthVariables }>()
