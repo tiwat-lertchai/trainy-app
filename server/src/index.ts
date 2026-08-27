@@ -1,22 +1,4 @@
-import { Hono } from "hono";
-import { cors } from "hono/cors";
-import type { ApiResponse } from "shared";
-
-export const app = new Hono()
-
-.use(cors())
-
-.get("/", (c) => {
-	return c.text("Hello Hono!");
-})
-
-.get("/hello", async (c) => {
-	const data: ApiResponse = {
-		message: "Hello BHVR!",
-		success: true,
-	};
-
-	return c.json(data, { status: 200 });
-});
-
-export default app;
+// Bun uses the default export to start the server. Named exports are kept for
+// the typed Hono client and for tests that call the app without opening a port.
+export { app, type AppType } from "./app";
+export { app as default } from "./app";

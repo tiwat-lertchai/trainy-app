@@ -15,13 +15,20 @@
   },
   "scripts": {
     "build": "tsc",
-    "dev": "bun --watch run src/index.ts & tsc --watch"
+    "dev": "bun --watch run src/index.ts & tsc --watch",
+    "db:check": "drizzle-kit check",
+    "db:generate": "drizzle-kit generate",
+    "db:migrate": "drizzle-kit migrate",
+    "db:studio": "drizzle-kit studio"
   },
   "dependencies": {
+    "@neondatabase/serverless": "^1.1.0",
+    "drizzle-orm": "^0.45.2",
     "hono": "^4.10.8",
     "shared": "workspace:*"
   },
   "devDependencies": {
-    "@types/bun": "latest"
+    "@types/bun": "latest",
+    "drizzle-kit": "^0.31.10"
   }
 }
