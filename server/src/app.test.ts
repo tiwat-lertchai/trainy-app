@@ -83,3 +83,16 @@ describe("organization routes", () => {
     });
   });
 });
+
+describe("internship routes", () => {
+  it("rejects unauthenticated requests before exposing internship data", async () => {
+    const response = await app.request("/api/v1/internships");
+    const body = await response.json();
+
+    expect(response.status).toBe(401);
+    expect(body).toMatchObject({
+      success: false,
+      error: { code: "UNAUTHORIZED" },
+    });
+  });
+});

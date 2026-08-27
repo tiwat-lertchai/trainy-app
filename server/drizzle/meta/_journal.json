@@ -15,6 +15,13 @@
       "when": 1787827420896,
       "tag": "0001_powerful_santa_claus",
       "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "7",
+      "when": 1787830491874,
+      "tag": "0002_powerful_hydra",
+      "breakpoints": true
     }
   ]
 }
