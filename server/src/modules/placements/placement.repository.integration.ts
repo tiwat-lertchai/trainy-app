@@ -4,6 +4,8 @@ import type { Database } from "../../db";
 let database: Database;
 let closeDatabase: () => Promise<void>;
 let repository: import("./placement.repository").DrizzlePlacementRepository;
+let progressRepository: import("../progress/progress.repository").DrizzleProgressRepository;
+let placementId: string;
 const ids = { application: "", company: "", university: "" };
 
 beforeAll(async () => {
@@ -20,9 +22,14 @@ beforeAll(async () => {
   const databaseModule = await import("../../db");
   const schema = await import("../../db/schema");
   const repositoryModule = await import("./placement.repository");
+  const progressRepositoryModule =
+    await import("../progress/progress.repository");
   database = databaseModule.db;
   closeDatabase = databaseModule.closeDatabase;
   repository = new repositoryModule.DrizzlePlacementRepository(database);
+  progressRepository = new progressRepositoryModule.DrizzleProgressRepository(
+    database,
+  );
 
   await database.delete(schema.placement);
   await database.delete(schema.internshipApplication);
@@ -94,10 +101,24 @@ describe("DrizzlePlacementRepository", () => {
       endDate: new Date("2027-04-01"),
     });
     expect(record).toBeDefined();
+    placementId = record!.id;
     expect(await repository.listForOrganization(ids.university)).toHaveLength(
       1,
     );
     expect(await repository.listForOrganization(ids.company)).toHaveLength(1);
+  });
+
+  test("enforces one progress report per placement period", async () => {
+    const input = {
+      placementId,
+      studentUserId: "student",
+      periodStart: new Date("2027-01-01"),
+      periodEnd: new Date("2027-01-07"),
+      summary: "Completed the first integration test reporting period.",
+      hoursWorked: 40,
+    };
+    expect(await progressRepository.create(input)).toBeDefined();
+    expect(await progressRepository.create(input)).toBeUndefined();
   });
 
   test("returns no record for a duplicate application placement", async () => {

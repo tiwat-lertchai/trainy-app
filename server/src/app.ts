@@ -10,6 +10,7 @@ import { healthRoute } from "./modules/health/health.route";
 import { internshipRoute } from "./modules/internships/internship.route";
 import { organizationRoute } from "./modules/organizations/organization.route";
 import { placementRoute } from "./modules/placements/placement.route";
+import { progressRoute } from "./modules/progress/progress.route";
 import { rootRoute } from "./modules/root/root.route";
 
 function createApp() {
@@ -56,6 +57,7 @@ export const app = createApp()
   .route("/api/v1/internships", internshipRoute)
   .route("/api/v1/organizations", organizationRoute)
   .route("/api/v1/placements", placementRoute)
+  .route("/api/v1/progress-reports", progressRoute)
   .route("/api/v1/health", healthRoute);
 
 export type AppType = typeof app;

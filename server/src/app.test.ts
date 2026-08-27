@@ -107,3 +107,12 @@ describe("placement routes", () => {
     });
   });
 });
+
+describe("progress report routes", () => {
+  it("rejects unauthenticated progress report access", async () => {
+    const response = await app.request(
+      "/api/v1/progress-reports/placements/00000000-0000-4000-8000-000000000000",
+    );
+    expect(response.status).toBe(401);
+  });
+});
