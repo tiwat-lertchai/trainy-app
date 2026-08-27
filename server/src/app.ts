@@ -1,18 +1,22 @@
 import { Hono } from "hono";
+import { bodyLimit } from "hono/body-limit";
 import { cors } from "hono/cors";
 import { logger } from "hono/logger";
 import { requestId } from "hono/request-id";
 import { secureHeaders } from "hono/secure-headers";
 import { env } from "./config/env";
 import { errorHandler } from "./middleware/error-handler";
+import { auditMutations } from "./middleware/audit-mutations";
 import { authRoute } from "./modules/auth/auth.route";
 import { documentRoute } from "./modules/documents/document.route";
 import { evaluationRoute } from "./modules/evaluations/evaluation.route";
 import { healthRoute } from "./modules/health/health.route";
 import { internshipRoute } from "./modules/internships/internship.route";
+import { notificationRoute } from "./modules/notifications/notification.route";
 import { organizationRoute } from "./modules/organizations/organization.route";
 import { placementRoute } from "./modules/placements/placement.route";
 import { progressRoute } from "./modules/progress/progress.route";
+import { reportRoute } from "./modules/reports/report.route";
 import { rootRoute } from "./modules/root/root.route";
 
 function createApp() {
@@ -22,6 +26,23 @@ function createApp() {
   // fail inside middleware registered later in the pipeline.
   app.use("*", logger());
   app.use("*", requestId());
+  app.use(
+    "*",
+    bodyLimit({
+      maxSize: 1024 * 1024,
+      onError: (c) =>
+        c.json(
+          {
+            success: false,
+            error: {
+              code: "REQUEST_BODY_TOO_LARGE",
+              message: "Request body exceeds the 1 MiB limit",
+            },
+          },
+          413,
+        ),
+    }),
+  );
   app.use(
     "*",
     secureHeaders({
@@ -47,6 +68,7 @@ function createApp() {
     }),
   );
   app.onError(errorHandler);
+  app.use("/api/v1/*", auditMutations);
 
   return app;
 }
@@ -59,9 +81,11 @@ export const app = createApp()
   .route("/api/v1/documents", documentRoute)
   .route("/api/v1/evaluations", evaluationRoute)
   .route("/api/v1/internships", internshipRoute)
+  .route("/api/v1/notifications", notificationRoute)
   .route("/api/v1/organizations", organizationRoute)
   .route("/api/v1/placements", placementRoute)
   .route("/api/v1/progress-reports", progressRoute)
+  .route("/api/v1/reports", reportRoute)
   .route("/api/v1/health", healthRoute);
 
 export type AppType = typeof app;

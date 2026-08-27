@@ -43,6 +43,13 @@
       "when": 1787833063157,
       "tag": "0005_sloppy_mysterio",
       "breakpoints": true
+    },
+    {
+      "idx": 6,
+      "version": "7",
+      "when": 1787833390502,
+      "tag": "0006_red_arachne",
+      "breakpoints": true
     }
   ]
 }

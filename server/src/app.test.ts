@@ -131,3 +131,16 @@ describe("document and evaluation routes", () => {
     expect(evaluations.status).toBe(401);
   });
 });
+
+describe("platform service routes", () => {
+  it("rejects unauthenticated notification and report access", async () => {
+    const [notifications, reports] = await Promise.all([
+      app.request("/api/v1/notifications"),
+      app.request(
+        "/api/v1/reports/organizations/00000000-0000-4000-8000-000000000000",
+      ),
+    ]);
+    expect(notifications.status).toBe(401);
+    expect(reports.status).toBe(401);
+  });
+});

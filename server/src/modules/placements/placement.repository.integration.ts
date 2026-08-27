@@ -7,6 +7,8 @@ let repository: import("./placement.repository").DrizzlePlacementRepository;
 let progressRepository: import("../progress/progress.repository").DrizzleProgressRepository;
 let documentRepository: import("../documents/document.repository").DrizzleDocumentRepository;
 let evaluationRepository: import("../evaluations/evaluation.repository").DrizzleEvaluationRepository;
+let notificationRepository: import("../notifications/notification.repository").DrizzleNotificationRepository;
+let reportRepository: import("../reports/report.repository").DrizzleReportRepository;
 let placementId: string;
 const ids = { application: "", company: "", university: "" };
 
@@ -30,6 +32,9 @@ beforeAll(async () => {
     await import("../documents/document.repository");
   const evaluationRepositoryModule =
     await import("../evaluations/evaluation.repository");
+  const notificationRepositoryModule =
+    await import("../notifications/notification.repository");
+  const reportRepositoryModule = await import("../reports/report.repository");
   database = databaseModule.db;
   closeDatabase = databaseModule.closeDatabase;
   repository = new repositoryModule.DrizzlePlacementRepository(database);
@@ -41,6 +46,11 @@ beforeAll(async () => {
   );
   evaluationRepository =
     new evaluationRepositoryModule.DrizzleEvaluationRepository(database);
+  notificationRepository =
+    new notificationRepositoryModule.DrizzleNotificationRepository(database);
+  reportRepository = new reportRepositoryModule.DrizzleReportRepository(
+    database,
+  );
 
   await database.delete(schema.placement);
   await database.delete(schema.internshipApplication);
@@ -70,6 +80,18 @@ beforeAll(async () => {
     .returning();
   if (!company || !university)
     throw new Error("Organizations were not created");
+  await database.insert(schema.organizationMembership).values([
+    {
+      organizationId: university.id,
+      userId: "coordinator",
+      role: "university_admin",
+    },
+    {
+      organizationId: company.id,
+      userId: "company-admin",
+      role: "company_admin",
+    },
+  ]);
   const [internship] = await database
     .insert(schema.internship)
     .values({
@@ -177,6 +199,46 @@ describe("DrizzlePlacementRepository", () => {
     };
     expect(await evaluationRepository.create(evaluationInput)).toBeDefined();
     expect(evaluationRepository.create(evaluationInput)).rejects.toBeDefined();
+  });
+
+  test("scopes notifications and computes tenant report aggregates", async () => {
+    const notification = await notificationRepository.create({
+      userId: "student",
+      type: "placement",
+      title: "Placement updated",
+      message: "Your placement workflow changed.",
+      entityType: "placement",
+      entityId: placementId,
+    });
+    expect(await notificationRepository.list("student")).toHaveLength(1);
+    expect(
+      await notificationRepository.markRead(
+        notification.id,
+        "company-admin",
+        new Date(),
+      ),
+    ).toBeUndefined();
+    expect(await reportRepository.countInternships(ids.company)).toBe(1);
+    expect(
+      await reportRepository.placementCounts(ids.university, "university"),
+    ).toHaveLength(1);
+  });
+
+  test("persists append-only audit events", async () => {
+    const schema = await import("../../db/schema");
+    const [event] = await database
+      .insert(schema.auditEvent)
+      .values({
+        actorUserId: "company-admin",
+        organizationId: ids.company,
+        action: "PATCH /api/v1/placements/test/status",
+        entityType: "placements",
+        entityId: placementId,
+        requestId: "integration-request",
+        metadata: { status: 200 },
+      })
+      .returning();
+    expect(event?.action).toStartWith("PATCH");
   });
 });
 

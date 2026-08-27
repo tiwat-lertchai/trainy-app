@@ -7,3 +7,4 @@ export * from "./internship";
 export * from "./organization";
 export * from "./placement";
 export * from "./progress";
+export * from "./system";
