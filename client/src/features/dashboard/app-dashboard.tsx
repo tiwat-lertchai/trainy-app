@@ -1,3 +1,4 @@
+import { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { Bell, BriefcaseBusiness, Building2, ChevronRight, ClipboardCheck, FileCheck2, FileText, LayoutDashboard, LogOut, Menu, Search, Settings, UsersRound } from "lucide-react";
 import { BrandMark } from "@/components/brand/brand-mark";
@@ -5,6 +6,9 @@ import { Button } from "@/components/ui/button";
 import { authClient, signInWithLine } from "@/lib/auth-client";
 import { apiClient } from "@/lib/api-client";
 import { getNavigationForRole, type NavigationKey, type OrganizationRole } from "@/features/organizations/role-navigation";
+import { resolveWorkspaceId } from "@/features/organizations/workspace-selection";
+
+const WORKSPACE_KEY = "trainy-workspace-id";
 
 const navigationDetails: Record<NavigationKey, { label: string; icon: typeof LayoutDashboard }> = {
 	overview: { label: "ภาพรวม", icon: LayoutDashboard }, internships: { label: "ตำแหน่งฝึกงาน", icon: BriefcaseBusiness },
@@ -26,12 +30,14 @@ async function loadOrganizations() {
 
 export function AppDashboard() {
 	const session = authClient.useSession();
+	const [storedWorkspaceId, setStoredWorkspaceId] = useState(() => localStorage.getItem(WORKSPACE_KEY));
 	const organizations = useQuery({ queryKey: ["organizations"], queryFn: loadOrganizations, enabled: Boolean(session.data?.user) });
 
 	if (session.isPending) return <FullPageMessage title="กำลังตรวจสอบการเข้าสู่ระบบ" />;
 	if (!session.data?.user) return <SignedOut />;
 	const user = session.data.user;
-	const activeContext = organizations.data?.data[0];
+	const workspaceId = resolveWorkspaceId(organizations.data?.data ?? [], storedWorkspaceId);
+	const activeContext = organizations.data?.data.find((item) => item.organization.id === workspaceId);
 	const role = activeContext?.membership.role as OrganizationRole | undefined;
 	const navigation = role ? getNavigationForRole(role) : (["overview"] as const);
 
@@ -62,7 +68,7 @@ export function AppDashboard() {
 					</section>
 					<section className="mt-6 grid gap-6 xl:grid-cols-[1.4fr_0.6fr]">
 						<div className="rounded-2xl border bg-white p-6"><div className="flex items-center justify-between"><div><h2 className="text-lg font-bold">สิ่งที่ต้องทำต่อ</h2><p className="mt-1 text-sm text-muted-foreground">เรียงตามกำหนดส่งและความสำคัญ</p></div><Button variant="ghost" size="sm">ดูทั้งหมด<ChevronRight /></Button></div><div className="mt-5 divide-y"><Task title="ส่งรายงานความก้าวหน้าสัปดาห์ที่ 4" meta="ครบกำหนดวันนี้" urgent /><Task title="ตรวจสอบข้อมูลสถานที่ฝึกงาน" meta="ภายในวันศุกร์" /><Task title="อัปโหลดเอกสารยินยอม" meta="ภายใน 5 วัน" /></div></div>
-						<div className="rounded-2xl border bg-white p-6"><h2 className="text-lg font-bold">องค์กรของฉัน</h2>{organizations.isLoading && <p className="mt-4 text-sm text-muted-foreground">กำลังโหลดข้อมูล...</p>}{organizations.isError && <p role="alert" className="mt-4 text-sm text-destructive">ไม่สามารถโหลดข้อมูลองค์กรได้</p>}{organizations.data?.data.map((item) => <div key={item.organization.id} className="mt-4 flex items-center gap-3 rounded-xl bg-muted p-4"><span className="grid size-10 place-items-center rounded-lg bg-white text-primary"><Building2 className="size-5" /></span><div className="min-w-0"><p className="truncate font-semibold">{item.organization.name}</p><p className="text-xs text-muted-foreground">{roleLabels[item.membership.role as OrganizationRole]}</p></div></div>)}</div>
+						<div className="rounded-2xl border bg-white p-6"><h2 className="text-lg font-bold">องค์กรของฉัน</h2>{organizations.isLoading && <p className="mt-4 text-sm text-muted-foreground">กำลังโหลดข้อมูล...</p>}{organizations.isError && <p role="alert" className="mt-4 text-sm text-destructive">ไม่สามารถโหลดข้อมูลองค์กรได้</p>}{organizations.data?.data.map((item) => <button type="button" onClick={() => { localStorage.setItem(WORKSPACE_KEY, item.organization.id); setStoredWorkspaceId(item.organization.id); }} key={item.organization.id} className={`mt-4 flex w-full items-center gap-3 rounded-xl p-4 text-left transition ${item.organization.id === workspaceId ? "bg-[#edf3ff] ring-1 ring-primary/20" : "bg-muted hover:bg-muted/70"}`}><span className="grid size-10 place-items-center rounded-lg bg-white text-primary"><Building2 className="size-5" /></span><span className="min-w-0"><span className="block truncate font-semibold">{item.organization.name}</span><span className="text-xs text-muted-foreground">{roleLabels[item.membership.role as OrganizationRole]}</span></span></button>)}</div>
 					</section>
 				</main>
 			</div>
