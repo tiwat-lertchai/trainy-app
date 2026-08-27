@@ -5,6 +5,7 @@ import { requestId } from "hono/request-id";
 import { secureHeaders } from "hono/secure-headers";
 import { env } from "./config/env";
 import { errorHandler } from "./middleware/error-handler";
+import { authRoute } from "./modules/auth/auth.route";
 import { healthRoute } from "./modules/health/health.route";
 import { rootRoute } from "./modules/root/root.route";
 
@@ -48,6 +49,7 @@ function createApp() {
 // the RPC client type that is shared with the frontend.
 export const app = createApp()
   .route("/", rootRoute)
+  .route("/api/auth", authRoute)
   .route("/api/v1/health", healthRoute);
 
 export type AppType = typeof app;

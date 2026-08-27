@@ -10,6 +10,11 @@ beforeAll(async () => {
   process.env.DATABASE_URL =
     "postgresql://test:test@localhost/test?sslmode=require";
   process.env.CORS_ORIGINS = trustedOrigin;
+  process.env.BETTER_AUTH_SECRET =
+    "test-secret-that-is-longer-than-thirty-two-characters";
+  process.env.BETTER_AUTH_URL = "http://localhost:3000";
+  process.env.LINE_CHANNEL_ID = "test-line-channel-id";
+  process.env.LINE_CHANNEL_SECRET = "test-line-channel-secret";
 
   ({ app } = await import("./app"));
 });
@@ -54,5 +59,14 @@ describe("cross-origin security", () => {
     );
     expect(response.headers.get("X-Content-Type-Options")).toBe("nosniff");
     expect(response.headers.get("X-Frame-Options")).toBe("DENY");
+  });
+});
+
+describe("authentication routes", () => {
+  it("mounts the Better Auth handler", async () => {
+    const response = await app.request("/api/auth/get-session");
+
+    expect(response.status).toBe(200);
+    expect(await response.json()).toBeNull();
   });
 });

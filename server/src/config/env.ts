@@ -48,6 +48,16 @@ function readOrigins(value: string | undefined): readonly string[] {
   return Object.freeze([...new Set(origins)]);
 }
 
+function readUrl(name: string, value: string | undefined): string {
+  const url = readRequired(name, value);
+
+  try {
+    return new URL(url).origin;
+  } catch {
+    throw new Error(`${name} must be a valid absolute URL`);
+  }
+}
+
 export const env = Object.freeze({
   NODE_ENV: readNodeEnvironment(process.env.NODE_ENV),
   PORT: readPort(process.env.PORT),
@@ -55,4 +65,14 @@ export const env = Object.freeze({
     process.env.CORS_ORIGINS ?? process.env.CORS_ORIGIN,
   ),
   DATABASE_URL: readRequired("DATABASE_URL", process.env.DATABASE_URL),
+  BETTER_AUTH_SECRET: readRequired(
+    "BETTER_AUTH_SECRET",
+    process.env.BETTER_AUTH_SECRET,
+  ),
+  BETTER_AUTH_URL: readUrl("BETTER_AUTH_URL", process.env.BETTER_AUTH_URL),
+  LINE_CHANNEL_ID: readRequired("LINE_CHANNEL_ID", process.env.LINE_CHANNEL_ID),
+  LINE_CHANNEL_SECRET: readRequired(
+    "LINE_CHANNEL_SECRET",
+    process.env.LINE_CHANNEL_SECRET,
+  ),
 });
