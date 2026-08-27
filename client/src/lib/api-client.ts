@@ -2,7 +2,14 @@ import { hcWithType } from "server/client";
 
 const SERVER_URL = import.meta.env.VITE_SERVER_URL || "http://localhost:3000";
 
-export const apiClient = hcWithType(SERVER_URL);
+export function createApiClient(requestFetch: typeof fetch = fetch) {
+	return hcWithType(SERVER_URL, {
+		fetch: requestFetch,
+		init: { credentials: "include" },
+	});
+}
+
+export const apiClient = createApiClient();
 
 type ApiStatus = {
 	name: string;

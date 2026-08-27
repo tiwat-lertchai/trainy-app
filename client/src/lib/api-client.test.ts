@@ -1,5 +1,5 @@
 import { describe, expect, it } from "bun:test";
-import { getApiStatus } from "./api-client";
+import { createApiClient, getApiStatus } from "./api-client";
 
 function createResponse(body: unknown, status: number): Response {
 	return new Response(JSON.stringify(body), {
@@ -25,5 +25,18 @@ describe("getApiStatus", () => {
 		await expect(getApiStatus(request)).rejects.toThrow(
 			"API request failed with status 503",
 		);
+	});
+});
+
+describe("API client security", () => {
+	it("includes credentials on typed API requests", async () => {
+		let credentials: RequestCredentials | undefined;
+		const requestFetch: typeof fetch = async (_input, init) => {
+			credentials = init?.credentials;
+			return new Response(JSON.stringify({ name: "Trainy API", status: "ok" }));
+		};
+
+		await createApiClient(requestFetch).index.$get();
+		expect(credentials).toBe("include");
 	});
 });
