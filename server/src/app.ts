@@ -2,6 +2,7 @@ import { Hono } from "hono";
 import { cors } from "hono/cors";
 import { logger } from "hono/logger";
 import { requestId } from "hono/request-id";
+import { secureHeaders } from "hono/secure-headers";
 import { env } from "./config/env";
 import { errorHandler } from "./middleware/error-handler";
 import { healthRoute } from "./modules/health/health.route";
@@ -16,9 +17,26 @@ function createApp() {
   app.use("*", requestId());
   app.use(
     "*",
+    secureHeaders({
+      crossOriginOpenerPolicy: "same-origin",
+      crossOriginResourcePolicy: "same-origin",
+      referrerPolicy: "strict-origin-when-cross-origin",
+      strictTransportSecurity: "max-age=31536000; includeSubDomains",
+      xContentTypeOptions: "nosniff",
+      xFrameOptions: "DENY",
+    }),
+  );
+  app.use(
+    "*",
     cors({
-      origin: env.CORS_ORIGIN,
+      // Echo only an explicitly trusted origin. A wildcard cannot be used with
+      // credentialed Better Auth requests.
+      origin: (origin) =>
+        env.CORS_ORIGINS.includes(origin) ? origin : undefined,
+      allowMethods: ["GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"],
+      allowHeaders: ["Authorization", "Content-Type"],
       credentials: true,
+      maxAge: 86_400,
     }),
   );
   app.onError(errorHandler);
