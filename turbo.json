@@ -34,7 +34,18 @@
         "vite.config.ts",
         "package.json"
       ],
-      "env": ["NODE_ENV", "PORT", "VITE_*"]
+      "env": [
+        "NODE_ENV",
+        "PORT",
+        "VITE_*",
+        "CORS_ORIGIN",
+        "CORS_ORIGINS",
+        "DATABASE_URL",
+        "BETTER_AUTH_SECRET",
+        "BETTER_AUTH_URL",
+        "LINE_CHANNEL_ID",
+        "LINE_CHANNEL_SECRET"
+      ]
     },
     "lint": {
       "dependsOn": ["^build"],

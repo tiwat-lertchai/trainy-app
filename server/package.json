@@ -15,7 +15,8 @@
   },
   "scripts": {
     "build": "tsc",
-    "dev": "bun --watch run src/index.ts & tsc --watch",
+    "dev": "bun --watch src/index.ts",
+    "type-check": "tsc --noEmit --declaration false",
     "test": "bun test src",
     "db:check": "drizzle-kit check",
     "db:generate": "drizzle-kit generate",
