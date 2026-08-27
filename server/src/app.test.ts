@@ -116,3 +116,18 @@ describe("progress report routes", () => {
     expect(response.status).toBe(401);
   });
 });
+
+describe("document and evaluation routes", () => {
+  it("rejects unauthenticated workflow access", async () => {
+    const [documents, evaluations] = await Promise.all([
+      app.request(
+        "/api/v1/documents/placements/00000000-0000-4000-8000-000000000000",
+      ),
+      app.request(
+        "/api/v1/evaluations/placements/00000000-0000-4000-8000-000000000000",
+      ),
+    ]);
+    expect(documents.status).toBe(401);
+    expect(evaluations.status).toBe(401);
+  });
+});

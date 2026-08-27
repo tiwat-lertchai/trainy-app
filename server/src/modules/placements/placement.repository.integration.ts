@@ -5,6 +5,8 @@ let database: Database;
 let closeDatabase: () => Promise<void>;
 let repository: import("./placement.repository").DrizzlePlacementRepository;
 let progressRepository: import("../progress/progress.repository").DrizzleProgressRepository;
+let documentRepository: import("../documents/document.repository").DrizzleDocumentRepository;
+let evaluationRepository: import("../evaluations/evaluation.repository").DrizzleEvaluationRepository;
 let placementId: string;
 const ids = { application: "", company: "", university: "" };
 
@@ -24,12 +26,21 @@ beforeAll(async () => {
   const repositoryModule = await import("./placement.repository");
   const progressRepositoryModule =
     await import("../progress/progress.repository");
+  const documentRepositoryModule =
+    await import("../documents/document.repository");
+  const evaluationRepositoryModule =
+    await import("../evaluations/evaluation.repository");
   database = databaseModule.db;
   closeDatabase = databaseModule.closeDatabase;
   repository = new repositoryModule.DrizzlePlacementRepository(database);
   progressRepository = new progressRepositoryModule.DrizzleProgressRepository(
     database,
   );
+  documentRepository = new documentRepositoryModule.DrizzleDocumentRepository(
+    database,
+  );
+  evaluationRepository =
+    new evaluationRepositoryModule.DrizzleEvaluationRepository(database);
 
   await database.delete(schema.placement);
   await database.delete(schema.internshipApplication);
@@ -39,7 +50,13 @@ beforeAll(async () => {
   await database.delete(schema.user);
   await database
     .insert(schema.user)
-    .values([user("coordinator"), user("student"), user("company-admin")]);
+    .values([
+      user("coordinator"),
+      user("student"),
+      user("company-admin"),
+      user("advisor"),
+      user("supervisor"),
+    ]);
   const [company, university] = await database
     .insert(schema.organization)
     .values([
@@ -134,6 +151,32 @@ describe("DrizzlePlacementRepository", () => {
         endDate: new Date("2027-04-01"),
       }),
     ).toBeUndefined();
+  });
+
+  test("persists document metadata and one evaluation per evaluator type", async () => {
+    expect(
+      await documentRepository.create({
+        placementId,
+        studentUserId: "student",
+        type: "consent",
+        fileName: "consent.pdf",
+        storageKey: "placements/integration/consent.pdf",
+        mimeType: "application/pdf",
+        sizeBytes: 1024,
+      }),
+    ).toMatchObject({ status: "submitted" });
+
+    const evaluationInput = {
+      placementId,
+      evaluatorUserId: "advisor",
+      evaluatorType: "advisor" as const,
+      technicalScore: 4,
+      communicationScore: 5,
+      responsibilityScore: 4,
+      comment: "Strong integration evaluation performance.",
+    };
+    expect(await evaluationRepository.create(evaluationInput)).toBeDefined();
+    expect(evaluationRepository.create(evaluationInput)).rejects.toBeDefined();
   });
 });
 
