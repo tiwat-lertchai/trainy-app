@@ -18,17 +18,21 @@
     "dev": "bun --watch src/index.ts",
     "type-check": "tsc --noEmit --declaration false",
     "test": "bun test src",
+    "test:integration": "bun test ./src/modules/organizations/organization.repository.integration.ts",
     "db:check": "drizzle-kit check",
     "db:generate": "drizzle-kit generate",
     "db:migrate": "drizzle-kit migrate",
     "db:studio": "drizzle-kit studio"
   },
   "dependencies": {
+    "@hono/zod-validator": "^0.9.0",
     "@neondatabase/serverless": "^1.1.0",
     "better-auth": "^1.7.2",
     "drizzle-orm": "^0.45.2",
     "hono": "^4.10.8",
-    "shared": "workspace:*"
+    "postgres": "^3.4.9",
+    "shared": "workspace:*",
+    "zod": "^4.4.3"
   },
   "devDependencies": {
     "@types/bun": "latest",

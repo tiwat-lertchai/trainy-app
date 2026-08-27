@@ -1,5 +1,7 @@
 const nodeEnvironments = ["development", "test", "production"] as const;
 type NodeEnvironment = (typeof nodeEnvironments)[number];
+const databaseDrivers = ["neon", "postgres"] as const;
+type DatabaseDriver = (typeof databaseDrivers)[number];
 
 function readNodeEnvironment(value: string | undefined): NodeEnvironment {
   if (nodeEnvironments.includes(value as NodeEnvironment)) {
@@ -7,6 +9,14 @@ function readNodeEnvironment(value: string | undefined): NodeEnvironment {
   }
 
   return "development";
+}
+
+function readDatabaseDriver(value: string | undefined): DatabaseDriver {
+  if (databaseDrivers.includes(value as DatabaseDriver)) {
+    return value as DatabaseDriver;
+  }
+
+  return "neon";
 }
 
 function readPort(value: string | undefined): number {
@@ -65,6 +75,7 @@ export const env = Object.freeze({
     process.env.CORS_ORIGINS ?? process.env.CORS_ORIGIN,
   ),
   DATABASE_URL: readRequired("DATABASE_URL", process.env.DATABASE_URL),
+  DATABASE_DRIVER: readDatabaseDriver(process.env.DATABASE_DRIVER),
   BETTER_AUTH_SECRET: readRequired(
     "BETTER_AUTH_SECRET",
     process.env.BETTER_AUTH_SECRET,

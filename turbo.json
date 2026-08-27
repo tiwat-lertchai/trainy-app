@@ -41,6 +41,7 @@
         "CORS_ORIGIN",
         "CORS_ORIGINS",
         "DATABASE_URL",
+        "DATABASE_DRIVER",
         "BETTER_AUTH_SECRET",
         "BETTER_AUTH_URL",
         "LINE_CHANNEL_ID",

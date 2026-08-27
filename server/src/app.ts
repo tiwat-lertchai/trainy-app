@@ -7,6 +7,7 @@ import { env } from "./config/env";
 import { errorHandler } from "./middleware/error-handler";
 import { authRoute } from "./modules/auth/auth.route";
 import { healthRoute } from "./modules/health/health.route";
+import { organizationRoute } from "./modules/organizations/organization.route";
 import { rootRoute } from "./modules/root/root.route";
 
 function createApp() {
@@ -50,6 +51,7 @@ function createApp() {
 export const app = createApp()
   .route("/", rootRoute)
   .route("/api/auth", authRoute)
+  .route("/api/v1/organizations", organizationRoute)
   .route("/api/v1/health", healthRoute);
 
 export type AppType = typeof app;

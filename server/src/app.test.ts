@@ -70,3 +70,16 @@ describe("authentication routes", () => {
     expect(await response.json()).toBeNull();
   });
 });
+
+describe("organization routes", () => {
+  it("rejects unauthenticated requests", async () => {
+    const response = await app.request("/api/v1/organizations");
+    const body = await response.json();
+
+    expect(response.status).toBe(401);
+    expect(body).toMatchObject({
+      success: false,
+      error: { code: "UNAUTHORIZED" },
+    });
+  });
+});
