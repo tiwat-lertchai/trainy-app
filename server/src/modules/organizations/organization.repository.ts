@@ -13,6 +13,10 @@ import type {
 
 export type OrganizationRecord = typeof organization.$inferSelect;
 export type MembershipRecord = typeof organizationMembership.$inferSelect;
+export type OrganizationMembershipRecord = {
+  organization: OrganizationRecord;
+  membership: MembershipRecord;
+};
 
 export interface OrganizationRepository {
   createWithOwner(input: {
@@ -28,7 +32,7 @@ export interface OrganizationRepository {
     organizationId: string,
     userId: string,
   ): Promise<OrganizationRecord | undefined>;
-  listForUser(userId: string): Promise<OrganizationRecord[]>;
+  listForUser(userId: string): Promise<OrganizationMembershipRecord[]>;
   findMembership(
     organizationId: string,
     userId: string,
@@ -121,8 +125,8 @@ export class DrizzleOrganizationRepository
   }
 
   async listForUser(userId: string) {
-    const records = await this.database
-      .select({ organization })
+    return this.database
+      .select({ organization, membership: organizationMembership })
       .from(organization)
       .innerJoin(
         organizationMembership,
@@ -134,8 +138,6 @@ export class DrizzleOrganizationRepository
           eq(organizationMembership.status, "active"),
         ),
       );
-
-    return records.map((record) => record.organization);
   }
 
   async findMembership(organizationId: string, userId: string) {

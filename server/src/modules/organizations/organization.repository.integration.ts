@@ -71,7 +71,9 @@ describe("DrizzleOrganizationRepository", () => {
   });
 
   it("lists only organizations with an active membership", async () => {
-    expect(await repository.listForUser("integration-owner")).toHaveLength(1);
+    expect(await repository.listForUser("integration-owner")).toEqual([
+      { organization, membership: ownerMembership },
+    ]);
 
     await repository.updateMembership(ownerMembership.id, {
       status: "suspended",

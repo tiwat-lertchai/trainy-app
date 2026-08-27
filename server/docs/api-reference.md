@@ -65,7 +65,7 @@ Base path: `/api/v1/organizations`
 | Method | Path                                     | Access                                           |
 | ------ | ---------------------------------------- | ------------------------------------------------ |
 | POST   | `/`                                      | Authenticated user; creator becomes tenant admin |
-| GET    | `/`                                      | Active memberships belonging to current user     |
+| GET    | `/`                                      | Organizations and active memberships for current user |
 | GET    | `/:organizationId`                       | Active member of the tenant                      |
 | GET    | `/:organizationId/members`               | Tenant admin                                     |
 | POST   | `/:organizationId/members`               | Tenant admin                                     |
@@ -80,6 +80,31 @@ Create an organization:
   "slug": "example-university"
 }
 ```
+
+List response entries include both the organization and the caller's active
+membership so the frontend can select the correct tenant-scoped role:
+
+```json
+{
+  "organization": {
+    "id": "uuid",
+    "type": "university",
+    "name": "Example University",
+    "slug": "example-university",
+    "status": "active"
+  },
+  "membership": {
+    "id": "uuid",
+    "organizationId": "uuid",
+    "userId": "better-auth-user-id",
+    "role": "student",
+    "status": "active"
+  }
+}
+```
+
+Suspended memberships are omitted. The role is tenant-scoped and must not be
+copied onto the global Better Auth user record.
 
 Add a member:
 

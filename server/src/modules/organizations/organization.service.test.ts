@@ -92,14 +92,15 @@ class FakeOrganizationRepository implements OrganizationRepository {
   }
 
   async listForUser(userId: string) {
-    return this.organizations.filter((item) =>
-      this.memberships.some(
-        (membership) =>
-          membership.organizationId === item.id &&
-          membership.userId === userId &&
-          membership.status === "active",
-      ),
-    );
+    return this.organizations.flatMap((organization) => {
+      const membership = this.memberships.find(
+        (item) =>
+          item.organizationId === organization.id &&
+          item.userId === userId &&
+          item.status === "active",
+      );
+      return membership ? [{ organization, membership }] : [];
+    });
   }
 
   async findMembership(organizationId: string, userId: string) {
@@ -167,6 +168,20 @@ function expectAppError(error: unknown, code: string) {
 }
 
 describe("OrganizationService", () => {
+  it("lists the current user's active membership with each organization", async () => {
+    const repository = new FakeOrganizationRepository();
+    repository.organizations.push(makeOrganization());
+    repository.memberships.push(makeMembership({ role: "advisor" }));
+    const service = new OrganizationService(repository);
+
+    await expect(service.listOrganizations("admin-user")).resolves.toEqual([
+      {
+        organization: makeOrganization(),
+        membership: makeMembership({ role: "advisor" }),
+      },
+    ]);
+  });
+
   it("creates a university and assigns the creator as its first admin", async () => {
     const repository = new FakeOrganizationRepository();
     const service = new OrganizationService(repository);
