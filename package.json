@@ -33,10 +33,10 @@
   ],
   "devDependencies": {
     "bun-types": "latest",
-    "turbo": "^2.6.3"
+    "turbo": "^2.10.12"
   },
   "peerDependencies": {
-    "typescript": "^5.8.3"
+    "typescript": "^5.9.3"
   },
   "dependencies": {
     "hono": "^4.13.5"
