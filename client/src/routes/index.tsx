@@ -1,74 +1,54 @@
 import { useMutation } from "@tanstack/react-query";
 import { createFileRoute } from "@tanstack/react-router";
-import { useState } from "react";
-import { hcWithType } from "server/client";
-import beaver from "@/assets/beaver.svg";
 import { Button } from "@/components/ui/button";
+import { getApiStatus } from "@/lib/api-client";
 
 export const Route = createFileRoute("/")({
 	component: Index,
 });
 
-const SERVER_URL = import.meta.env.VITE_SERVER_URL || "http://localhost:3000";
-
-const client = hcWithType(SERVER_URL);
-
-type ResponseType = Awaited<ReturnType<typeof client.hello.$get>>;
-
 function Index() {
-	const [data, setData] = useState<
-		Awaited<ReturnType<ResponseType["json"]>> | undefined
-	>();
-
-	const { mutate: sendRequest } = useMutation({
-		mutationFn: async () => {
-			try {
-				const res = await client.hello.$get();
-				if (!res.ok) {
-					console.log("Error fetching data");
-					return;
-				}
-				const data = await res.json();
-				setData(data);
-			} catch (error) {
-				console.log(error);
-			}
-		},
+	const {
+		data,
+		error,
+		isPending,
+		mutate: checkApi,
+	} = useMutation({
+		mutationFn: getApiStatus,
 	});
 
 	return (
-		<div className="max-w-xl mx-auto flex flex-col gap-6 items-center justify-center min-h-screen">
-			<a
-				href="https://github.com/stevedylandev/bhvr"
-				target="_blank"
-				rel="noopener"
-			>
-				<img
-					src={beaver}
-					className="w-16 h-16 cursor-pointer"
-					alt="beaver logo"
-				/>
-			</a>
-			<h1 className="text-5xl font-black">bhvr</h1>
-			<h2 className="text-2xl font-bold">Bun + Hono + Vite + React</h2>
-			<p>A typesafe fullstack monorepo</p>
-			<div className="flex items-center gap-4">
-				<Button onClick={() => sendRequest()}>Call API</Button>
-				<Button variant="secondary" asChild>
-					<a target="_blank" href="https://bhvr.dev" rel="noopener">
-						Docs
-					</a>
-				</Button>
+		<main className="mx-auto flex min-h-screen max-w-xl flex-col items-center justify-center gap-6 px-6 text-center">
+			<div className="space-y-2">
+				<p className="text-sm font-medium uppercase tracking-[0.25em] text-muted-foreground">
+					Student internship management
+				</p>
+				<h1 className="text-5xl font-black">Trainy</h1>
+				<p className="text-muted-foreground">
+					The application foundation is ready. Check the API connection before
+					continuing.
+				</p>
 			</div>
+
+			<Button onClick={() => checkApi()} disabled={isPending}>
+				{isPending ? "Checking API..." : "Check API connection"}
+			</Button>
+
 			{data && (
-				<pre className="bg-gray-100 p-4 rounded-md">
-					<code>
-						Message: {data.message} <br />
-						Success: {data.success.toString()}
-					</code>
-				</pre>
+				<div className="w-full rounded-lg border bg-card p-4 text-left">
+					<p className="font-semibold">{data.name}</p>
+					<p className="text-sm text-muted-foreground">
+						Status: {data.status}
+					</p>
+				</div>
 			)}
-		</div>
+
+			{error && (
+				<p role="alert" className="text-sm text-destructive">
+					{error.message}
+				</p>
+			)}
+		</main>
 	);
 }
 
