@@ -9,6 +9,7 @@ import { authRoute } from "./modules/auth/auth.route";
 import { healthRoute } from "./modules/health/health.route";
 import { internshipRoute } from "./modules/internships/internship.route";
 import { organizationRoute } from "./modules/organizations/organization.route";
+import { placementRoute } from "./modules/placements/placement.route";
 import { rootRoute } from "./modules/root/root.route";
 
 function createApp() {
@@ -54,6 +55,7 @@ export const app = createApp()
   .route("/api/auth", authRoute)
   .route("/api/v1/internships", internshipRoute)
   .route("/api/v1/organizations", organizationRoute)
+  .route("/api/v1/placements", placementRoute)
   .route("/api/v1/health", healthRoute);
 
 export type AppType = typeof app;

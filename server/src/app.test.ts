@@ -96,3 +96,14 @@ describe("internship routes", () => {
     });
   });
 });
+
+describe("placement routes", () => {
+  it("rejects unauthenticated placement access", async () => {
+    const response = await app.request("/api/v1/placements/me");
+    expect(response.status).toBe(401);
+    expect(await response.json()).toMatchObject({
+      success: false,
+      error: { code: "UNAUTHORIZED" },
+    });
+  });
+});

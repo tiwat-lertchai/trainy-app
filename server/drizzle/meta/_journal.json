@@ -22,6 +22,13 @@
       "when": 1787830491874,
       "tag": "0002_powerful_hydra",
       "breakpoints": true
+    },
+    {
+      "idx": 3,
+      "version": "7",
+      "when": 1787832457046,
+      "tag": "0003_black_plazm",
+      "breakpoints": true
     }
   ]
 }
