@@ -21,7 +21,11 @@ export default tseslint.config(
       ...reactHooks.configs.recommended.rules,
       'react-refresh/only-export-components': [
         'warn',
-        { allowConstantExport: true },
+        {
+          allowConstantExport: true,
+          // TanStack Router and shadcn intentionally colocate these stable exports.
+          allowExportNames: ['Route', 'buttonVariants'],
+        },
       ],
     },
   },
