@@ -41,6 +41,7 @@ describe("API documentation", () => {
   test("is discoverable from the server README", async () => {
     const readme = await Bun.file(readmeUrl).text();
 
-    expect(readme).toContain("[docs/api-reference.md](docs/api-reference.md)");
+    // Assert the link target rather than its label so the README can be localized.
+    expect(readme).toContain("](docs/api-reference.md)");
   });
 });
