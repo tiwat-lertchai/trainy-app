@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { Link, Outlet, useRouterState } from "@tanstack/react-router";
-import { Bell, BriefcaseBusiness, Building2, ChevronRight, ClipboardCheck, FileCheck2, FileText, LayoutDashboard, LogOut, Menu, Search, Settings, UsersRound } from "lucide-react";
+import { BriefcaseBusiness, Building2, ChevronRight, ClipboardCheck, FileCheck2, FileText, LayoutDashboard, LogOut, Menu, Search, Settings, UsersRound } from "lucide-react";
 import { BrandMark } from "@/components/brand/brand-mark";
 import { Button } from "@/components/ui/button";
 import { authClient, signInWithLine } from "@/lib/auth-client";
@@ -9,6 +9,7 @@ import { apiClient } from "@/lib/api-client";
 import { getNavigationForRole, type NavigationKey, type OrganizationRole } from "@/features/organizations/role-navigation";
 import { resolveWorkspaceId } from "@/features/organizations/workspace-selection";
 import { OnboardingPage } from "@/features/onboarding/onboarding-page";
+import { NotificationBell } from "@/features/notifications/notification-bell";
 
 const WORKSPACE_KEY = "trainy-workspace-id";
 
@@ -58,7 +59,7 @@ export function AppDashboard() {
 				<header className="flex h-20 items-center gap-4 border-b bg-white px-5 sm:px-8">
 					<Button className="lg:hidden" variant="ghost" size="icon" aria-label="Open navigation"><Menu /></Button>
 					<div className="hidden max-w-md flex-1 items-center gap-2 rounded-xl bg-muted px-3 py-2.5 text-muted-foreground sm:flex"><Search className="size-4" /><span className="text-sm">ค้นหาใน Trainy</span></div>
-					<div className="ml-auto flex items-center gap-2"><Button variant="ghost" size="sm" asChild><Link to="/app/reviews"><ClipboardCheck /><span className="hidden sm:inline">ตรวจคำขอ</span></Link></Button><Button variant="ghost" size="icon" aria-label="Notifications"><Bell /></Button><div className="hidden text-right sm:block"><p className="text-sm font-semibold">{user.name}</p><p className="text-xs text-muted-foreground">{user.email}</p></div><span className="grid size-10 place-items-center rounded-full bg-[#edf3ff] font-bold text-primary">{user.name.slice(0, 1).toUpperCase()}</span></div>
+					<div className="ml-auto flex items-center gap-2"><Button variant="ghost" size="sm" asChild><Link to="/app/reviews"><ClipboardCheck /><span className="hidden sm:inline">ตรวจคำขอ</span></Link></Button><NotificationBell /><div className="hidden text-right sm:block"><p className="text-sm font-semibold">{user.name}</p><p className="text-xs text-muted-foreground">{user.email}</p></div><span className="grid size-10 place-items-center rounded-full bg-[#edf3ff] font-bold text-primary">{user.name.slice(0, 1).toUpperCase()}</span></div>
 				</header>
 
 				<main className="mx-auto max-w-7xl px-5 py-8 sm:px-8 sm:py-10">
