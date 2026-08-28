@@ -57,6 +57,20 @@ function createApp() {
       strictTransportSecurity: "max-age=31536000; includeSubDomains",
       xContentTypeOptions: "nosniff",
       xFrameOptions: "DENY",
+      // This server only ever returns JSON (plus Better Auth's own
+      // redirects); it never renders HTML/JS/CSS of its own, so the
+      // strictest possible CSP applies.
+      contentSecurityPolicy: {
+        defaultSrc: ["'none'"],
+        frameAncestors: ["'none'"],
+      },
+      permissionsPolicy: {
+        geolocation: [],
+        camera: [],
+        microphone: [],
+        payment: [],
+        usb: [],
+      },
     }),
   );
   app.use(

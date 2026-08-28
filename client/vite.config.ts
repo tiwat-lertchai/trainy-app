@@ -19,4 +19,13 @@ export default defineConfig({
 			"@": path.resolve(import.meta.dirname, "./src"),
 		},
 	},
+	server: {
+		// Without this, Vite's default allow-root walks up to the monorepo
+		// root (via the workspace package.json/lockfile), which lets this
+		// dev server serve files from ../server (and anything else in the
+		// repo) through /@fs/. Scope it to this package only.
+		fs: {
+			allow: [path.resolve(import.meta.dirname, ".")],
+		},
+	},
 });
