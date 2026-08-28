@@ -11,6 +11,7 @@ export type NavigationKey =
 	| "internships"
 	| "applications"
 	| "placements"
+	| "attendance"
 	| "progress"
 	| "documents"
 	| "evaluations"
@@ -18,12 +19,12 @@ export type NavigationKey =
 	| "reports";
 
 const roleNavigation: Record<OrganizationRole, readonly NavigationKey[]> = {
-	university_admin: ["overview", "applications", "placements", "members", "reports"],
-	coordinator: ["overview", "applications", "placements", "reports"],
-	advisor: ["overview", "placements", "progress", "documents", "evaluations"],
-	student: ["overview", "internships", "applications", "placements", "progress", "documents", "evaluations"],
-	company_admin: ["overview", "internships", "applications", "placements", "members", "reports"],
-	supervisor: ["overview", "internships", "applications", "placements", "progress", "documents", "evaluations"],
+	university_admin: ["overview", "applications", "placements", "attendance", "members", "reports"],
+	coordinator: ["overview", "applications", "placements", "attendance", "reports"],
+	advisor: ["overview", "placements", "attendance", "progress", "documents", "evaluations"],
+	student: ["overview", "internships", "applications", "placements", "attendance", "progress", "documents", "evaluations"],
+	company_admin: ["overview", "internships", "applications", "placements", "attendance", "members", "reports"],
+	supervisor: ["overview", "internships", "applications", "placements", "attendance", "progress", "documents", "evaluations"],
 };
 
 export function getNavigationForRole(role: OrganizationRole) {

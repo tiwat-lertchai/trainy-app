@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { Link, Outlet, useRouterState } from "@tanstack/react-router";
-import { BriefcaseBusiness, Building2, ChevronRight, ClipboardCheck, FileCheck2, FileText, LayoutDashboard, LogOut, Menu, Search, Settings, UsersRound } from "lucide-react";
+import { BriefcaseBusiness, Building2, CalendarClock, ChevronRight, ClipboardCheck, FileCheck2, FileText, LayoutDashboard, LogOut, Menu, Search, Settings, UsersRound } from "lucide-react";
 import { BrandMark } from "@/components/brand/brand-mark";
 import { Button } from "@/components/ui/button";
 import { authClient, signInWithLine } from "@/lib/auth-client";
@@ -16,6 +16,7 @@ const WORKSPACE_KEY = "trainy-workspace-id";
 const navigationDetails: Record<NavigationKey, { label: string; icon: typeof LayoutDashboard }> = {
 	overview: { label: "ภาพรวม", icon: LayoutDashboard }, internships: { label: "ตำแหน่งฝึกงาน", icon: BriefcaseBusiness },
 	applications: { label: "ใบสมัคร", icon: ClipboardCheck }, placements: { label: "การฝึกงาน", icon: Building2 },
+	attendance: { label: "การเข้างาน", icon: CalendarClock },
 	progress: { label: "รายงานความก้าวหน้า", icon: FileText }, documents: { label: "เอกสาร", icon: FileCheck2 },
 	evaluations: { label: "การประเมินผล", icon: ClipboardCheck }, members: { label: "สมาชิก", icon: UsersRound }, reports: { label: "รายงานองค์กร", icon: FileText },
 };
@@ -50,7 +51,7 @@ export function AppDashboard() {
 			<aside className="hidden min-h-screen bg-sidebar text-sidebar-foreground lg:flex lg:flex-col">
 				<div className="flex h-20 items-center border-b border-white/10 px-6"><BrandMark /></div>
 				<nav className="flex-1 space-y-1 p-4" aria-label="Application navigation">
-					{navigation.map((key, index) => { const { label, icon: Icon } = navigationDetails[key]; const active = pathname === "/app" ? index === 0 : pathname.includes(key); const className = `flex w-full items-center gap-3 rounded-xl px-3 py-3 text-sm font-medium transition ${active ? "bg-white/12 text-white" : "text-slate-300 hover:bg-white/7 hover:text-white"}`; if (key === "internships") return <Link key={key} to="/app/internships" className={className}><Icon className="size-5" />{label}</Link>; if (key === "applications") return <Link key={key} to="/app/applications" className={className}><Icon className="size-5" />{label}</Link>; if (key === "placements") return <Link key={key} to="/app/placements" className={className}><Icon className="size-5" />{label}</Link>; return <button key={key} className={className}><Icon className="size-5" />{label}</button>; })}
+					{navigation.map((key, index) => { const { label, icon: Icon } = navigationDetails[key]; const active = pathname === "/app" ? index === 0 : pathname.includes(key); const className = `flex w-full items-center gap-3 rounded-xl px-3 py-3 text-sm font-medium transition ${active ? "bg-white/12 text-white" : "text-slate-300 hover:bg-white/7 hover:text-white"}`; const links = { internships: "/app/internships", applications: "/app/applications", placements: "/app/placements", attendance: "/app/attendance", progress: "/app/progress" } as const; return key in links ? <Link key={key} to={links[key as keyof typeof links]} className={className}><Icon className="size-5" />{label}</Link> : <button key={key} className={className}><Icon className="size-5" />{label}</button>; })}
 				</nav>
 				<div className="border-t border-white/10 p-4"><button className="flex w-full items-center gap-3 rounded-xl px-3 py-3 text-sm text-slate-300 hover:bg-white/7"><Settings className="size-5" />ตั้งค่า</button></div>
 			</aside>

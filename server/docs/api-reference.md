@@ -313,6 +313,76 @@ Review with `{ "decision": "approved" }` or:
 States are `draft → submitted → approved`, or `submitted → revision_requested`
 and back to draft after editing.
 
+## Attendance and location evidence
+
+Base path: `/api/v1/attendance`
+
+| Method | Path                                  | Access                                     |
+| ------ | -------------------------------------- | ------------------------------------------- |
+| PUT    | `/:placementId/schedule`               | Company admin                               |
+| GET    | `/:placementId/schedule`               | Student or assigned advisor/supervisor, or active company/university staff |
+| POST   | `/:placementId/check-in`               | Placement student                           |
+| POST   | `/:attendanceId/check-out`             | Placement student                           |
+| GET    | `/:placementId`                        | Student or assigned advisor/supervisor, or active company/university staff |
+| POST   | `/:attendanceId/adjustments`           | Placement student                           |
+| GET    | `/:placementId/adjustments`            | Assigned advisor/supervisor                 |
+| POST   | `/adjustments/:adjustmentId/review`    | Assigned advisor/supervisor                 |
+| GET    | `/organizations/:organizationId/summary` | University admin/coordinator/advisor      |
+
+Location is captured only when the student explicitly checks in or out;
+continuous tracking is never performed. Timestamps always come from the
+server; the API never accepts a client-supplied check-in/out time. The
+initial supported timezone is `Asia/Bangkok`.
+
+Set a weekly schedule:
+
+```json
+{
+  "days": [
+    { "weekday": 1, "startMinute": 480, "endMinute": 1020, "breakMinutes": 60, "graceMinutes": 10 }
+  ],
+  "timezone": "Asia/Bangkok",
+  "locationPolicy": "required_onsite",
+  "geofence": { "latitude": 13.75, "longitude": 100.5, "radiusMeters": 200 }
+}
+```
+
+`locationPolicy` is `disabled`, `optional`, or `required_onsite`. A geofence
+is required when `required_onsite` is selected.
+
+Check in or out:
+
+```json
+{ "location": { "latitude": 13.75, "longitude": 100.5, "accuracyMeters": 8 } }
+```
+
+If GPS is unavailable and the schedule requires onsite location, send an
+exception reason instead so attendance is never silently lost:
+
+```json
+{ "locationExceptionReason": "Company wifi disabled device GPS today." }
+```
+
+Sending both `location` and `locationExceptionReason` in the same request is
+rejected. Attendance status is one of `checked_in`, `complete`, `late`,
+`left_early`, `late_and_left_early`, or `incomplete`, derived from the
+schedule's grace period and end time.
+
+Request a time correction:
+
+```json
+{ "proposedCheckOutAt": "2027-03-01T10:00:00.000Z", "reason": "Forgot to check out after the on-site visit." }
+```
+
+Review it:
+
+```json
+{ "decision": "approved", "note": "Confirmed with the on-site supervisor." }
+```
+
+A placement has at most one pending adjustment request at a time. Approval
+recalculates attendance status and net minutes from the corrected times.
+
 ## Placement documents
 
 Base path: `/api/v1/documents`

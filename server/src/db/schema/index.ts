@@ -7,5 +7,6 @@ export * from "./internship";
 export * from "./onboarding";
 export * from "./organization";
 export * from "./placement";
+export * from "./attendance";
 export * from "./progress";
 export * from "./system";

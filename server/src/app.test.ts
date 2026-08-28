@@ -119,6 +119,23 @@ describe("placement routes", () => {
   });
 });
 
+describe("attendance routes", () => {
+  it("rejects unauthenticated attendance access", async () => {
+    const [schedule, records, summary] = await Promise.all([
+      app.request(
+        "/api/v1/attendance/00000000-0000-4000-8000-000000000000/schedule",
+      ),
+      app.request("/api/v1/attendance/00000000-0000-4000-8000-000000000000"),
+      app.request(
+        "/api/v1/attendance/organizations/00000000-0000-4000-8000-000000000000/summary?from=2026-10-01&to=2026-10-31",
+      ),
+    ]);
+    expect(schedule.status).toBe(401);
+    expect(records.status).toBe(401);
+    expect(summary.status).toBe(401);
+  });
+});
+
 describe("progress report routes", () => {
   it("rejects unauthenticated progress report access", async () => {
     const response = await app.request(

@@ -12,9 +12,11 @@ import { Route as rootRouteImport } from './routes/__root'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as AppRouteImport } from './routes/app'
 import { Route as AppApplicationsRouteImport } from './routes/app.applications'
+import { Route as AppAttendanceRouteImport } from './routes/app.attendance'
 import { Route as AppInternshipsRouteImport } from './routes/app.internships'
 import { Route as AppOnboardingRouteImport } from './routes/app.onboarding'
 import { Route as AppPlacementsRouteImport } from './routes/app.placements'
+import { Route as AppProgressRouteImport } from './routes/app.progress'
 import { Route as AppReviewsRouteImport } from './routes/app.reviews'
 
 const IndexRoute = IndexRouteImport.update({
@@ -32,6 +34,11 @@ const AppApplicationsRoute = AppApplicationsRouteImport.update({
   path: '/applications',
   getParentRoute: () => AppRoute,
 } as any)
+const AppAttendanceRoute = AppAttendanceRouteImport.update({
+  id: '/attendance',
+  path: '/attendance',
+  getParentRoute: () => AppRoute,
+} as any)
 const AppInternshipsRoute = AppInternshipsRouteImport.update({
   id: '/internships',
   path: '/internships',
@@ -47,6 +54,11 @@ const AppPlacementsRoute = AppPlacementsRouteImport.update({
   path: '/placements',
   getParentRoute: () => AppRoute,
 } as any)
+const AppProgressRoute = AppProgressRouteImport.update({
+  id: '/progress',
+  path: '/progress',
+  getParentRoute: () => AppRoute,
+} as any)
 const AppReviewsRoute = AppReviewsRouteImport.update({
   id: '/reviews',
   path: '/reviews',
@@ -57,18 +69,22 @@ export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/app': typeof AppRouteWithChildren
   '/app/applications': typeof AppApplicationsRoute
+  '/app/attendance': typeof AppAttendanceRoute
   '/app/internships': typeof AppInternshipsRoute
   '/app/onboarding': typeof AppOnboardingRoute
   '/app/placements': typeof AppPlacementsRoute
+  '/app/progress': typeof AppProgressRoute
   '/app/reviews': typeof AppReviewsRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/app': typeof AppRouteWithChildren
   '/app/applications': typeof AppApplicationsRoute
+  '/app/attendance': typeof AppAttendanceRoute
   '/app/internships': typeof AppInternshipsRoute
   '/app/onboarding': typeof AppOnboardingRoute
   '/app/placements': typeof AppPlacementsRoute
+  '/app/progress': typeof AppProgressRoute
   '/app/reviews': typeof AppReviewsRoute
 }
 export interface FileRoutesById {
@@ -76,9 +92,11 @@ export interface FileRoutesById {
   '/': typeof IndexRoute
   '/app': typeof AppRouteWithChildren
   '/app/applications': typeof AppApplicationsRoute
+  '/app/attendance': typeof AppAttendanceRoute
   '/app/internships': typeof AppInternshipsRoute
   '/app/onboarding': typeof AppOnboardingRoute
   '/app/placements': typeof AppPlacementsRoute
+  '/app/progress': typeof AppProgressRoute
   '/app/reviews': typeof AppReviewsRoute
 }
 export interface FileRouteTypes {
@@ -87,27 +105,33 @@ export interface FileRouteTypes {
     | '/'
     | '/app'
     | '/app/applications'
+    | '/app/attendance'
     | '/app/internships'
     | '/app/onboarding'
     | '/app/placements'
+    | '/app/progress'
     | '/app/reviews'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
     | '/app'
     | '/app/applications'
+    | '/app/attendance'
     | '/app/internships'
     | '/app/onboarding'
     | '/app/placements'
+    | '/app/progress'
     | '/app/reviews'
   id:
     | '__root__'
     | '/'
     | '/app'
     | '/app/applications'
+    | '/app/attendance'
     | '/app/internships'
     | '/app/onboarding'
     | '/app/placements'
+    | '/app/progress'
     | '/app/reviews'
   fileRoutesById: FileRoutesById
 }
@@ -139,6 +163,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AppApplicationsRouteImport
       parentRoute: typeof AppRoute
     }
+    '/app/attendance': {
+      id: '/app/attendance'
+      path: '/attendance'
+      fullPath: '/app/attendance'
+      preLoaderRoute: typeof AppAttendanceRouteImport
+      parentRoute: typeof AppRoute
+    }
     '/app/internships': {
       id: '/app/internships'
       path: '/internships'
@@ -160,6 +191,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AppPlacementsRouteImport
       parentRoute: typeof AppRoute
     }
+    '/app/progress': {
+      id: '/app/progress'
+      path: '/progress'
+      fullPath: '/app/progress'
+      preLoaderRoute: typeof AppProgressRouteImport
+      parentRoute: typeof AppRoute
+    }
     '/app/reviews': {
       id: '/app/reviews'
       path: '/reviews'
@@ -172,17 +210,21 @@ declare module '@tanstack/react-router' {
 
 interface AppRouteChildren {
   AppApplicationsRoute: typeof AppApplicationsRoute
+  AppAttendanceRoute: typeof AppAttendanceRoute
   AppInternshipsRoute: typeof AppInternshipsRoute
   AppOnboardingRoute: typeof AppOnboardingRoute
   AppPlacementsRoute: typeof AppPlacementsRoute
+  AppProgressRoute: typeof AppProgressRoute
   AppReviewsRoute: typeof AppReviewsRoute
 }
 
 const AppRouteChildren: AppRouteChildren = {
   AppApplicationsRoute: AppApplicationsRoute,
+  AppAttendanceRoute: AppAttendanceRoute,
   AppInternshipsRoute: AppInternshipsRoute,
   AppOnboardingRoute: AppOnboardingRoute,
   AppPlacementsRoute: AppPlacementsRoute,
+  AppProgressRoute: AppProgressRoute,
   AppReviewsRoute: AppReviewsRoute,
 }
 

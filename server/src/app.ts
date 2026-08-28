@@ -7,6 +7,7 @@ import { secureHeaders } from "hono/secure-headers";
 import { env } from "./config/env";
 import { errorHandler } from "./middleware/error-handler";
 import { auditMutations } from "./middleware/audit-mutations";
+import { attendanceRoute } from "./modules/attendance/attendance.route";
 import { authRoute } from "./modules/auth/auth.route";
 import { documentRoute } from "./modules/documents/document.route";
 import { evaluationRoute } from "./modules/evaluations/evaluation.route";
@@ -79,6 +80,7 @@ function createApp() {
 export const app = createApp()
   .route("/", rootRoute)
   .route("/api/auth", authRoute)
+  .route("/api/v1/attendance", attendanceRoute)
   .route("/api/v1/documents", documentRoute)
   .route("/api/v1/evaluations", evaluationRoute)
   .route("/api/v1/internships", internshipRoute)
