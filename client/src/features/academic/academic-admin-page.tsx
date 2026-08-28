@@ -2,12 +2,14 @@ import { useState, type FormEvent } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { GraduationCap } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { useLanguage } from "@/i18n/config";
 import { apiClient } from "@/lib/api-client";
 
 const WORKSPACE_KEY = "trainy-workspace-id";
 
 export function AcademicAdminPage() {
 	const queryClient = useQueryClient();
+	const { t } = useLanguage();
 	const [openFacultyId, setOpenFacultyId] = useState("");
 
 	const organizations = useQuery({
@@ -91,45 +93,45 @@ export function AcademicAdminPage() {
 	if (organizations.isLoading)
 		return (
 			<div className="grid min-h-80 place-items-center text-muted-foreground">
-				กำลังโหลดข้อมูล...
+				{t("academic.loading")}
 			</div>
 		);
 	if (!canManage)
 		return (
 			<div className="mx-auto max-w-xl rounded-3xl border bg-white p-8 text-center text-muted-foreground">
-				หน้านี้สำหรับผู้ดูแลมหาวิทยาลัยเท่านั้น
+				{t("academic.forbidden")}
 			</div>
 		);
 
 	return (
 		<div>
-			<p className="text-sm font-semibold text-primary">ACADEMIC STRUCTURE</p>
-			<h1 className="mt-2 text-3xl font-black">คณะและสาขา</h1>
+			<p className="text-sm font-semibold text-primary">{t("academic.eyebrow")}</p>
+			<h1 className="mt-2 text-3xl font-black">{t("academic.title")}</h1>
 			<p className="mt-2 text-muted-foreground">
-				จัดการรายชื่อคณะและสาขาของ {context?.organization.name} สำหรับใช้ในฟอร์มลงทะเบียนนักศึกษา
+				{t("academic.description", { organization: context?.organization.name ?? "" })}
 			</p>
 
 			<form className="mt-6 flex max-w-md gap-2" onSubmit={submitFaculty}>
 				<input
 					name="name"
-					placeholder="ชื่อคณะใหม่ เช่น คณะวิทยาศาสตร์"
+					placeholder={t("academic.facultyPlaceholder")}
 					required
 					minLength={2}
 					maxLength={200}
 					className="h-11 flex-1 rounded-xl border bg-background px-3 outline-none focus:border-primary focus:ring-3 focus:ring-primary/10"
 				/>
-				<Button disabled={addFaculty.isPending}>เพิ่มคณะ</Button>
+				<Button disabled={addFaculty.isPending}>{t("academic.addFaculty")}</Button>
 			</form>
 			{addFaculty.isError && (
 				<p role="alert" className="mt-2 text-sm text-destructive">
-					เพิ่มคณะไม่สำเร็จ อาจมีชื่อนี้อยู่แล้ว
+					{t("academic.addFacultyError")}
 				</p>
 			)}
 
 			{faculties.isLoading && <div className="mt-8 h-32 animate-pulse rounded-2xl bg-muted" />}
 			{faculties.data?.data.length === 0 && (
 				<div className="mt-8 rounded-2xl border bg-white p-10 text-center text-muted-foreground">
-					ยังไม่มีคณะ เพิ่มคณะแรกด้านบนได้เลย
+					{t("academic.noFaculties")}
 				</div>
 			)}
 
@@ -156,19 +158,19 @@ export function AcademicAdminPage() {
 									>
 										<input
 											name="name"
-											placeholder="ชื่อสาขาใหม่ เช่น วิทยาการคอมพิวเตอร์"
+											placeholder={t("academic.majorPlaceholder")}
 											required
 											minLength={2}
 											maxLength={200}
 											className="h-10 flex-1 rounded-lg border bg-background px-3 text-sm outline-none focus:border-primary focus:ring-3 focus:ring-primary/10"
 										/>
 										<Button size="sm" disabled={addMajor.isPending}>
-											เพิ่มสาขา
+											{t("academic.addMajor")}
 										</Button>
 									</form>
 									{addMajor.isError && (
 										<p role="alert" className="mt-2 text-sm text-destructive">
-											เพิ่มสาขาไม่สำเร็จ อาจมีชื่อนี้อยู่แล้ว
+											{t("academic.addMajorError")}
 										</p>
 									)}
 									<ul className="mt-4 flex flex-wrap gap-2">
@@ -178,7 +180,7 @@ export function AcademicAdminPage() {
 											</li>
 										))}
 										{majors.data?.data.length === 0 && (
-											<li className="text-sm text-muted-foreground">ยังไม่มีสาขาในคณะนี้</li>
+											<li className="text-sm text-muted-foreground">{t("academic.noMajors")}</li>
 										)}
 									</ul>
 								</div>

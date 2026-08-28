@@ -11,9 +11,17 @@ export function resolveLocale(value: string | null): Locale {
 type LanguageContextValue = {
 	locale: Locale;
 	setLocale: (locale: Locale) => void;
-	t: (key: MessageKey) => string;
+	t: (key: MessageKey, params?: TranslationParams) => string;
 };
 const LanguageContext = createContext<LanguageContextValue | null>(null);
+
+export type TranslationParams = Record<string, string | number>;
+
+export function interpolateMessage(message: string, params: TranslationParams = {}) {
+	return message.replace(/\{(\w+)\}/g, (placeholder, name: string) =>
+		Object.prototype.hasOwnProperty.call(params, name) ? String(params[name]) : placeholder,
+	);
+}
 
 export function LanguageProvider({ children }: { children: ReactNode }) {
 	const [locale, setLocale] = useState<Locale>(() =>
@@ -26,7 +34,11 @@ export function LanguageProvider({ children }: { children: ReactNode }) {
 	}, [locale]);
 
 	const value = useMemo<LanguageContextValue>(
-		() => ({ locale, setLocale, t: (key) => messages[locale][key] }),
+		() => ({
+			locale,
+			setLocale,
+			t: (key, params) => interpolateMessage(messages[locale][key], params),
+		}),
 		[locale],
 	);
 	return <LanguageContext.Provider value={value}>{children}</LanguageContext.Provider>;
