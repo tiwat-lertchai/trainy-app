@@ -71,6 +71,13 @@
       "when": 1787910125655,
       "tag": "0009_classy_paladin",
       "breakpoints": true
+    },
+    {
+      "idx": 10,
+      "version": "7",
+      "when": 1787939562810,
+      "tag": "0010_burly_stranger",
+      "breakpoints": true
     }
   ]
 }

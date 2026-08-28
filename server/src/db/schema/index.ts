@@ -5,6 +5,7 @@ export * from "./auth";
 export * from "./document";
 export * from "./evaluation";
 export * from "./internship";
+export * from "./invite";
 export * from "./onboarding";
 export * from "./organization";
 export * from "./placement";

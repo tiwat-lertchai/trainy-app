@@ -14,6 +14,7 @@ import { documentRoute } from "./modules/documents/document.route";
 import { evaluationRoute } from "./modules/evaluations/evaluation.route";
 import { healthRoute } from "./modules/health/health.route";
 import { internshipRoute } from "./modules/internships/internship.route";
+import { inviteRoute } from "./modules/invites/invite.route";
 import { notificationRoute } from "./modules/notifications/notification.route";
 import { onboardingRoute } from "./modules/onboarding/onboarding.route";
 import { organizationRoute } from "./modules/organizations/organization.route";
@@ -101,6 +102,7 @@ export const app = createApp()
   .route("/api/v1/documents", documentRoute)
   .route("/api/v1/evaluations", evaluationRoute)
   .route("/api/v1/internships", internshipRoute)
+  .route("/api/v1/invites", inviteRoute)
   .route("/api/v1/notifications", notificationRoute)
   .route("/api/v1/onboarding", onboardingRoute)
   .route("/api/v1/organizations", organizationRoute)
