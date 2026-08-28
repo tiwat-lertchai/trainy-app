@@ -27,21 +27,22 @@ services:
       DATABASE_URL: postgresql://trainy:${POSTGRES_PASSWORD:?set POSTGRES_PASSWORD in .env}@db:5432/trainy
       DATABASE_DRIVER: postgres
       BETTER_AUTH_SECRET: ${BETTER_AUTH_SECRET:?set BETTER_AUTH_SECRET in .env}
-      BETTER_AUTH_URL: ${BETTER_AUTH_URL:-http://localhost:3001}
+      BETTER_AUTH_URL: ${BETTER_AUTH_URL:-http://localhost:8081}
       LINE_CHANNEL_ID: ${LINE_CHANNEL_ID:?set LINE_CHANNEL_ID in .env}
       LINE_CHANNEL_SECRET: ${LINE_CHANNEL_SECRET:?set LINE_CHANNEL_SECRET in .env}
       UPLOAD_DIR: /app/server/uploads
     volumes:
       - uploads:/app/server/uploads
-    ports:
-      - "3001:3000"
+    # No published port: the client's nginx reverse-proxies /api/ to this
+    # service over the internal Compose network (see client/nginx.conf), so
+    # the server never needs to be reachable directly from outside.
 
   client:
     build:
       context: .
       dockerfile: client/Dockerfile
       args:
-        VITE_SERVER_URL: ${VITE_SERVER_URL:-http://localhost:3001}
+        VITE_SERVER_URL: ${VITE_SERVER_URL:-http://localhost:8081}
     depends_on:
       - server
     ports:
