@@ -48,6 +48,7 @@ it up together with the database.
 ## Commit
 
 - `224ec12 feat(documents): add review workflow ui`
+- `53108ee feat(documents): store uploads on server`
 - Committed locally on `master`; not pushed.
 
 ## Follow-up
