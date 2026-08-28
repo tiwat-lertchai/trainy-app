@@ -4,6 +4,9 @@ import { BriefcaseBusiness, Building2, CalendarDays, MapPin, Users } from "lucid
 import { Button } from "@/components/ui/button";
 import { apiClient } from "@/lib/api-client";
 import { canApply, formatWorkMode } from "./internship-format";
+import { CompanyInternshipPage } from "./company-internship-page";
+
+const WORKSPACE_KEY = "trainy-workspace-id";
 
 async function loadOrganizations() {
 	const response = await apiClient.api.v1.organizations.$get();
@@ -24,6 +27,7 @@ export function InternshipPage() {
 	const organizations = useQuery({ queryKey: ["organizations"], queryFn: loadOrganizations });
 	const internships = useQuery({ queryKey: ["internships", "published"], queryFn: loadPublishedInternships });
 	const studentMembership = organizations.data?.data.find((item) => item.membership.role === "student");
+	const activeMembership = organizations.data?.data.find((item) => item.organization.id === localStorage.getItem(WORKSPACE_KEY)) ?? organizations.data?.data[0];
 
 	const apply = useMutation({
 		mutationFn: async (internshipId: string) => {
@@ -41,6 +45,10 @@ export function InternshipPage() {
 			await queryClient.invalidateQueries({ queryKey: ["applications"] });
 		},
 	});
+
+	if (activeMembership && ["company_admin", "supervisor"].includes(activeMembership.membership.role)) {
+		return <CompanyInternshipPage organizationId={activeMembership.organization.id} canManage={activeMembership.membership.role === "company_admin"} />;
+	}
 
 	return (
 		<div>

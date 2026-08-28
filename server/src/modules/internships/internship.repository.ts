@@ -14,6 +14,11 @@ import type {
 
 export type InternshipRecord = typeof internship.$inferSelect;
 export type ApplicationRecord = typeof internshipApplication.$inferSelect;
+export type ApplicationView = ApplicationRecord & {
+  internship?: InternshipRecord;
+  student?: { id: string; name: string; email: string };
+  university?: { id: string; name: string; type: "university" | "company" };
+};
 export type MembershipAccess = Pick<
   typeof organizationMembership.$inferSelect,
   "organizationId" | "role" | "status" | "userId"
@@ -64,13 +69,13 @@ export interface InternshipRepository {
     universityOrganizationId: string;
     statement: string;
   }): Promise<ApplicationRecord | undefined>;
-  listStudentApplications(studentUserId: string): Promise<ApplicationRecord[]>;
+  listStudentApplications(studentUserId: string): Promise<ApplicationView[]>;
   listInternshipApplications(
     internshipId: string,
-  ): Promise<ApplicationRecord[]>;
+  ): Promise<ApplicationView[]>;
   listUniversityApplications(
     universityOrganizationId: string,
-  ): Promise<ApplicationRecord[]>;
+  ): Promise<ApplicationView[]>;
   updateApplicationStatus(
     id: string,
     status: ApplicationStatus,
@@ -182,6 +187,7 @@ export class DrizzleInternshipRepository implements InternshipRepository {
   async listStudentApplications(studentUserId: string) {
     return this.database.query.internshipApplication.findMany({
       where: eq(internshipApplication.studentUserId, studentUserId),
+      with: { internship: true, university: { columns: { id: true, name: true, type: true } } },
       orderBy: [desc(internshipApplication.submittedAt)],
     });
   }
@@ -189,6 +195,11 @@ export class DrizzleInternshipRepository implements InternshipRepository {
   async listInternshipApplications(internshipId: string) {
     return this.database.query.internshipApplication.findMany({
       where: eq(internshipApplication.internshipId, internshipId),
+      with: {
+        internship: true,
+        student: { columns: { id: true, name: true, email: true } },
+        university: { columns: { id: true, name: true, type: true } },
+      },
       orderBy: [desc(internshipApplication.submittedAt)],
     });
   }
@@ -199,6 +210,11 @@ export class DrizzleInternshipRepository implements InternshipRepository {
         internshipApplication.universityOrganizationId,
         universityOrganizationId,
       ),
+      with: {
+        internship: true,
+        student: { columns: { id: true, name: true, email: true } },
+        university: { columns: { id: true, name: true, type: true } },
+      },
       orderBy: [desc(internshipApplication.submittedAt)],
     });
   }

@@ -113,10 +113,14 @@ describe("DrizzleInternshipRepository", () => {
     if (!application) throw new Error("Integration application was not created");
     firstApplicationId = application.id;
 
-    expect(
-      await repository.listUniversityApplications(integrationIds.universityId),
-    ).toEqual([
-      expect.objectContaining({ id: application.id, studentUserId: "student" }),
+    expect(await repository.listUniversityApplications(integrationIds.universityId)).toEqual([
+      expect.objectContaining({
+        id: application.id,
+        studentUserId: "student",
+        internship: expect.objectContaining({ title: "Integration Internship" }),
+        student: { id: "student", name: "student", email: "student@example.test" },
+        university: expect.objectContaining({ id: integrationIds.universityId, type: "university" }),
+      }),
     ]);
   });
 

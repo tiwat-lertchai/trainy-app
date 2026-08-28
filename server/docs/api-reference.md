@@ -236,6 +236,9 @@ Apply:
 Application states are `submitted`, `under_review`, `accepted`, `rejected`, and
 `withdrawn`. Terminal states cannot be reopened. Acceptance is serialized in a
 database transaction so concurrent requests cannot exceed internship capacity.
+Application list responses include the related internship and university.
+Company and university staff views also include the student's basic account
+name and email after role and tenant access checks succeed.
 
 ## Placements and assignments
 
