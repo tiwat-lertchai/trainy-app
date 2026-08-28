@@ -18,15 +18,9 @@ export class PlacementService {
     endDate: Date;
   }): Promise<PlacementRecord> {
     if (input.endDate <= input.startDate) {
-      throw new AppError(
-        "End date must be after start date",
-        422,
-        "INVALID_PLACEMENT_DATES",
-      );
+      throw new AppError("End date must be after start date", 422, "INVALID_PLACEMENT_DATES");
     }
-    const application = await this.repository.findApplication(
-      input.applicationId,
-    );
+    const application = await this.repository.findApplication(input.applicationId);
     if (!application) throw notFound();
     if (application.status !== "accepted") {
       throw new AppError(
@@ -41,11 +35,7 @@ export class PlacementService {
       universityManagerRoles,
     );
     if (await this.repository.findByApplication(application.id)) {
-      throw new AppError(
-        "Application already has a placement",
-        409,
-        "PLACEMENT_CONFLICT",
-      );
+      throw new AppError("Application already has a placement", 409, "PLACEMENT_CONFLICT");
     }
 
     const record = await this.repository.create({
@@ -58,47 +48,25 @@ export class PlacementService {
       endDate: input.endDate,
     });
     if (!record)
-      throw new AppError(
-        "Application already has a placement",
-        409,
-        "PLACEMENT_CONFLICT",
-      );
+      throw new AppError("Application already has a placement", 409, "PLACEMENT_CONFLICT");
     return record;
   }
 
-  async assignAdvisor(
-    actorUserId: string,
-    placementId: string,
-    advisorUserId: string,
-  ) {
+  async assignAdvisor(actorUserId: string, placementId: string, advisorUserId: string) {
     const record = await this.requirePendingPlacement(placementId);
     await this.requireMembership(
       actorUserId,
       record.universityOrganizationId,
       universityManagerRoles,
     );
-    await this.requireMembership(
-      advisorUserId,
-      record.universityOrganizationId,
-      ["advisor"],
-    );
+    await this.requireMembership(advisorUserId, record.universityOrganizationId, ["advisor"]);
     return this.repository.update(record.id, { advisorUserId });
   }
 
-  async assignSupervisor(
-    actorUserId: string,
-    placementId: string,
-    supervisorUserId: string,
-  ) {
+  async assignSupervisor(actorUserId: string, placementId: string, supervisorUserId: string) {
     const record = await this.requirePendingPlacement(placementId);
-    await this.requireMembership(actorUserId, record.companyOrganizationId, [
-      "company_admin",
-    ]);
-    await this.requireMembership(
-      supervisorUserId,
-      record.companyOrganizationId,
-      ["supervisor"],
-    );
+    await this.requireMembership(actorUserId, record.companyOrganizationId, ["company_admin"]);
+    await this.requireMembership(supervisorUserId, record.companyOrganizationId, ["supervisor"]);
     return this.repository.update(record.id, { supervisorUserId });
   }
 
@@ -121,10 +89,7 @@ export class PlacementService {
     return this.repository.listForStudent(userId);
   }
 
-  async listOrganizationPlacements(
-    actorUserId: string,
-    organizationId: string,
-  ) {
+  async listOrganizationPlacements(actorUserId: string, organizationId: string) {
     await this.requireMembership(actorUserId, organizationId, [
       "university_admin",
       "coordinator",
@@ -158,10 +123,7 @@ export class PlacementService {
     organizationId: string,
     roles: readonly PlacementMembership["role"][],
   ) {
-    const membership = await this.repository.findMembership(
-      organizationId,
-      userId,
-    );
+    const membership = await this.repository.findMembership(organizationId, userId);
     if (membership?.status !== "active" || !roles.includes(membership.role)) {
       throw new AppError(
         "Required organization access was not found",
@@ -172,10 +134,7 @@ export class PlacementService {
     return membership;
   }
 
-  private assertTransition(
-    record: PlacementRecord,
-    next: Exclude<PlacementStatus, "pending">,
-  ) {
+  private assertTransition(record: PlacementRecord, next: Exclude<PlacementStatus, "pending">) {
     const transitions: Record<PlacementStatus, readonly PlacementStatus[]> = {
       pending: ["active", "cancelled"],
       active: ["completed", "cancelled"],
@@ -189,10 +148,7 @@ export class PlacementService {
         "INVALID_PLACEMENT_TRANSITION",
       );
     }
-    if (
-      next === "active" &&
-      (!record.advisorUserId || !record.supervisorUserId)
-    ) {
+    if (next === "active" && (!record.advisorUserId || !record.supervisorUserId)) {
       throw new AppError(
         "Advisor and supervisor are required before activation",
         409,
@@ -203,9 +159,5 @@ export class PlacementService {
 }
 
 function notFound() {
-  return new AppError(
-    "Placement source was not found",
-    404,
-    "PLACEMENT_NOT_FOUND",
-  );
+  return new AppError("Placement source was not found", 404, "PLACEMENT_NOT_FOUND");
 }

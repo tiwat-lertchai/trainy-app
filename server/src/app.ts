@@ -78,8 +78,7 @@ function createApp() {
     cors({
       // Echo only an explicitly trusted origin. A wildcard cannot be used with
       // credentialed Better Auth requests.
-      origin: (origin) =>
-        env.CORS_ORIGINS.includes(origin) ? origin : undefined,
+      origin: (origin) => (env.CORS_ORIGINS.includes(origin) ? origin : undefined),
       allowMethods: ["GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"],
       allowHeaders: ["Authorization", "Content-Type"],
       credentials: true,

@@ -1,5 +1,10 @@
 import { describe, expect, it } from "bun:test";
-import { facultiesEnabledForRole, isImmediatelyApproved, organizationFieldLabel, organizationTypeForRole } from "./onboarding-rules";
+import {
+	facultiesEnabledForRole,
+	isImmediatelyApproved,
+	organizationFieldLabel,
+	organizationTypeForRole,
+} from "./onboarding-rules";
 
 describe("onboarding presentation rules", () => {
 	it("auto-approves only students", () => {

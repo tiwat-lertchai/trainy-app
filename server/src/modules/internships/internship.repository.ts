@@ -6,11 +6,7 @@ import {
   organization,
   organizationMembership,
 } from "../../db/schema";
-import type {
-  ApplicationStatus,
-  InternshipStatus,
-  InternshipWorkMode,
-} from "./internship.schema";
+import type { ApplicationStatus, InternshipStatus, InternshipWorkMode } from "./internship.schema";
 
 export type InternshipRecord = typeof internship.$inferSelect;
 export type ApplicationRecord = typeof internshipApplication.$inferSelect;
@@ -35,10 +31,7 @@ type InternshipChanges = Partial<{
 }>;
 
 export interface InternshipRepository {
-  findMembership(
-    organizationId: string,
-    userId: string,
-  ): Promise<MembershipAccess | undefined>;
+  findMembership(organizationId: string, userId: string): Promise<MembershipAccess | undefined>;
   createInternship(input: {
     companyOrganizationId: string;
     createdByUserId: string;
@@ -51,13 +44,8 @@ export interface InternshipRepository {
   }): Promise<InternshipRecord>;
   findInternship(id: string): Promise<InternshipRecord | undefined>;
   listPublishedInternships(): Promise<InternshipRecord[]>;
-  listCompanyInternships(
-    companyOrganizationId: string,
-  ): Promise<InternshipRecord[]>;
-  updateInternship(
-    id: string,
-    changes: InternshipChanges,
-  ): Promise<InternshipRecord>;
+  listCompanyInternships(companyOrganizationId: string): Promise<InternshipRecord[]>;
+  updateInternship(id: string, changes: InternshipChanges): Promise<InternshipRecord>;
   findApplication(
     internshipId: string,
     studentUserId: string,
@@ -70,16 +58,9 @@ export interface InternshipRepository {
     statement: string;
   }): Promise<ApplicationRecord | undefined>;
   listStudentApplications(studentUserId: string): Promise<ApplicationView[]>;
-  listInternshipApplications(
-    internshipId: string,
-  ): Promise<ApplicationView[]>;
-  listUniversityApplications(
-    universityOrganizationId: string,
-  ): Promise<ApplicationView[]>;
-  updateApplicationStatus(
-    id: string,
-    status: ApplicationStatus,
-  ): Promise<ApplicationRecord>;
+  listInternshipApplications(internshipId: string): Promise<ApplicationView[]>;
+  listUniversityApplications(universityOrganizationId: string): Promise<ApplicationView[]>;
+  updateApplicationStatus(id: string, status: ApplicationStatus): Promise<ApplicationRecord>;
   acceptApplicationWithinCapacity(
     id: string,
     internshipId: string,
@@ -100,10 +81,7 @@ export class DrizzleInternshipRepository implements InternshipRepository {
         userId: organizationMembership.userId,
       })
       .from(organizationMembership)
-      .innerJoin(
-        organization,
-        eq(organization.id, organizationMembership.organizationId),
-      )
+      .innerJoin(organization, eq(organization.id, organizationMembership.organizationId))
       .where(
         and(
           eq(organizationMembership.organizationId, organizationId),
@@ -114,13 +92,8 @@ export class DrizzleInternshipRepository implements InternshipRepository {
     return record;
   }
 
-  async createInternship(
-    input: Parameters<InternshipRepository["createInternship"]>[0],
-  ) {
-    const [record] = await this.database
-      .insert(internship)
-      .values(input)
-      .returning();
+  async createInternship(input: Parameters<InternshipRepository["createInternship"]>[0]) {
+    const [record] = await this.database.insert(internship).values(input).returning();
     return requireRecord(record, "created internship");
   }
 
@@ -168,17 +141,12 @@ export class DrizzleInternshipRepository implements InternshipRepository {
     });
   }
 
-  async createApplication(
-    input: Parameters<InternshipRepository["createApplication"]>[0],
-  ) {
+  async createApplication(input: Parameters<InternshipRepository["createApplication"]>[0]) {
     const [record] = await this.database
       .insert(internshipApplication)
       .values(input)
       .onConflictDoNothing({
-        target: [
-          internshipApplication.internshipId,
-          internshipApplication.studentUserId,
-        ],
+        target: [internshipApplication.internshipId, internshipApplication.studentUserId],
       })
       .returning();
     return record;
@@ -206,10 +174,7 @@ export class DrizzleInternshipRepository implements InternshipRepository {
 
   async listUniversityApplications(universityOrganizationId: string) {
     return this.database.query.internshipApplication.findMany({
-      where: eq(
-        internshipApplication.universityOrganizationId,
-        universityOrganizationId,
-      ),
+      where: eq(internshipApplication.universityOrganizationId, universityOrganizationId),
       with: {
         internship: true,
         student: { columns: { id: true, name: true, email: true } },
@@ -228,11 +193,7 @@ export class DrizzleInternshipRepository implements InternshipRepository {
     return requireRecord(record, "updated application");
   }
 
-  async acceptApplicationWithinCapacity(
-    id: string,
-    internshipId: string,
-    capacity: number,
-  ) {
+  async acceptApplicationWithinCapacity(id: string, internshipId: string, capacity: number) {
     return this.database.transaction(async (transaction) => {
       // Lock the parent row so concurrent acceptance requests serialize before
       // checking capacity. A service-level count alone would have a race window.

@@ -24,6 +24,7 @@ and pass local verification.
 ## Files and systems changed
 
 Backend (`server/`):
+
 - `src/db/schema/attendance.ts`, migration `drizzle/0008_faithful_killmonger.sql`
   — schedule, attendance record, and adjustment tables.
 - `src/modules/attendance/attendance.schema.ts` — Zod validation (coordinate
@@ -46,6 +47,7 @@ Backend (`server/`):
   new endpoints and enforced the doc-coverage test.
 
 Frontend (`client/`):
+
 - `src/features/attendance/attendance-rules.ts` (+ test) — pure
   role/status/formatting helpers.
 - `src/features/attendance/attendance-location.ts` — thin wrapper around

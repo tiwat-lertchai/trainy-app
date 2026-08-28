@@ -17,9 +17,9 @@ describe("EvaluationService", () => {
     });
   });
   test("rejects an unassigned evaluator", async () => {
-    expect(
-      save(new MemoryEvaluationRepository(), "outsider"),
-    ).rejects.toMatchObject({ code: "EVALUATOR_REQUIRED" });
+    expect(save(new MemoryEvaluationRepository(), "outsider")).rejects.toMatchObject({
+      code: "EVALUATOR_REQUIRED",
+    });
   });
   test("locks an evaluation after submission", async () => {
     const r = new MemoryEvaluationRepository();
@@ -32,9 +32,7 @@ describe("EvaluationService", () => {
   test("hides draft evaluations from the student", async () => {
     const r = new MemoryEvaluationRepository();
     await save(r, "advisor");
-    expect(await new EvaluationService(r).list("student", "placement")).toEqual(
-      [],
-    );
+    expect(await new EvaluationService(r).list("student", "placement")).toEqual([]);
   });
   test("hides another evaluator's draft", async () => {
     const r = new MemoryEvaluationRepository();
@@ -66,9 +64,7 @@ class MemoryEvaluationRepository implements EvaluationRepository {
     return id === "placement" ? this.placement : undefined;
   }
   async findByType(id: string, type: "advisor" | "supervisor") {
-    return this.records.find(
-      (r) => r.placementId === id && r.evaluatorType === type,
-    );
+    return this.records.find((r) => r.placementId === id && r.evaluatorType === type);
   }
   async findById(id: string) {
     return this.records.find((r) => r.id === id);
@@ -78,10 +74,7 @@ class MemoryEvaluationRepository implements EvaluationRepository {
     this.records.push(r);
     return r;
   }
-  async update(
-    id: string,
-    changes: Parameters<EvaluationRepository["update"]>[1],
-  ) {
+  async update(id: string, changes: Parameters<EvaluationRepository["update"]>[1]) {
     const r = this.records.find((x) => x.id === id)!;
     Object.assign(r, changes);
     return r;
@@ -98,9 +91,7 @@ function save(repo: EvaluationRepository, actor: string) {
     comment: "Strong performance throughout the internship.",
   });
 }
-function evaluation(
-  input: Parameters<EvaluationRepository["create"]>[0],
-): EvaluationRecord {
+function evaluation(input: Parameters<EvaluationRepository["create"]>[0]): EvaluationRecord {
   const now = new Date();
   return {
     id: `evaluation-${input.evaluatorType}`,

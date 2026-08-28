@@ -13,12 +13,7 @@ export interface ProgressRepository {
   create(
     input: Pick<
       ProgressRecord,
-      | "placementId"
-      | "studentUserId"
-      | "periodStart"
-      | "periodEnd"
-      | "summary"
-      | "hoursWorked"
+      "placementId" | "studentUserId" | "periodStart" | "periodEnd" | "summary" | "hoursWorked"
     >,
   ): Promise<ProgressRecord | undefined>;
   update(
@@ -65,26 +60,18 @@ export class DrizzleProgressRepository implements ProgressRepository {
       .insert(progressReport)
       .values(input)
       .onConflictDoNothing({
-        target: [
-          progressReport.placementId,
-          progressReport.periodStart,
-          progressReport.periodEnd,
-        ],
+        target: [progressReport.placementId, progressReport.periodStart, progressReport.periodEnd],
       })
       .returning();
     return record;
   }
-  async update(
-    id: string,
-    changes: Parameters<ProgressRepository["update"]>[1],
-  ) {
+  async update(id: string, changes: Parameters<ProgressRepository["update"]>[1]) {
     const [record] = await this.database
       .update(progressReport)
       .set(changes)
       .where(eq(progressReport.id, id))
       .returning();
-    if (!record)
-      throw new Error("Database did not return the updated progress report");
+    if (!record) throw new Error("Database did not return the updated progress report");
     return record;
   }
   listForPlacement(placementId: string) {

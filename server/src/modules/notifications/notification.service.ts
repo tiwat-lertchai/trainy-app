@@ -13,12 +13,7 @@ export class NotificationService {
   }
   async markRead(userId: string, id: string) {
     const r = await this.repository.markRead(id, userId, this.now());
-    if (!r)
-      throw new AppError(
-        "Unread notification was not found",
-        404,
-        "NOTIFICATION_NOT_FOUND",
-      );
+    if (!r) throw new AppError("Unread notification was not found", 404, "NOTIFICATION_NOT_FOUND");
     return r;
   }
 }

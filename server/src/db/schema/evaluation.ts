@@ -13,14 +13,8 @@ import {
 import { user } from "./auth";
 import { placement } from "./placement";
 
-export const evaluatorType = pgEnum("evaluator_type", [
-  "advisor",
-  "supervisor",
-]);
-export const evaluationStatus = pgEnum("evaluation_status", [
-  "draft",
-  "submitted",
-]);
+export const evaluatorType = pgEnum("evaluator_type", ["advisor", "supervisor"]);
+export const evaluationStatus = pgEnum("evaluation_status", ["draft", "submitted"]);
 export const placementEvaluation = pgTable(
   "placement_evaluation",
   {
@@ -38,9 +32,7 @@ export const placementEvaluation = pgTable(
     comment: text("comment").notNull(),
     status: evaluationStatus("status").default("draft").notNull(),
     submittedAt: timestamp("submitted_at", { withTimezone: true }),
-    createdAt: timestamp("created_at", { withTimezone: true })
-      .defaultNow()
-      .notNull(),
+    createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
     updatedAt: timestamp("updated_at", { withTimezone: true })
       .defaultNow()
       .$onUpdate(() => new Date())
@@ -51,23 +43,17 @@ export const placementEvaluation = pgTable(
       "placement_evaluation_score_range",
       sql`${table.technicalScore} between 1 and 5 and ${table.communicationScore} between 1 and 5 and ${table.responsibilityScore} between 1 and 5`,
     ),
-    uniqueIndex("placement_evaluation_type_uidx").on(
-      table.placementId,
-      table.evaluatorType,
-    ),
+    uniqueIndex("placement_evaluation_type_uidx").on(table.placementId, table.evaluatorType),
     index("placement_evaluation_evaluator_idx").on(table.evaluatorUserId),
   ],
 );
-export const placementEvaluationRelations = relations(
-  placementEvaluation,
-  ({ one }) => ({
-    placement: one(placement, {
-      fields: [placementEvaluation.placementId],
-      references: [placement.id],
-    }),
-    evaluator: one(user, {
-      fields: [placementEvaluation.evaluatorUserId],
-      references: [user.id],
-    }),
+export const placementEvaluationRelations = relations(placementEvaluation, ({ one }) => ({
+  placement: one(placement, {
+    fields: [placementEvaluation.placementId],
+    references: [placement.id],
   }),
-);
+  evaluator: one(user, {
+    fields: [placementEvaluation.evaluatorUserId],
+    references: [user.id],
+  }),
+}));

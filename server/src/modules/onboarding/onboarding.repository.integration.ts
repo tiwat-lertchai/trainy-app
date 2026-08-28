@@ -26,7 +26,14 @@ beforeAll(async () => {
   await database.delete(schema.organizationMembership);
   await database.delete(schema.organization);
   await database.delete(schema.user);
-  const users = ["student", "company-admin", "cwie"].map((id) => ({ id, name: id, email: `${id}@example.test`, emailVerified: true, createdAt: new Date(), updatedAt: new Date() }));
+  const users = ["student", "company-admin", "cwie"].map((id) => ({
+    id,
+    name: id,
+    email: `${id}@example.test`,
+    emailVerified: true,
+    createdAt: new Date(),
+    updatedAt: new Date(),
+  }));
   await database.insert(schema.user).values(users);
   await database.insert(schema.platformStaff).values({ userId: "cwie" });
 });
@@ -36,17 +43,42 @@ afterAll(async () => closeDatabase());
 describe("DrizzleOnboardingRepository", () => {
   it("atomically approves a student and creates university membership", async () => {
     const schema = await import("../../db/schema");
-    const [university] = await database.insert(schema.organization).values({ type: "university", name: "Test University", slug: "test-university" }).returning();
-    const result = await repository.createApprovedStudent({ userId: "student", requestedRole: "student", targetOrganizationId: university!.id, profileData: { studentId: "65001" } });
+    const [university] = await database
+      .insert(schema.organization)
+      .values({ type: "university", name: "Test University", slug: "test-university" })
+      .returning();
+    const result = await repository.createApprovedStudent({
+      userId: "student",
+      requestedRole: "student",
+      targetOrganizationId: university!.id,
+      profileData: { studentId: "65001" },
+    });
     expect(result.status).toBe("approved");
-    expect(await repository.findActiveMembership(university!.id, "student")).toMatchObject({ role: "student" });
+    expect(await repository.findActiveMembership(university!.id, "student")).toMatchObject({
+      role: "student",
+    });
   });
 
   it("lets CWIE approve a verified company request atomically", async () => {
-    const pending = await repository.createPending({ userId: "company-admin", requestedRole: "company_admin", profileData: { jobTitle: "Manager" }, proposedOrganization: { name: "Verified Company", slug: "verified-company", registrationNumber: "0101" } });
+    const pending = await repository.createPending({
+      userId: "company-admin",
+      requestedRole: "company_admin",
+      profileData: { jobTitle: "Manager" },
+      proposedOrganization: {
+        name: "Verified Company",
+        slug: "verified-company",
+        registrationNumber: "0101",
+      },
+    });
     expect(await repository.isPlatformStaff("cwie")).toBeTrue();
-    const approved = await repository.approve({ request: pending, reviewerUserId: "cwie", note: "Documents verified" });
+    const approved = await repository.approve({
+      request: pending,
+      reviewerUserId: "cwie",
+      note: "Documents verified",
+    });
     expect(approved).toMatchObject({ status: "approved", reviewerUserId: "cwie" });
-    expect(await repository.findActiveMembership(approved.targetOrganizationId!, "company-admin")).toMatchObject({ role: "company_admin" });
+    expect(
+      await repository.findActiveMembership(approved.targetOrganizationId!, "company-admin"),
+    ).toMatchObject({ role: "company_admin" });
   });
 });

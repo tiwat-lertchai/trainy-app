@@ -42,9 +42,7 @@ describe("API documentation", () => {
     const apiReference = await Bun.file(apiReferenceUrl).text();
 
     for (const route of documentedRouteFamilies) {
-      expect(apiReference, `Missing API documentation for ${route}`).toContain(
-        route,
-      );
+      expect(apiReference, `Missing API documentation for ${route}`).toContain(route);
     }
   });
 

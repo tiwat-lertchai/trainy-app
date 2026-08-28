@@ -14,20 +14,11 @@ export type ReportAccess = {
 };
 export type StatusCount = { status: string; count: number };
 export interface ReportRepository {
-  findAccess(
-    organizationId: string,
-    userId: string,
-  ): Promise<ReportAccess | undefined>;
+  findAccess(organizationId: string, userId: string): Promise<ReportAccess | undefined>;
   countMembers(organizationId: string): Promise<number>;
   countInternships(companyId: string): Promise<number>;
-  applicationCounts(
-    organizationId: string,
-    type: "university" | "company",
-  ): Promise<StatusCount[]>;
-  placementCounts(
-    organizationId: string,
-    type: "university" | "company",
-  ): Promise<StatusCount[]>;
+  applicationCounts(organizationId: string, type: "university" | "company"): Promise<StatusCount[]>;
+  placementCounts(organizationId: string, type: "university" | "company"): Promise<StatusCount[]>;
 }
 export class DrizzleReportRepository implements ReportRepository {
   constructor(private readonly database: Database) {}
@@ -39,10 +30,7 @@ export class DrizzleReportRepository implements ReportRepository {
         status: organizationMembership.status,
       })
       .from(organizationMembership)
-      .innerJoin(
-        organization,
-        eq(organization.id, organizationMembership.organizationId),
-      )
+      .innerJoin(organization, eq(organization.id, organizationMembership.organizationId))
       .where(
         and(
           eq(organizationMembership.organizationId, organizationId),
@@ -83,18 +71,13 @@ export class DrizzleReportRepository implements ReportRepository {
           .where(eq(internshipApplication.universityOrganizationId, id))
           .groupBy(internshipApplication.status)
       : base
-          .innerJoin(
-            internship,
-            eq(internship.id, internshipApplication.internshipId),
-          )
+          .innerJoin(internship, eq(internship.id, internshipApplication.internshipId))
           .where(eq(internship.companyOrganizationId, id))
           .groupBy(internshipApplication.status);
   }
   placementCounts(id: string, type: "university" | "company") {
     const column =
-      type === "university"
-        ? placement.universityOrganizationId
-        : placement.companyOrganizationId;
+      type === "university" ? placement.universityOrganizationId : placement.companyOrganizationId;
     return this.database
       .select({ status: placement.status, count: sql<number>`count(*)::int` })
       .from(placement)

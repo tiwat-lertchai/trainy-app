@@ -4,24 +4,14 @@ import type {
   OrganizationRecord,
   OrganizationRepository,
 } from "./organization.repository";
-import type {
-  MembershipStatus,
-  OrganizationRole,
-  OrganizationType,
-} from "./organization.schema";
+import type { MembershipStatus, OrganizationRole, OrganizationType } from "./organization.schema";
 
-const rolesByOrganizationType: Record<
-  OrganizationType,
-  readonly OrganizationRole[]
-> = {
+const rolesByOrganizationType: Record<OrganizationType, readonly OrganizationRole[]> = {
   university: ["university_admin", "coordinator", "advisor", "student"],
   company: ["company_admin", "supervisor"],
 };
 
-const adminRoleByOrganizationType: Record<
-  OrganizationType,
-  OrganizationRole
-> = {
+const adminRoleByOrganizationType: Record<OrganizationType, OrganizationRole> = {
   university: "university_admin",
   company: "company_admin",
 };
@@ -36,11 +26,7 @@ export class OrganizationService {
     slug: string;
   }): Promise<OrganizationRecord> {
     if (await this.repository.findBySlug(input.slug)) {
-      throw new AppError(
-        "Organization slug is already in use",
-        409,
-        "ORGANIZATION_SLUG_CONFLICT",
-      );
+      throw new AppError("Organization slug is already in use", 409, "ORGANIZATION_SLUG_CONFLICT");
     }
 
     return this.repository.createWithOwner({
@@ -57,18 +43,11 @@ export class OrganizationService {
   }
 
   async getOrganization(actorUserId: string, organizationId: string) {
-    const organization = await this.repository.findForUser(
-      organizationId,
-      actorUserId,
-    );
+    const organization = await this.repository.findForUser(organizationId, actorUserId);
 
     if (!organization) {
       // Returning 404 avoids revealing whether another tenant's record exists.
-      throw new AppError(
-        "Organization was not found",
-        404,
-        "ORGANIZATION_NOT_FOUND",
-      );
+      throw new AppError("Organization was not found", 404, "ORGANIZATION_NOT_FOUND");
     }
 
     return organization;
@@ -85,10 +64,7 @@ export class OrganizationService {
     userId: string;
     role: OrganizationRole;
   }): Promise<MembershipRecord> {
-    const organization = await this.requireAdmin(
-      input.actorUserId,
-      input.organizationId,
-    );
+    const organization = await this.requireAdmin(input.actorUserId, input.organizationId);
 
     this.assertRoleMatchesOrganization(organization.type, input.role);
 
@@ -96,9 +72,7 @@ export class OrganizationService {
       throw new AppError("User was not found", 404, "USER_NOT_FOUND");
     }
 
-    if (
-      await this.repository.findMembership(input.organizationId, input.userId)
-    ) {
+    if (await this.repository.findMembership(input.organizationId, input.userId)) {
       throw new AppError(
         "User is already a member of this organization",
         409,
@@ -120,21 +94,14 @@ export class OrganizationService {
     role?: OrganizationRole;
     status?: MembershipStatus;
   }) {
-    const organization = await this.requireAdmin(
-      input.actorUserId,
-      input.organizationId,
-    );
+    const organization = await this.requireAdmin(input.actorUserId, input.organizationId);
     const target = await this.repository.findMembershipById(
       input.organizationId,
       input.membershipId,
     );
 
     if (!target) {
-      throw new AppError(
-        "Membership was not found",
-        404,
-        "MEMBERSHIP_NOT_FOUND",
-      );
+      throw new AppError("Membership was not found", 404, "MEMBERSHIP_NOT_FOUND");
     }
 
     if (input.role) {
@@ -145,8 +112,7 @@ export class OrganizationService {
     const removesActiveAdmin =
       target.role === adminRole &&
       target.status === "active" &&
-      ((input.role !== undefined && input.role !== adminRole) ||
-        input.status === "suspended");
+      ((input.role !== undefined && input.role !== adminRole) || input.status === "suspended");
 
     if (
       removesActiveAdmin &&
@@ -169,23 +135,13 @@ export class OrganizationService {
     actorUserId: string,
     organizationId: string,
   ): Promise<OrganizationRecord> {
-    const organization = await this.repository.findForUser(
-      organizationId,
-      actorUserId,
-    );
+    const organization = await this.repository.findForUser(organizationId, actorUserId);
 
     if (!organization) {
-      throw new AppError(
-        "Organization was not found",
-        404,
-        "ORGANIZATION_NOT_FOUND",
-      );
+      throw new AppError("Organization was not found", 404, "ORGANIZATION_NOT_FOUND");
     }
 
-    const membership = await this.repository.findMembership(
-      organizationId,
-      actorUserId,
-    );
+    const membership = await this.repository.findMembership(organizationId, actorUserId);
     const adminRole = adminRoleByOrganizationType[organization.type];
 
     if (membership?.status !== "active" || membership.role !== adminRole) {

@@ -1,8 +1,5 @@
 import { describe, expect, test } from "bun:test";
-import type {
-  NotificationRecord,
-  NotificationRepository,
-} from "./notification.repository";
+import type { NotificationRecord, NotificationRepository } from "./notification.repository";
 import { NotificationService } from "./notification.service";
 describe("NotificationService", () => {
   test("lists only the signed-in user's notifications", async () => {
@@ -14,17 +11,15 @@ describe("NotificationService", () => {
   test("cannot mark another user's notification read", async () => {
     const r = new MemoryNotificationRepository();
     const n = await r.create(input("other"));
-    expect(
-      new NotificationService(r).markRead("user", n.id),
-    ).rejects.toMatchObject({ code: "NOTIFICATION_NOT_FOUND" });
+    expect(new NotificationService(r).markRead("user", n.id)).rejects.toMatchObject({
+      code: "NOTIFICATION_NOT_FOUND",
+    });
   });
   test("marks an unread notification exactly once", async () => {
     const r = new MemoryNotificationRepository();
     const n = await r.create(input("user"));
     const s = new NotificationService(r, () => new Date("2026-08-27"));
-    expect((await s.markRead("user", n.id)).readAt).toEqual(
-      new Date("2026-08-27"),
-    );
+    expect((await s.markRead("user", n.id)).readAt).toEqual(new Date("2026-08-27"));
     expect(s.markRead("user", n.id)).rejects.toMatchObject({
       code: "NOTIFICATION_NOT_FOUND",
     });
@@ -46,9 +41,7 @@ class MemoryNotificationRepository implements NotificationRepository {
     return this.records.filter((r) => r.userId === userId);
   }
   async markRead(id: string, userId: string, at: Date) {
-    const r = this.records.find(
-      (n) => n.id === id && n.userId === userId && !n.readAt,
-    );
+    const r = this.records.find((n) => n.id === id && n.userId === userId && !n.readAt);
     if (r) r.readAt = at;
     return r;
   }

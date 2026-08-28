@@ -2,7 +2,12 @@ import { mkdir, readFile, unlink } from "node:fs/promises";
 import { dirname, extname, join, normalize, resolve } from "node:path";
 
 export interface DocumentStorage {
-  save(input: { placementId: string; fileName: string; mimeType: string; bytes: Uint8Array }): Promise<string>;
+  save(input: {
+    placementId: string;
+    fileName: string;
+    mimeType: string;
+    bytes: Uint8Array;
+  }): Promise<string>;
   read(storageKey: string): Promise<Uint8Array>;
   remove(storageKey: string): Promise<void>;
 }
@@ -10,7 +15,12 @@ export interface DocumentStorage {
 export class DiskDocumentStorage implements DocumentStorage {
   constructor(private readonly root: string) {}
 
-  async save(input: { placementId: string; fileName: string; mimeType: string; bytes: Uint8Array }) {
+  async save(input: {
+    placementId: string;
+    fileName: string;
+    mimeType: string;
+    bytes: Uint8Array;
+  }) {
     const extension = extensionFor(input.mimeType, input.fileName);
     const storageKey = join(input.placementId, `${crypto.randomUUID()}${extension}`);
     const target = this.resolveKey(storageKey);
@@ -19,14 +29,19 @@ export class DiskDocumentStorage implements DocumentStorage {
     return storageKey;
   }
 
-  read(storageKey: string) { return readFile(this.resolveKey(storageKey)); }
-  async remove(storageKey: string) { await unlink(this.resolveKey(storageKey)).catch(() => undefined); }
+  read(storageKey: string) {
+    return readFile(this.resolveKey(storageKey));
+  }
+  async remove(storageKey: string) {
+    await unlink(this.resolveKey(storageKey)).catch(() => undefined);
+  }
 
   private resolveKey(storageKey: string) {
     const normalized = normalize(storageKey);
     const target = resolve(this.root, normalized);
     const root = resolve(this.root);
-    if (target === root || !target.startsWith(`${root}/`)) throw new Error("Invalid document storage key");
+    if (target === root || !target.startsWith(`${root}/`))
+      throw new Error("Invalid document storage key");
     return target;
   }
 }

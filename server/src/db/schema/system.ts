@@ -1,11 +1,4 @@
-import {
-  index,
-  jsonb,
-  pgTable,
-  text,
-  timestamp,
-  uuid,
-} from "drizzle-orm/pg-core";
+import { index, jsonb, pgTable, text, timestamp, uuid } from "drizzle-orm/pg-core";
 import { user } from "./auth";
 import { organization } from "./organization";
 
@@ -22,13 +15,9 @@ export const notification = pgTable(
     entityType: text("entity_type"),
     entityId: text("entity_id"),
     readAt: timestamp("read_at", { withTimezone: true }),
-    createdAt: timestamp("created_at", { withTimezone: true })
-      .defaultNow()
-      .notNull(),
+    createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
   },
-  (table) => [
-    index("notification_user_created_idx").on(table.userId, table.createdAt),
-  ],
+  (table) => [index("notification_user_created_idx").on(table.userId, table.createdAt)],
 );
 
 export const auditEvent = pgTable(
@@ -46,15 +35,10 @@ export const auditEvent = pgTable(
     entityId: text("entity_id"),
     requestId: text("request_id"),
     metadata: jsonb("metadata").$type<Record<string, unknown>>().notNull(),
-    createdAt: timestamp("created_at", { withTimezone: true })
-      .defaultNow()
-      .notNull(),
+    createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
   },
   (table) => [
     index("audit_event_actor_idx").on(table.actorUserId),
-    index("audit_event_organization_created_idx").on(
-      table.organizationId,
-      table.createdAt,
-    ),
+    index("audit_event_organization_created_idx").on(table.organizationId, table.createdAt),
   ],
 );

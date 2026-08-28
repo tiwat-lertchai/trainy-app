@@ -7,11 +7,9 @@ let app: Hono;
 beforeAll(async () => {
   // Tests use a valid-looking URL because these security checks never query the
   // database. This keeps the suite independent from Neon and developer secrets.
-  process.env.DATABASE_URL =
-    "postgresql://test:test@localhost/test?sslmode=require";
+  process.env.DATABASE_URL = "postgresql://test:test@localhost/test?sslmode=require";
   process.env.CORS_ORIGINS = trustedOrigin;
-  process.env.BETTER_AUTH_SECRET =
-    "test-secret-that-is-longer-than-thirty-two-characters";
+  process.env.BETTER_AUTH_SECRET = "test-secret-that-is-longer-than-thirty-two-characters";
   process.env.BETTER_AUTH_URL = "http://localhost:3000";
   process.env.LINE_CHANNEL_ID = "test-line-channel-id";
   process.env.LINE_CHANNEL_SECRET = "test-line-channel-secret";
@@ -26,12 +24,8 @@ describe("cross-origin security", () => {
     });
 
     expect(response.status).toBe(200);
-    expect(response.headers.get("Access-Control-Allow-Origin")).toBe(
-      trustedOrigin,
-    );
-    expect(response.headers.get("Access-Control-Allow-Credentials")).toBe(
-      "true",
-    );
+    expect(response.headers.get("Access-Control-Allow-Origin")).toBe(trustedOrigin);
+    expect(response.headers.get("Access-Control-Allow-Credentials")).toBe("true");
   });
 
   it("does not grant cross-origin access to an untrusted origin", async () => {
@@ -48,23 +42,13 @@ describe("cross-origin security", () => {
   it("adds strict browser security headers", async () => {
     const response = await app.request("/");
 
-    expect(response.headers.get("Cross-Origin-Opener-Policy")).toBe(
-      "same-origin",
-    );
-    expect(response.headers.get("Cross-Origin-Resource-Policy")).toBe(
-      "same-origin",
-    );
-    expect(response.headers.get("Referrer-Policy")).toBe(
-      "strict-origin-when-cross-origin",
-    );
+    expect(response.headers.get("Cross-Origin-Opener-Policy")).toBe("same-origin");
+    expect(response.headers.get("Cross-Origin-Resource-Policy")).toBe("same-origin");
+    expect(response.headers.get("Referrer-Policy")).toBe("strict-origin-when-cross-origin");
     expect(response.headers.get("X-Content-Type-Options")).toBe("nosniff");
     expect(response.headers.get("X-Frame-Options")).toBe("DENY");
-    expect(response.headers.get("Content-Security-Policy")).toContain(
-      "default-src 'none'",
-    );
-    expect(response.headers.get("Permissions-Policy")).toContain(
-      "geolocation=()",
-    );
+    expect(response.headers.get("Content-Security-Policy")).toContain("default-src 'none'");
+    expect(response.headers.get("Permissions-Policy")).toContain("geolocation=()");
   });
 });
 
@@ -128,12 +112,8 @@ describe("placement routes", () => {
 describe("academic routes", () => {
   it("rejects unauthenticated faculty and major access", async () => {
     const [faculties, majors] = await Promise.all([
-      app.request(
-        "/api/v1/academic/00000000-0000-4000-8000-000000000000/faculties",
-      ),
-      app.request(
-        "/api/v1/academic/faculties/00000000-0000-4000-8000-000000000000/majors",
-      ),
+      app.request("/api/v1/academic/00000000-0000-4000-8000-000000000000/faculties"),
+      app.request("/api/v1/academic/faculties/00000000-0000-4000-8000-000000000000/majors"),
     ]);
     expect(faculties.status).toBe(401);
     expect(majors.status).toBe(401);
@@ -143,9 +123,7 @@ describe("academic routes", () => {
 describe("attendance routes", () => {
   it("rejects unauthenticated attendance access", async () => {
     const [schedule, records, summary] = await Promise.all([
-      app.request(
-        "/api/v1/attendance/00000000-0000-4000-8000-000000000000/schedule",
-      ),
+      app.request("/api/v1/attendance/00000000-0000-4000-8000-000000000000/schedule"),
       app.request("/api/v1/attendance/00000000-0000-4000-8000-000000000000"),
       app.request(
         "/api/v1/attendance/organizations/00000000-0000-4000-8000-000000000000/summary?from=2026-10-01&to=2026-10-31",
@@ -169,12 +147,8 @@ describe("progress report routes", () => {
 describe("document and evaluation routes", () => {
   it("rejects unauthenticated workflow access", async () => {
     const [documents, evaluations] = await Promise.all([
-      app.request(
-        "/api/v1/documents/placements/00000000-0000-4000-8000-000000000000",
-      ),
-      app.request(
-        "/api/v1/evaluations/placements/00000000-0000-4000-8000-000000000000",
-      ),
+      app.request("/api/v1/documents/placements/00000000-0000-4000-8000-000000000000"),
+      app.request("/api/v1/evaluations/placements/00000000-0000-4000-8000-000000000000"),
     ]);
     expect(documents.status).toBe(401);
     expect(evaluations.status).toBe(401);
@@ -183,13 +157,23 @@ describe("document and evaluation routes", () => {
     const accepted = new FormData();
     accepted.set("placementId", "00000000-0000-4000-8000-000000000000");
     accepted.set("type", "consent");
-    accepted.set("file", new File([new Uint8Array(2 * 1024 * 1024)], "document.pdf", { type: "application/pdf" }));
+    accepted.set(
+      "file",
+      new File([new Uint8Array(2 * 1024 * 1024)], "document.pdf", { type: "application/pdf" }),
+    );
     const oversized = new FormData();
     oversized.set("placementId", "00000000-0000-4000-8000-000000000000");
     oversized.set("type", "consent");
-    oversized.set("file", new File([new Uint8Array(22 * 1024 * 1024)], "document.pdf", { type: "application/pdf" }));
-    expect((await app.request("/api/v1/documents", { method: "POST", body: accepted })).status).toBe(401);
-    expect((await app.request("/api/v1/documents", { method: "POST", body: oversized })).status).toBe(413);
+    oversized.set(
+      "file",
+      new File([new Uint8Array(22 * 1024 * 1024)], "document.pdf", { type: "application/pdf" }),
+    );
+    expect(
+      (await app.request("/api/v1/documents", { method: "POST", body: accepted })).status,
+    ).toBe(401);
+    expect(
+      (await app.request("/api/v1/documents", { method: "POST", body: oversized })).status,
+    ).toBe(413);
   });
 });
 
@@ -197,9 +181,7 @@ describe("platform service routes", () => {
   it("rejects unauthenticated notification and report access", async () => {
     const [notifications, reports] = await Promise.all([
       app.request("/api/v1/notifications"),
-      app.request(
-        "/api/v1/reports/organizations/00000000-0000-4000-8000-000000000000",
-      ),
+      app.request("/api/v1/reports/organizations/00000000-0000-4000-8000-000000000000"),
     ]);
     expect(notifications.status).toBe(401);
     expect(reports.status).toBe(401);

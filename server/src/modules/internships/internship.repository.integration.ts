@@ -11,11 +11,9 @@ let firstApplicationId: string;
 beforeAll(async () => {
   process.env.NODE_ENV = "test";
   process.env.DATABASE_DRIVER = "postgres";
-  process.env.DATABASE_URL =
-    "postgresql://trainy:trainy_test@localhost:5433/trainy_test";
+  process.env.DATABASE_URL = "postgresql://trainy:trainy_test@localhost:5433/trainy_test";
   process.env.CORS_ORIGINS = "http://localhost:5173";
-  process.env.BETTER_AUTH_SECRET =
-    "test-secret-that-is-longer-than-thirty-two-characters";
+  process.env.BETTER_AUTH_SECRET = "test-secret-that-is-longer-than-thirty-two-characters";
   process.env.BETTER_AUTH_URL = "http://localhost:3000";
   process.env.LINE_CHANNEL_ID = "test-line-channel-id";
   process.env.LINE_CHANNEL_SECRET = "test-line-channel-secret";
@@ -57,8 +55,7 @@ beforeAll(async () => {
       },
     ])
     .returning();
-  if (!company || !university)
-    throw new Error("Integration organizations were not created");
+  if (!company || !university) throw new Error("Integration organizations were not created");
 
   await database.insert(schema.organizationMembership).values([
     {
@@ -82,10 +79,7 @@ beforeAll(async () => {
   await repository.updateInternship(internship.id, { status: "published" });
   internship.status = "published";
 
-  const studentMembership = await repository.findMembership(
-    university.id,
-    "student",
-  );
+  const studentMembership = await repository.findMembership(university.id, "student");
   if (!studentMembership) throw new Error("Student membership was not created");
   Object.assign(integrationIds, { universityId: university.id });
 });
@@ -119,7 +113,10 @@ describe("DrizzleInternshipRepository", () => {
         studentUserId: "student",
         internship: expect.objectContaining({ title: "Integration Internship" }),
         student: { id: "student", name: "student", email: "student@example.test" },
-        university: expect.objectContaining({ id: integrationIds.universityId, type: "university" }),
+        university: expect.objectContaining({
+          id: integrationIds.universityId,
+          type: "university",
+        }),
       }),
     ]);
   });
@@ -142,15 +139,10 @@ describe("DrizzleInternshipRepository", () => {
       universityOrganizationId: integrationIds.universityId,
       statement: "I am the second candidate competing for the final place.",
     });
-    if (!second)
-      throw new Error("Second integration application was not created");
+    if (!second) throw new Error("Second integration application was not created");
 
     const results = await Promise.all([
-      repository.acceptApplicationWithinCapacity(
-        firstApplicationId,
-        internship.id,
-        1,
-      ),
+      repository.acceptApplicationWithinCapacity(firstApplicationId, internship.id, 1),
       repository.acceptApplicationWithinCapacity(second.id, internship.id, 1),
     ]);
 

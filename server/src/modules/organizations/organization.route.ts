@@ -1,10 +1,7 @@
 import { zValidator } from "@hono/zod-validator";
 import { Hono } from "hono";
 import { db } from "../../db";
-import {
-  type AuthVariables,
-  requireAuth,
-} from "../../middleware/require-auth";
+import { type AuthVariables, requireAuth } from "../../middleware/require-auth";
 import { DrizzleOrganizationRepository } from "./organization.repository";
 import {
   addMembershipSchema,
@@ -13,9 +10,7 @@ import {
 } from "./organization.schema";
 import { OrganizationService } from "./organization.service";
 
-const organizationService = new OrganizationService(
-  new DrizzleOrganizationRepository(db),
-);
+const organizationService = new OrganizationService(new DrizzleOrganizationRepository(db));
 
 export const organizationRoute = new Hono<{
   Variables: AuthVariables;
@@ -31,9 +26,7 @@ export const organizationRoute = new Hono<{
     return c.json({ data: organization }, 201);
   })
   .get("/", async (c) => {
-    const organizations = await organizationService.listOrganizations(
-      c.get("authUser").id,
-    );
+    const organizations = await organizationService.listOrganizations(c.get("authUser").id);
 
     return c.json({ data: organizations });
   })
@@ -53,19 +46,15 @@ export const organizationRoute = new Hono<{
 
     return c.json({ data: memberships });
   })
-  .post(
-    "/:organizationId/members",
-    zValidator("json", addMembershipSchema),
-    async (c) => {
-      const membership = await organizationService.addMembership({
-        actorUserId: c.get("authUser").id,
-        organizationId: c.req.param("organizationId"),
-        ...c.req.valid("json"),
-      });
+  .post("/:organizationId/members", zValidator("json", addMembershipSchema), async (c) => {
+    const membership = await organizationService.addMembership({
+      actorUserId: c.get("authUser").id,
+      organizationId: c.req.param("organizationId"),
+      ...c.req.valid("json"),
+    });
 
-      return c.json({ data: membership }, 201);
-    },
-  )
+    return c.json({ data: membership }, 201);
+  })
   .patch(
     "/:organizationId/members/:membershipId",
     zValidator("json", updateMembershipSchema),

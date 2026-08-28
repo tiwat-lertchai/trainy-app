@@ -14,17 +14,9 @@ import {
 import { user } from "./auth";
 import { organization } from "./organization";
 
-export const internshipStatus = pgEnum("internship_status", [
-  "draft",
-  "published",
-  "closed",
-]);
+export const internshipStatus = pgEnum("internship_status", ["draft", "published", "closed"]);
 
-export const internshipWorkMode = pgEnum("internship_work_mode", [
-  "onsite",
-  "hybrid",
-  "remote",
-]);
+export const internshipWorkMode = pgEnum("internship_work_mode", ["onsite", "hybrid", "remote"]);
 
 export const applicationStatus = pgEnum("application_status", [
   "submitted",
@@ -53,9 +45,7 @@ export const internship = pgTable(
       withTimezone: true,
     }).notNull(),
     status: internshipStatus("status").default("draft").notNull(),
-    createdAt: timestamp("created_at", { withTimezone: true })
-      .defaultNow()
-      .notNull(),
+    createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
     updatedAt: timestamp("updated_at", { withTimezone: true })
       .defaultNow()
       .$onUpdate(() => new Date())
@@ -64,10 +54,7 @@ export const internship = pgTable(
   (table) => [
     check("internship_capacity_positive", sql`${table.capacity} > 0`),
     index("internship_company_idx").on(table.companyOrganizationId),
-    index("internship_status_deadline_idx").on(
-      table.status,
-      table.applicationDeadline,
-    ),
+    index("internship_status_deadline_idx").on(table.status, table.applicationDeadline),
   ],
 );
 
@@ -84,9 +71,7 @@ export const internshipApplication = pgTable(
     universityOrganizationId: uuid("university_organization_id").notNull(),
     statement: text("statement").notNull(),
     status: applicationStatus("status").default("submitted").notNull(),
-    submittedAt: timestamp("submitted_at", { withTimezone: true })
-      .defaultNow()
-      .notNull(),
+    submittedAt: timestamp("submitted_at", { withTimezone: true }).defaultNow().notNull(),
     updatedAt: timestamp("updated_at", { withTimezone: true })
       .defaultNow()
       .$onUpdate(() => new Date())
@@ -103,9 +88,7 @@ export const internshipApplication = pgTable(
       table.studentUserId,
     ),
     index("internship_application_student_idx").on(table.studentUserId),
-    index("internship_application_university_idx").on(
-      table.universityOrganizationId,
-    ),
+    index("internship_application_university_idx").on(table.universityOrganizationId),
     index("internship_application_status_idx").on(table.status),
   ],
 );
@@ -122,20 +105,17 @@ export const internshipRelations = relations(internship, ({ one, many }) => ({
   applications: many(internshipApplication),
 }));
 
-export const internshipApplicationRelations = relations(
-  internshipApplication,
-  ({ one }) => ({
-    internship: one(internship, {
-      fields: [internshipApplication.internshipId],
-      references: [internship.id],
-    }),
-    student: one(user, {
-      fields: [internshipApplication.studentUserId],
-      references: [user.id],
-    }),
-    university: one(organization, {
-      fields: [internshipApplication.universityOrganizationId],
-      references: [organization.id],
-    }),
+export const internshipApplicationRelations = relations(internshipApplication, ({ one }) => ({
+  internship: one(internship, {
+    fields: [internshipApplication.internshipId],
+    references: [internship.id],
   }),
-);
+  student: one(user, {
+    fields: [internshipApplication.studentUserId],
+    references: [user.id],
+  }),
+  university: one(organization, {
+    fields: [internshipApplication.universityOrganizationId],
+    references: [organization.id],
+  }),
+}));

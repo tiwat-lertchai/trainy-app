@@ -20,7 +20,9 @@ export function dashboardFromReport(report: {
 	return {
 		primaryValue: total(report.placements),
 		primaryLabel: "placements",
-		actionItems: count(report.applications, ["submitted", "under_review"]) + count(report.placements, ["pending"]),
+		actionItems:
+			count(report.applications, ["submitted", "under_review"]) +
+			count(report.placements, ["pending"]),
 		completedItems: count(report.placements, ["completed"]),
 		secondaryValue: report.internships ?? report.activeMembers,
 		secondaryLabel: report.internships === undefined ? "members" : "internships",
@@ -33,11 +35,15 @@ export function dashboardFromWorkflow(input: {
 	applications?: Array<{ status: string }>;
 	organizationCount: number;
 }): DashboardSnapshot {
-	const pendingApplications = input.applications?.filter((item) => ["submitted", "under_review"].includes(item.status)).length ?? 0;
+	const pendingApplications =
+		input.applications?.filter((item) => ["submitted", "under_review"].includes(item.status))
+			.length ?? 0;
 	return {
-		primaryValue: input.role === "student" ? (input.applications?.length ?? 0) : input.placements.length,
+		primaryValue:
+			input.role === "student" ? (input.applications?.length ?? 0) : input.placements.length,
 		primaryLabel: input.role === "student" ? "applications" : "placements",
-		actionItems: input.placements.filter((item) => item.status === "pending").length + pendingApplications,
+		actionItems:
+			input.placements.filter((item) => item.status === "pending").length + pendingApplications,
 		completedItems: input.placements.filter((item) => item.status === "completed").length,
 		secondaryValue: input.organizationCount,
 		secondaryLabel: "organizations",
@@ -45,7 +51,9 @@ export function dashboardFromWorkflow(input: {
 }
 
 function count(items: StatusCount[], statuses: string[]) {
-	return items.filter((item) => statuses.includes(item.status)).reduce((sum, item) => sum + item.count, 0);
+	return items
+		.filter((item) => statuses.includes(item.status))
+		.reduce((sum, item) => sum + item.count, 0);
 }
 
 function total(items: StatusCount[]) {

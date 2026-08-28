@@ -45,7 +45,7 @@ now — the nav items rendered as inert buttons).
 - `client/src/routes/app.members.tsx`, `client/src/routes/app.reports.tsx`
   — new routes.
 - `client/src/features/dashboard/app-dashboard.tsx` — added `members`/
-  `reports` entries to the nav `links` map (the nav *keys* and their
+  `reports` entries to the nav `links` map (the nav _keys_ and their
   role-scoping already existed; they just pointed nowhere before this).
 - `client/src/routeTree.gen.ts` — regenerated.
 

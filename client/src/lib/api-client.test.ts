@@ -10,8 +10,7 @@ function createResponse(body: unknown, status: number): Response {
 
 describe("getApiStatus", () => {
 	it("returns the parsed API status when the request succeeds", async () => {
-		const request = async () =>
-			createResponse({ name: "Trainy API", status: "ok" }, 200);
+		const request = async () => createResponse({ name: "Trainy API", status: "ok" }, 200);
 
 		await expect(getApiStatus(request)).resolves.toEqual({
 			name: "Trainy API",
@@ -22,9 +21,7 @@ describe("getApiStatus", () => {
 	it("throws an error containing the response status when the request fails", async () => {
 		const request = async () => createResponse({}, 503);
 
-		await expect(getApiStatus(request)).rejects.toThrow(
-			"API request failed with status 503",
-		);
+		await expect(getApiStatus(request)).rejects.toThrow("API request failed with status 503");
 	});
 });
 

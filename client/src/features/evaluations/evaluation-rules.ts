@@ -5,9 +5,14 @@ export function canEditEvaluation(status: EvaluationStatus | undefined, evaluato
 	return evaluator && status !== "submitted";
 }
 
-export function visibleEvaluations<T extends { status: EvaluationStatus; evaluatorType: EvaluatorType }>(records: T[], role: string | undefined) {
+export function visibleEvaluations<
+	T extends { status: EvaluationStatus; evaluatorType: EvaluatorType },
+>(records: T[], role: string | undefined) {
 	if (role === "student") return records.filter((record) => record.status === "submitted");
-	if (role === "advisor" || role === "supervisor") return records.filter((record) => record.status === "submitted" || record.evaluatorType === role);
+	if (role === "advisor" || role === "supervisor")
+		return records.filter(
+			(record) => record.status === "submitted" || record.evaluatorType === role,
+		);
 	return [];
 }
 

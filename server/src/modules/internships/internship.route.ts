@@ -19,9 +19,7 @@ const organizationParamSchema = z.object({ organizationId: z.string().uuid() });
 
 export const internshipRoute = new Hono<{ Variables: AuthVariables }>()
   .use("*", requireAuth)
-  .get("/", async (c) =>
-    c.json({ data: await service.listPublishedInternships() }),
-  )
+  .get("/", async (c) => c.json({ data: await service.listPublishedInternships() }))
   .get("/applications/me", async (c) =>
     c.json({ data: await service.listMyApplications(c.get("authUser").id) }),
   )
@@ -76,27 +74,18 @@ export const internshipRoute = new Hono<{ Variables: AuthVariables }>()
         201,
       ),
   )
-  .get(
-    "/companies/:organizationId",
-    zValidator("param", organizationParamSchema),
-    async (c) =>
-      c.json({
-        data: await service.listCompanyInternships(
-          c.get("authUser").id,
-          c.req.valid("param").organizationId,
-        ),
-      }),
+  .get("/companies/:organizationId", zValidator("param", organizationParamSchema), async (c) =>
+    c.json({
+      data: await service.listCompanyInternships(
+        c.get("authUser").id,
+        c.req.valid("param").organizationId,
+      ),
+    }),
   )
-  .get(
-    "/:internshipId",
-    zValidator("param", internshipIdParamSchema),
-    async (c) =>
-      c.json({
-        data: await service.getInternship(
-          c.get("authUser").id,
-          c.req.valid("param").internshipId,
-        ),
-      }),
+  .get("/:internshipId", zValidator("param", internshipIdParamSchema), async (c) =>
+    c.json({
+      data: await service.getInternship(c.get("authUser").id, c.req.valid("param").internshipId),
+    }),
   )
   .patch(
     "/:internshipId",
@@ -127,14 +116,11 @@ export const internshipRoute = new Hono<{ Variables: AuthVariables }>()
         201,
       ),
   )
-  .get(
-    "/:internshipId/applications",
-    zValidator("param", internshipIdParamSchema),
-    async (c) =>
-      c.json({
-        data: await service.listInternshipApplications(
-          c.get("authUser").id,
-          c.req.valid("param").internshipId,
-        ),
-      }),
+  .get("/:internshipId/applications", zValidator("param", internshipIdParamSchema), async (c) =>
+    c.json({
+      data: await service.listInternshipApplications(
+        c.get("authUser").id,
+        c.req.valid("param").internshipId,
+      ),
+    }),
   );

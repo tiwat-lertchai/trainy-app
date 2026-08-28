@@ -1,5 +1,10 @@
 import { describe, expect, test } from "bun:test";
-import { canReviewDocument, documentStatusLabel, documentTypeLabel, validateDocumentFile } from "./document-rules";
+import {
+	canReviewDocument,
+	documentStatusLabel,
+	documentTypeLabel,
+	validateDocumentFile,
+} from "./document-rules";
 
 describe("document rules", () => {
 	test("only an assigned reviewer can review a submitted document", () => {

@@ -5,18 +5,10 @@ import type {
   InternshipRepository,
   MembershipAccess,
 } from "./internship.repository";
-import type {
-  ApplicationStatus,
-  InternshipStatus,
-  InternshipWorkMode,
-} from "./internship.schema";
+import type { ApplicationStatus, InternshipStatus, InternshipWorkMode } from "./internship.schema";
 
 const companyReaderRoles = ["company_admin", "supervisor"] as const;
-const universityReaderRoles = [
-  "university_admin",
-  "coordinator",
-  "advisor",
-] as const;
+const universityReaderRoles = ["university_admin", "coordinator", "advisor"] as const;
 
 export class InternshipService {
   constructor(
@@ -34,12 +26,9 @@ export class InternshipService {
     capacity: number;
     applicationDeadline: Date;
   }): Promise<InternshipRecord> {
-    await this.requireMembership(
-      input.actorUserId,
-      input.companyOrganizationId,
-      "company",
-      ["company_admin"],
-    );
+    await this.requireMembership(input.actorUserId, input.companyOrganizationId, "company", [
+      "company_admin",
+    ]);
     this.requireFutureDeadline(input.applicationDeadline);
 
     return this.repository.createInternship({
@@ -58,16 +47,8 @@ export class InternshipService {
     return this.repository.listPublishedInternships();
   }
 
-  async listCompanyInternships(
-    actorUserId: string,
-    companyOrganizationId: string,
-  ) {
-    await this.requireMembership(
-      actorUserId,
-      companyOrganizationId,
-      "company",
-      companyReaderRoles,
-    );
+  async listCompanyInternships(actorUserId: string, companyOrganizationId: string) {
+    await this.requireMembership(actorUserId, companyOrganizationId, "company", companyReaderRoles);
     return this.repository.listCompanyInternships(companyOrganizationId);
   }
 
@@ -96,19 +77,12 @@ export class InternshipService {
     status?: InternshipStatus;
   }) {
     const internship = await this.requireInternship(input.internshipId);
-    await this.requireMembership(
-      input.actorUserId,
-      internship.companyOrganizationId,
-      "company",
-      ["company_admin"],
-    );
+    await this.requireMembership(input.actorUserId, internship.companyOrganizationId, "company", [
+      "company_admin",
+    ]);
 
     if (internship.status === "closed") {
-      throw new AppError(
-        "A closed internship cannot be changed",
-        409,
-        "INTERNSHIP_CLOSED",
-      );
+      throw new AppError("A closed internship cannot be changed", 409, "INTERNSHIP_CLOSED");
     }
 
     const contentIsChanging = [
@@ -128,10 +102,8 @@ export class InternshipService {
       );
     }
 
-    if (input.status)
-      this.assertInternshipTransition(internship.status, input.status);
-    const deadline =
-      input.applicationDeadline ?? internship.applicationDeadline;
+    if (input.status) this.assertInternshipTransition(internship.status, input.status);
+    const deadline = input.applicationDeadline ?? internship.applicationDeadline;
     if (input.status === "published" || input.applicationDeadline) {
       this.requireFutureDeadline(deadline);
     }
@@ -148,35 +120,18 @@ export class InternshipService {
   }): Promise<ApplicationRecord> {
     const internship = await this.requireInternship(input.internshipId);
     if (internship.status !== "published") {
-      throw new AppError(
-        "Internship is not accepting applications",
-        409,
-        "INTERNSHIP_NOT_OPEN",
-      );
+      throw new AppError("Internship is not accepting applications", 409, "INTERNSHIP_NOT_OPEN");
     }
     if (internship.applicationDeadline.getTime() <= this.now().getTime()) {
-      throw new AppError(
-        "Application deadline has passed",
-        409,
-        "APPLICATION_DEADLINE_PASSED",
-      );
+      throw new AppError("Application deadline has passed", 409, "APPLICATION_DEADLINE_PASSED");
     }
 
-    await this.requireMembership(
-      input.actorUserId,
-      input.universityOrganizationId,
-      "university",
-      ["student"],
-    );
+    await this.requireMembership(input.actorUserId, input.universityOrganizationId, "university", [
+      "student",
+    ]);
 
-    if (
-      await this.repository.findApplication(internship.id, input.actorUserId)
-    ) {
-      throw new AppError(
-        "Student has already applied",
-        409,
-        "APPLICATION_CONFLICT",
-      );
+    if (await this.repository.findApplication(internship.id, input.actorUserId)) {
+      throw new AppError("Student has already applied", 409, "APPLICATION_CONFLICT");
     }
 
     const application = await this.repository.createApplication({
@@ -187,11 +142,7 @@ export class InternshipService {
     });
     if (!application) {
       // The unique constraint closes the race between the pre-check and insert.
-      throw new AppError(
-        "Student has already applied",
-        409,
-        "APPLICATION_CONFLICT",
-      );
+      throw new AppError("Student has already applied", 409, "APPLICATION_CONFLICT");
     }
     return application;
   }
@@ -211,10 +162,7 @@ export class InternshipService {
     return this.repository.listInternshipApplications(internshipId);
   }
 
-  async listUniversityApplications(
-    actorUserId: string,
-    universityOrganizationId: string,
-  ) {
+  async listUniversityApplications(actorUserId: string, universityOrganizationId: string) {
     await this.requireMembership(
       actorUserId,
       universityOrganizationId,
@@ -232,9 +180,7 @@ export class InternshipService {
     const application = await this.requireApplication(input.applicationId);
     const internship = await this.requireInternship(application.internshipId);
     const permittedRoles =
-      input.status === "under_review"
-        ? companyReaderRoles
-        : (["company_admin"] as const);
+      input.status === "under_review" ? companyReaderRoles : (["company_admin"] as const);
     await this.requireMembership(
       input.actorUserId,
       internship.companyOrganizationId,
@@ -257,21 +203,14 @@ export class InternshipService {
       }
       return accepted;
     }
-    return this.repository.updateApplicationStatus(
-      application.id,
-      input.status,
-    );
+    return this.repository.updateApplicationStatus(application.id, input.status);
   }
 
   async withdrawApplication(actorUserId: string, applicationId: string) {
     const application = await this.requireApplication(applicationId);
     if (application.studentUserId !== actorUserId) {
       // Do not reveal an application belonging to another student.
-      throw new AppError(
-        "Application was not found",
-        404,
-        "APPLICATION_NOT_FOUND",
-      );
+      throw new AppError("Application was not found", 404, "APPLICATION_NOT_FOUND");
     }
     this.assertApplicationTransition(application.status, "withdrawn");
     return this.repository.updateApplicationStatus(application.id, "withdrawn");
@@ -279,23 +218,13 @@ export class InternshipService {
 
   private async requireInternship(id: string) {
     const record = await this.repository.findInternship(id);
-    if (!record)
-      throw new AppError(
-        "Internship was not found",
-        404,
-        "INTERNSHIP_NOT_FOUND",
-      );
+    if (!record) throw new AppError("Internship was not found", 404, "INTERNSHIP_NOT_FOUND");
     return record;
   }
 
   private async requireApplication(id: string) {
     const record = await this.repository.findApplicationById(id);
-    if (!record)
-      throw new AppError(
-        "Application was not found",
-        404,
-        "APPLICATION_NOT_FOUND",
-      );
+    if (!record) throw new AppError("Application was not found", 404, "APPLICATION_NOT_FOUND");
     return record;
   }
 
@@ -305,10 +234,7 @@ export class InternshipService {
     organizationType: "university" | "company",
     allowedRoles: readonly MembershipAccess["role"][],
   ) {
-    const membership = await this.repository.findMembership(
-      organizationId,
-      actorUserId,
-    );
+    const membership = await this.repository.findMembership(organizationId, actorUserId);
     if (
       membership?.status !== "active" ||
       membership.organizationType !== organizationType ||
@@ -333,10 +259,7 @@ export class InternshipService {
     }
   }
 
-  private assertInternshipTransition(
-    current: InternshipStatus,
-    next: InternshipStatus,
-  ) {
+  private assertInternshipTransition(current: InternshipStatus, next: InternshipStatus) {
     const transitions: Record<InternshipStatus, readonly InternshipStatus[]> = {
       draft: ["published", "closed"],
       published: ["closed"],
@@ -351,18 +274,14 @@ export class InternshipService {
     }
   }
 
-  private assertApplicationTransition(
-    current: ApplicationStatus,
-    next: ApplicationStatus,
-  ) {
-    const transitions: Record<ApplicationStatus, readonly ApplicationStatus[]> =
-      {
-        submitted: ["under_review", "accepted", "rejected", "withdrawn"],
-        under_review: ["accepted", "rejected", "withdrawn"],
-        accepted: [],
-        rejected: [],
-        withdrawn: [],
-      };
+  private assertApplicationTransition(current: ApplicationStatus, next: ApplicationStatus) {
+    const transitions: Record<ApplicationStatus, readonly ApplicationStatus[]> = {
+      submitted: ["under_review", "accepted", "rejected", "withdrawn"],
+      under_review: ["accepted", "rejected", "withdrawn"],
+      accepted: [],
+      rejected: [],
+      withdrawn: [],
+    };
     if (!transitions[current].includes(next)) {
       throw new AppError(
         `Cannot change application from ${current} to ${next}`,

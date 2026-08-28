@@ -6,7 +6,12 @@ export function requestLocation(): Promise<CapturedLocation> {
 	return new Promise((resolve, reject) => {
 		if (!("geolocation" in navigator)) return reject(new Error("GEOLOCATION_UNSUPPORTED"));
 		navigator.geolocation.getCurrentPosition(
-			(position) => resolve({ latitude: position.coords.latitude, longitude: position.coords.longitude, accuracyMeters: Math.max(1, Math.round(position.coords.accuracy)) }),
+			(position) =>
+				resolve({
+					latitude: position.coords.latitude,
+					longitude: position.coords.longitude,
+					accuracyMeters: Math.max(1, Math.round(position.coords.accuracy)),
+				}),
 			() => reject(new Error("GEOLOCATION_DENIED")),
 			{ enableHighAccuracy: true, timeout: 10_000, maximumAge: 0 },
 		);

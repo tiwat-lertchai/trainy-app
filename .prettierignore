@@ -1,0 +1,7 @@
+node_modules
+dist
+.turbo
+bun.lock
+client/src/routeTree.gen.ts
+server/drizzle
+chats

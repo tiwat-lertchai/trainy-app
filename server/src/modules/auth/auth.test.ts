@@ -7,10 +7,8 @@ let lineProvider: typeof LineProvider;
 beforeAll(async () => {
   process.env.NODE_ENV = "test";
   process.env.CORS_ORIGINS = "http://localhost:5173";
-  process.env.DATABASE_URL =
-    "postgresql://test:test@localhost/test?sslmode=require";
-  process.env.BETTER_AUTH_SECRET =
-    "test-secret-that-is-longer-than-thirty-two-characters";
+  process.env.DATABASE_URL = "postgresql://test:test@localhost/test?sslmode=require";
+  process.env.BETTER_AUTH_SECRET = "test-secret-that-is-longer-than-thirty-two-characters";
   process.env.BETTER_AUTH_URL = "http://localhost:3000";
   process.env.LINE_CHANNEL_ID = "test-line-channel-id";
   process.env.LINE_CHANNEL_SECRET = "test-line-channel-secret";

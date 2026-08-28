@@ -1,11 +1,6 @@
 import { z } from "zod";
 
-export const placementStatuses = [
-  "pending",
-  "active",
-  "completed",
-  "cancelled",
-] as const;
+export const placementStatuses = ["pending", "active", "completed", "cancelled"] as const;
 export type PlacementStatus = (typeof placementStatuses)[number];
 
 export const createPlacementSchema = z

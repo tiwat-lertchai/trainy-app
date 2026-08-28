@@ -38,6 +38,7 @@ otherwise collide with each other over the shared database connection
 ## Findings
 
 ### Confirmed correct (no vulnerability) — 25/25 checks
+
 Every cross-tenant IDOR, role-escalation, and terminal/duplicate-state
 abuse attempt tested was correctly rejected:
 
@@ -81,6 +82,7 @@ abuse attempt tested was correctly rejected:
 **No vulnerabilities found in this pass.**
 
 ### Pre-existing bug found (unrelated to this round's scope, not fixed)
+
 The repo's four original `*.repository.integration.ts` files are **not
 idempotent as a chain** — running `test:integration` twice in a row
 against the same database fails, because `placement.repository.integration.ts`

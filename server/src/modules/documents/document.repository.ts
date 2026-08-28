@@ -24,10 +24,7 @@ export interface DocumentRepository {
   ): Promise<DocumentRecord>;
   review(
     id: string,
-    changes: Pick<
-      DocumentRecord,
-      "status" | "reviewerUserId" | "feedback" | "reviewedAt"
-    >,
+    changes: Pick<DocumentRecord, "status" | "reviewerUserId" | "feedback" | "reviewedAt">,
   ): Promise<DocumentRecord>;
   list(placementId: string): Promise<DocumentRecord[]>;
 }
@@ -51,24 +48,17 @@ export class DrizzleDocumentRepository implements DocumentRepository {
     });
   }
   async create(input: Parameters<DocumentRepository["create"]>[0]) {
-    const [record] = await this.database
-      .insert(placementDocument)
-      .values(input)
-      .returning();
+    const [record] = await this.database.insert(placementDocument).values(input).returning();
     if (!record) throw new Error("Database did not return the document");
     return record;
   }
-  async review(
-    id: string,
-    changes: Parameters<DocumentRepository["review"]>[1],
-  ) {
+  async review(id: string, changes: Parameters<DocumentRepository["review"]>[1]) {
     const [record] = await this.database
       .update(placementDocument)
       .set(changes)
       .where(eq(placementDocument.id, id))
       .returning();
-    if (!record)
-      throw new Error("Database did not return the reviewed document");
+    if (!record) throw new Error("Database did not return the reviewed document");
     return record;
   }
   list(placementId: string) {

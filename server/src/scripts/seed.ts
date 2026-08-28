@@ -24,8 +24,15 @@ async function seed() {
       .values({ type: "university", name: university.name, slug: university.slug })
       .onConflictDoNothing({ target: organization.slug })
       .returning();
-    const organizationId = org?.id ?? (await db.query.organization.findFirst({ where: (table, { eq }) => eq(table.slug, university.slug) }))?.id;
-    if (!organizationId) throw new Error(`Could not resolve organization id for ${university.slug}`);
+    const organizationId =
+      org?.id ??
+      (
+        await db.query.organization.findFirst({
+          where: (table, { eq }) => eq(table.slug, university.slug),
+        })
+      )?.id;
+    if (!organizationId)
+      throw new Error(`Could not resolve organization id for ${university.slug}`);
 
     for (const facultyEntry of university.faculties) {
       const [inserted] = await db
@@ -33,11 +40,21 @@ async function seed() {
         .values({ organizationId, name: facultyEntry.name })
         .onConflictDoNothing({ target: [academicFaculty.organizationId, academicFaculty.name] })
         .returning();
-      const facultyId = inserted?.id ?? (await db.query.academicFaculty.findFirst({ where: (table, { and, eq }) => and(eq(table.organizationId, organizationId), eq(table.name, facultyEntry.name)) }))?.id;
+      const facultyId =
+        inserted?.id ??
+        (
+          await db.query.academicFaculty.findFirst({
+            where: (table, { and, eq }) =>
+              and(eq(table.organizationId, organizationId), eq(table.name, facultyEntry.name)),
+          })
+        )?.id;
       if (!facultyId) throw new Error(`Could not resolve faculty id for ${facultyEntry.name}`);
 
       for (const majorName of facultyEntry.majors) {
-        await db.insert(academicMajor).values({ facultyId, name: majorName }).onConflictDoNothing({ target: [academicMajor.facultyId, academicMajor.name] });
+        await db
+          .insert(academicMajor)
+          .values({ facultyId, name: majorName })
+          .onConflictDoNothing({ target: [academicMajor.facultyId, academicMajor.name] });
       }
     }
 

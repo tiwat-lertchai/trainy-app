@@ -26,31 +26,19 @@ beforeAll(async () => {
   const databaseModule = await import("../../db");
   const schema = await import("../../db/schema");
   const repositoryModule = await import("./placement.repository");
-  const progressRepositoryModule =
-    await import("../progress/progress.repository");
-  const documentRepositoryModule =
-    await import("../documents/document.repository");
-  const evaluationRepositoryModule =
-    await import("../evaluations/evaluation.repository");
-  const notificationRepositoryModule =
-    await import("../notifications/notification.repository");
+  const progressRepositoryModule = await import("../progress/progress.repository");
+  const documentRepositoryModule = await import("../documents/document.repository");
+  const evaluationRepositoryModule = await import("../evaluations/evaluation.repository");
+  const notificationRepositoryModule = await import("../notifications/notification.repository");
   const reportRepositoryModule = await import("../reports/report.repository");
   database = databaseModule.db;
   closeDatabase = databaseModule.closeDatabase;
   repository = new repositoryModule.DrizzlePlacementRepository(database);
-  progressRepository = new progressRepositoryModule.DrizzleProgressRepository(
-    database,
-  );
-  documentRepository = new documentRepositoryModule.DrizzleDocumentRepository(
-    database,
-  );
-  evaluationRepository =
-    new evaluationRepositoryModule.DrizzleEvaluationRepository(database);
-  notificationRepository =
-    new notificationRepositoryModule.DrizzleNotificationRepository(database);
-  reportRepository = new reportRepositoryModule.DrizzleReportRepository(
-    database,
-  );
+  progressRepository = new progressRepositoryModule.DrizzleProgressRepository(database);
+  documentRepository = new documentRepositoryModule.DrizzleDocumentRepository(database);
+  evaluationRepository = new evaluationRepositoryModule.DrizzleEvaluationRepository(database);
+  notificationRepository = new notificationRepositoryModule.DrizzleNotificationRepository(database);
+  reportRepository = new reportRepositoryModule.DrizzleReportRepository(database);
 
   await database.delete(schema.placement);
   await database.delete(schema.internshipApplication);
@@ -79,8 +67,7 @@ beforeAll(async () => {
       },
     ])
     .returning();
-  if (!company || !university)
-    throw new Error("Organizations were not created");
+  if (!company || !university) throw new Error("Organizations were not created");
   await database.insert(schema.organizationMembership).values([
     {
       organizationId: university.id,
@@ -132,8 +119,7 @@ describe("DrizzlePlacementRepository", () => {
   test("creates one placement and scopes organization listing", async () => {
     const record = await repository.create({
       applicationId: ids.application,
-      internshipId: (await repository.findApplication(ids.application))!
-        .internshipId,
+      internshipId: (await repository.findApplication(ids.application))!.internshipId,
       studentUserId: "student",
       universityOrganizationId: ids.university,
       companyOrganizationId: ids.company,
@@ -142,9 +128,7 @@ describe("DrizzlePlacementRepository", () => {
     });
     expect(record).toBeDefined();
     placementId = record!.id;
-    expect(await repository.listForOrganization(ids.university)).toHaveLength(
-      1,
-    );
+    expect(await repository.listForOrganization(ids.university)).toHaveLength(1);
     expect(await repository.listForOrganization(ids.company)).toHaveLength(1);
   });
 
@@ -213,16 +197,10 @@ describe("DrizzlePlacementRepository", () => {
     });
     expect(await notificationRepository.list("student")).toHaveLength(1);
     expect(
-      await notificationRepository.markRead(
-        notification.id,
-        "company-admin",
-        new Date(),
-      ),
+      await notificationRepository.markRead(notification.id, "company-admin", new Date()),
     ).toBeUndefined();
     expect(await reportRepository.countInternships(ids.company)).toBe(1);
-    expect(
-      await reportRepository.placementCounts(ids.university, "university"),
-    ).toHaveLength(1);
+    expect(await reportRepository.placementCounts(ids.university, "university")).toHaveLength(1);
   });
 
   test("persists append-only audit events", async () => {

@@ -18,11 +18,7 @@ export type PlacementView = PlacementRecord & {
 };
 export type AcceptedApplication = Pick<
   typeof internshipApplication.$inferSelect,
-  | "id"
-  | "internshipId"
-  | "studentUserId"
-  | "universityOrganizationId"
-  | "status"
+  "id" | "internshipId" | "studentUserId" | "universityOrganizationId" | "status"
 > & { companyOrganizationId: string };
 export type PlacementMembership = {
   organizationId: string;
@@ -34,13 +30,8 @@ export type PlacementMembership = {
 
 export interface PlacementRepository {
   findApplication(id: string): Promise<AcceptedApplication | undefined>;
-  findMembership(
-    organizationId: string,
-    userId: string,
-  ): Promise<PlacementMembership | undefined>;
-  findByApplication(
-    applicationId: string,
-  ): Promise<PlacementRecord | undefined>;
+  findMembership(organizationId: string, userId: string): Promise<PlacementMembership | undefined>;
+  findByApplication(applicationId: string): Promise<PlacementRecord | undefined>;
   findById(id: string): Promise<PlacementRecord | undefined>;
   create(input: {
     applicationId: string;
@@ -53,9 +44,7 @@ export interface PlacementRepository {
   }): Promise<PlacementRecord | undefined>;
   update(
     id: string,
-    changes: Partial<
-      Pick<PlacementRecord, "advisorUserId" | "supervisorUserId" | "status">
-    >,
+    changes: Partial<Pick<PlacementRecord, "advisorUserId" | "supervisorUserId" | "status">>,
   ): Promise<PlacementRecord>;
   listForStudent(userId: string): Promise<PlacementView[]>;
   listForOrganization(organizationId: string): Promise<PlacementView[]>;
@@ -70,16 +59,12 @@ export class DrizzlePlacementRepository implements PlacementRepository {
         id: internshipApplication.id,
         internshipId: internshipApplication.internshipId,
         studentUserId: internshipApplication.studentUserId,
-        universityOrganizationId:
-          internshipApplication.universityOrganizationId,
+        universityOrganizationId: internshipApplication.universityOrganizationId,
         status: internshipApplication.status,
         companyOrganizationId: internship.companyOrganizationId,
       })
       .from(internshipApplication)
-      .innerJoin(
-        internship,
-        eq(internship.id, internshipApplication.internshipId),
-      )
+      .innerJoin(internship, eq(internship.id, internshipApplication.internshipId))
       .where(eq(internshipApplication.id, id))
       .limit(1);
     return record;
@@ -95,10 +80,7 @@ export class DrizzlePlacementRepository implements PlacementRepository {
         userId: organizationMembership.userId,
       })
       .from(organizationMembership)
-      .innerJoin(
-        organization,
-        eq(organization.id, organizationMembership.organizationId),
-      )
+      .innerJoin(organization, eq(organization.id, organizationMembership.organizationId))
       .where(
         and(
           eq(organizationMembership.organizationId, organizationId),
@@ -130,24 +112,25 @@ export class DrizzlePlacementRepository implements PlacementRepository {
     return record;
   }
 
-  async update(
-    id: string,
-    changes: Parameters<PlacementRepository["update"]>[1],
-  ) {
+  async update(id: string, changes: Parameters<PlacementRepository["update"]>[1]) {
     const [record] = await this.database
       .update(placement)
       .set(changes)
       .where(eq(placement.id, id))
       .returning();
-    if (!record)
-      throw new Error("Database did not return the updated placement");
+    if (!record) throw new Error("Database did not return the updated placement");
     return record;
   }
 
   async listForStudent(userId: string) {
     return this.database.query.placement.findMany({
       where: eq(placement.studentUserId, userId),
-      with: { internship: { columns: { id: true, title: true } }, student: { columns: { id: true, name: true, email: true } }, advisor: { columns: { id: true, name: true, email: true } }, supervisor: { columns: { id: true, name: true, email: true } } },
+      with: {
+        internship: { columns: { id: true, title: true } },
+        student: { columns: { id: true, name: true, email: true } },
+        advisor: { columns: { id: true, name: true, email: true } },
+        supervisor: { columns: { id: true, name: true, email: true } },
+      },
       orderBy: [desc(placement.createdAt)],
     });
   }
@@ -159,7 +142,12 @@ export class DrizzlePlacementRepository implements PlacementRepository {
           eq(table.universityOrganizationId, organizationId),
           eq(table.companyOrganizationId, organizationId),
         ),
-      with: { internship: { columns: { id: true, title: true } }, student: { columns: { id: true, name: true, email: true } }, advisor: { columns: { id: true, name: true, email: true } }, supervisor: { columns: { id: true, name: true, email: true } } },
+      with: {
+        internship: { columns: { id: true, title: true } },
+        student: { columns: { id: true, name: true, email: true } },
+        advisor: { columns: { id: true, name: true, email: true } },
+        supervisor: { columns: { id: true, name: true, email: true } },
+      },
       orderBy: [desc(placement.createdAt)],
     });
   }

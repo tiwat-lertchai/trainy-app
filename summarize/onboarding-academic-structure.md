@@ -30,6 +30,7 @@ it, plus a seed script for a specific requested university.
 ## Files and systems changed
 
 Backend (`server/`):
+
 - `src/db/schema/academic.ts`, migration `drizzle/0009_classy_paladin.sql`
   — `academic_faculty` and `academic_major` tables, each with a unique
   name-per-parent constraint.
@@ -49,6 +50,7 @@ Backend (`server/`):
   an official source — review and adjust before relying on them.**
 
 Frontend (`client/`):
+
 - `src/features/onboarding/onboarding-rules.ts` (+ test) —
   `organizationFieldLabel` and `facultiesEnabledForRole` helpers.
 - `src/features/onboarding/onboarding-page.tsx` — organization field label

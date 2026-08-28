@@ -15,9 +15,7 @@ const future = new Date("2026-09-30T00:00:00.000Z");
 describe("InternshipService", () => {
   test("allows only an active company admin to create an internship", async () => {
     const repository = new MemoryInternshipRepository();
-    repository.memberships.push(
-      membership("admin", "company", "company_admin"),
-    );
+    repository.memberships.push(membership("admin", "company", "company_admin"));
     const service = createService(repository);
 
     const created = await service.createInternship({
@@ -32,9 +30,7 @@ describe("InternshipService", () => {
 
   test("rejects a supervisor creating an internship", async () => {
     const repository = new MemoryInternshipRepository();
-    repository.memberships.push(
-      membership("supervisor", "company", "supervisor"),
-    );
+    repository.memberships.push(membership("supervisor", "company", "supervisor"));
 
     expect(
       createService(repository).createInternship({
@@ -47,9 +43,7 @@ describe("InternshipService", () => {
 
   test("rejects a deadline that is not in the future", async () => {
     const repository = new MemoryInternshipRepository();
-    repository.memberships.push(
-      membership("admin", "company", "company_admin"),
-    );
+    repository.memberships.push(membership("admin", "company", "company_admin"));
 
     expect(
       createService(repository).createInternship({
@@ -83,9 +77,7 @@ describe("InternshipService", () => {
 
   test("allows an active university student to apply", async () => {
     const repository = seededRepository("published");
-    repository.memberships.push(
-      membership("student", "university", "student", "university"),
-    );
+    repository.memberships.push(membership("student", "university", "student", "university"));
 
     const application = await createService(repository).apply({
       actorUserId: "student",
@@ -100,9 +92,7 @@ describe("InternshipService", () => {
 
   test("rejects duplicate applications", async () => {
     const repository = seededRepository("published");
-    repository.memberships.push(
-      membership("student", "university", "student", "university"),
-    );
+    repository.memberships.push(membership("student", "university", "student", "university"));
     repository.applications.push(applicationRecord());
 
     expect(
@@ -117,12 +107,8 @@ describe("InternshipService", () => {
 
   test("rejects applications after the deadline", async () => {
     const repository = seededRepository("published");
-    repository.internships[0]!.applicationDeadline = new Date(
-      "2026-08-26T00:00:00.000Z",
-    );
-    repository.memberships.push(
-      membership("student", "university", "student", "university"),
-    );
+    repository.internships[0]!.applicationDeadline = new Date("2026-08-26T00:00:00.000Z");
+    repository.memberships.push(membership("student", "university", "student", "university"));
 
     expect(
       createService(repository).apply({
@@ -136,9 +122,7 @@ describe("InternshipService", () => {
 
   test("lets a supervisor start review but not accept an application", async () => {
     const repository = seededRepository("published");
-    repository.memberships.push(
-      membership("supervisor", "company", "supervisor"),
-    );
+    repository.memberships.push(membership("supervisor", "company", "supervisor"));
     repository.applications.push(applicationRecord());
     const service = createService(repository);
 
@@ -194,9 +178,7 @@ describe("InternshipService", () => {
 
     expect(
       createService(repository).withdrawApplication("outsider", "application"),
-    ).rejects.toEqual(
-      new AppError("Application was not found", 404, "APPLICATION_NOT_FOUND"),
-    );
+    ).rejects.toEqual(new AppError("Application was not found", 404, "APPLICATION_NOT_FOUND"));
   });
 });
 
@@ -207,13 +189,10 @@ class MemoryInternshipRepository implements InternshipRepository {
 
   async findMembership(organizationId: string, userId: string) {
     return this.memberships.find(
-      (item) =>
-        item.organizationId === organizationId && item.userId === userId,
+      (item) => item.organizationId === organizationId && item.userId === userId,
     );
   }
-  async createInternship(
-    input: Parameters<InternshipRepository["createInternship"]>[0],
-  ) {
+  async createInternship(input: Parameters<InternshipRepository["createInternship"]>[0]) {
     const record = internshipRecord("draft", input);
     this.internships.push(record);
     return record;
@@ -225,9 +204,7 @@ class MemoryInternshipRepository implements InternshipRepository {
     return this.internships.filter((item) => item.status === "published");
   }
   async listCompanyInternships(companyOrganizationId: string) {
-    return this.internships.filter(
-      (item) => item.companyOrganizationId === companyOrganizationId,
-    );
+    return this.internships.filter((item) => item.companyOrganizationId === companyOrganizationId);
   }
   async updateInternship(
     id: string,
@@ -239,17 +216,13 @@ class MemoryInternshipRepository implements InternshipRepository {
   }
   async findApplication(internshipId: string, studentUserId: string) {
     return this.applications.find(
-      (item) =>
-        item.internshipId === internshipId &&
-        item.studentUserId === studentUserId,
+      (item) => item.internshipId === internshipId && item.studentUserId === studentUserId,
     );
   }
   async findApplicationById(id: string) {
     return this.applications.find((item) => item.id === id);
   }
-  async createApplication(
-    input: Parameters<InternshipRepository["createApplication"]>[0],
-  ) {
+  async createApplication(input: Parameters<InternshipRepository["createApplication"]>[0]) {
     if (await this.findApplication(input.internshipId, input.studentUserId)) {
       return undefined;
     }
@@ -258,14 +231,10 @@ class MemoryInternshipRepository implements InternshipRepository {
     return record;
   }
   async listStudentApplications(studentUserId: string) {
-    return this.applications.filter(
-      (item) => item.studentUserId === studentUserId,
-    );
+    return this.applications.filter((item) => item.studentUserId === studentUserId);
   }
   async listInternshipApplications(internshipId: string) {
-    return this.applications.filter(
-      (item) => item.internshipId === internshipId,
-    );
+    return this.applications.filter((item) => item.internshipId === internshipId);
   }
   async listUniversityApplications(universityOrganizationId: string) {
     return this.applications.filter(
@@ -277,14 +246,9 @@ class MemoryInternshipRepository implements InternshipRepository {
     record.status = status;
     return record;
   }
-  async acceptApplicationWithinCapacity(
-    id: string,
-    internshipId: string,
-    capacity: number,
-  ) {
+  async acceptApplicationWithinCapacity(id: string, internshipId: string, capacity: number) {
     const acceptedCount = this.applications.filter(
-      (item) =>
-        item.internshipId === internshipId && item.status === "accepted",
+      (item) => item.internshipId === internshipId && item.status === "accepted",
     ).length;
     if (acceptedCount >= capacity) return undefined;
     return this.updateApplicationStatus(id, "accepted");
@@ -314,8 +278,7 @@ function membership(
 function internshipInput() {
   return {
     title: "Backend Engineering Intern",
-    description:
-      "Build and test maintainable backend services with our engineering team.",
+    description: "Build and test maintainable backend services with our engineering team.",
     location: "Bangkok",
     workMode: "hybrid" as const,
     capacity: 2,

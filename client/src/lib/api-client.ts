@@ -24,9 +24,7 @@ type ApiStatusResponse = {
 
 type ApiStatusRequest = () => Promise<ApiStatusResponse>;
 
-export async function getApiStatus(
-	request: ApiStatusRequest = () => apiClient.index.$get(),
-) {
+export async function getApiStatus(request: ApiStatusRequest = () => apiClient.index.$get()) {
 	const response = await request();
 
 	if (!response.ok) {

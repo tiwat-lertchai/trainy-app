@@ -5,17 +5,12 @@ import type {
   OrganizationRecord,
   OrganizationRepository,
 } from "./organization.repository";
-import type {
-  MembershipStatus,
-  OrganizationRole,
-} from "./organization.schema";
+import type { MembershipStatus, OrganizationRole } from "./organization.schema";
 import { OrganizationService } from "./organization.service";
 
 const now = new Date("2026-01-01T00:00:00.000Z");
 
-function makeOrganization(
-  values: Partial<OrganizationRecord> = {},
-): OrganizationRecord {
+function makeOrganization(values: Partial<OrganizationRecord> = {}): OrganizationRecord {
   return {
     id: "11111111-1111-4111-8111-111111111111",
     type: "university",
@@ -28,9 +23,7 @@ function makeOrganization(
   };
 }
 
-function makeMembership(
-  values: Partial<MembershipRecord> = {},
-): MembershipRecord {
+function makeMembership(values: Partial<MembershipRecord> = {}): MembershipRecord {
   return {
     id: "22222222-2222-4222-8222-222222222222",
     organizationId: "11111111-1111-4111-8111-111111111111",
@@ -86,9 +79,7 @@ class FakeOrganizationRepository implements OrganizationRepository {
         item.userId === userId &&
         item.status === "active",
     );
-    return membership
-      ? this.organizations.find((item) => item.id === organizationId)
-      : undefined;
+    return membership ? this.organizations.find((item) => item.id === organizationId) : undefined;
   }
 
   async listForUser(userId: string) {
@@ -105,29 +96,21 @@ class FakeOrganizationRepository implements OrganizationRepository {
 
   async findMembership(organizationId: string, userId: string) {
     return this.memberships.find(
-      (item) =>
-        item.organizationId === organizationId && item.userId === userId,
+      (item) => item.organizationId === organizationId && item.userId === userId,
     );
   }
 
   async findMembershipById(organizationId: string, membershipId: string) {
     return this.memberships.find(
-      (item) =>
-        item.organizationId === organizationId && item.id === membershipId,
+      (item) => item.organizationId === organizationId && item.id === membershipId,
     );
   }
 
   async listMemberships(organizationId: string) {
-    return this.memberships.filter(
-      (item) => item.organizationId === organizationId,
-    );
+    return this.memberships.filter((item) => item.organizationId === organizationId);
   }
 
-  async addMembership(input: {
-    organizationId: string;
-    userId: string;
-    role: OrganizationRole;
-  }) {
+  async addMembership(input: { organizationId: string; userId: string; role: OrganizationRole }) {
     const membership = makeMembership({
       id: crypto.randomUUID(),
       ...input,
@@ -149,10 +132,7 @@ class FakeOrganizationRepository implements OrganizationRepository {
     return updated;
   }
 
-  async countActiveAdmins(
-    organizationId: string,
-    adminRole: OrganizationRole,
-  ) {
+  async countActiveAdmins(organizationId: string, adminRole: OrganizationRole) {
     return this.memberships.filter(
       (item) =>
         item.organizationId === organizationId &&
@@ -253,9 +233,7 @@ describe("OrganizationService", () => {
   it("requires an active organization admin to add a member", async () => {
     const repository = new FakeOrganizationRepository();
     repository.organizations.push(makeOrganization());
-    repository.memberships.push(
-      makeMembership({ userId: "advisor", role: "advisor" }),
-    );
+    repository.memberships.push(makeMembership({ userId: "advisor", role: "advisor" }));
     const service = new OrganizationService(repository);
 
     try {

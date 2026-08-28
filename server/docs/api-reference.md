@@ -62,14 +62,14 @@ payloads and cookies.
 
 Base path: `/api/v1/organizations`
 
-| Method | Path                                     | Access                                           |
-| ------ | ---------------------------------------- | ------------------------------------------------ |
-| POST   | `/`                                      | Authenticated user; creator becomes tenant admin |
+| Method | Path                                     | Access                                                |
+| ------ | ---------------------------------------- | ----------------------------------------------------- |
+| POST   | `/`                                      | Authenticated user; creator becomes tenant admin      |
 | GET    | `/`                                      | Organizations and active memberships for current user |
-| GET    | `/:organizationId`                       | Active member of the tenant                      |
-| GET    | `/:organizationId/members`               | Tenant admin                                     |
-| POST   | `/:organizationId/members`               | Tenant admin                                     |
-| PATCH  | `/:organizationId/members/:membershipId` | Tenant admin                                     |
+| GET    | `/:organizationId`                       | Active member of the tenant                           |
+| GET    | `/:organizationId/members`               | Tenant admin                                          |
+| POST   | `/:organizationId/members`               | Tenant admin                                          |
+| PATCH  | `/:organizationId/members/:membershipId` | Tenant admin                                          |
 
 Create an organization:
 
@@ -124,23 +124,23 @@ The last active organization admin cannot be demoted or suspended.
 
 Base path: `/api/v1/onboarding`
 
-| Method | Path                            | Access |
-| ------ | ------------------------------- | ------ |
-| GET    | `/me`                           | Current authenticated user |
-| GET    | `/organizations`                | Active universities and companies available for onboarding |
-| POST   | `/`                             | User without a request, or correcting a `revision_requested` request |
-| GET    | `/reviews`                      | CWIE platform staff or eligible tenant admin |
-| POST   | `/:onboardingId/review`         | Eligible reviewer for the requested role |
+| Method | Path                    | Access                                                               |
+| ------ | ----------------------- | -------------------------------------------------------------------- |
+| GET    | `/me`                   | Current authenticated user                                           |
+| GET    | `/organizations`        | Active universities and companies available for onboarding           |
+| POST   | `/`                     | User without a request, or correcting a `revision_requested` request |
+| GET    | `/reviews`              | CWIE platform staff or eligible tenant admin                         |
+| POST   | `/:onboardingId/review` | Eligible reviewer for the requested role                             |
 
 Students select an active university and receive an active student membership
 immediately. Privileged roles never self-activate:
 
-| Requested role | Reviewer |
-| -------------- | -------- |
-| `advisor`, `coordinator` | Active `university_admin` in the selected university |
-| `supervisor` | Active `company_admin` in the selected company |
-| `university_admin` | Active CWIE platform staff |
-| First `company_admin` and new company | Active CWIE platform staff |
+| Requested role                        | Reviewer                                             |
+| ------------------------------------- | ---------------------------------------------------- |
+| `advisor`, `coordinator`              | Active `university_admin` in the selected university |
+| `supervisor`                          | Active `company_admin` in the selected company       |
+| `university_admin`                    | Active CWIE platform staff                           |
+| First `company_admin` and new company | Active CWIE platform staff                           |
 
 Company approval requires `documentsVerified: true`. CWIE staff must verify the
 submitted company registration evidence outside the API before approving. The
@@ -317,12 +317,12 @@ and back to draft after editing.
 
 Base path: `/api/v1/academic`
 
-| Method | Path                              | Access                                  |
-| ------ | ---------------------------------- | ---------------------------------------- |
-| GET    | `/:organizationId/faculties`       | Any authenticated user (no membership required — used during onboarding) |
-| POST   | `/:organizationId/faculties`       | University admin                         |
-| GET    | `/faculties/:facultyId/majors`     | Any authenticated user                   |
-| POST   | `/faculties/:facultyId/majors`     | University admin (of the faculty's university) |
+| Method | Path                           | Access                                                                   |
+| ------ | ------------------------------ | ------------------------------------------------------------------------ |
+| GET    | `/:organizationId/faculties`   | Any authenticated user (no membership required — used during onboarding) |
+| POST   | `/:organizationId/faculties`   | University admin                                                         |
+| GET    | `/faculties/:facultyId/majors` | Any authenticated user                                                   |
+| POST   | `/faculties/:facultyId/majors` | University admin (of the faculty's university)                           |
 
 Faculties and majors belong to a university organization. They power the
 faculty/major dropdowns on the student and advisor onboarding forms and are
@@ -340,17 +340,17 @@ duplicate returns `409`.
 
 Base path: `/api/v1/attendance`
 
-| Method | Path                                  | Access                                     |
-| ------ | -------------------------------------- | ------------------------------------------- |
-| PUT    | `/:placementId/schedule`               | Company admin                               |
-| GET    | `/:placementId/schedule`               | Student or assigned advisor/supervisor, or active company/university staff |
-| POST   | `/:placementId/check-in`               | Placement student                           |
-| POST   | `/:attendanceId/check-out`             | Placement student                           |
-| GET    | `/:placementId`                        | Student or assigned advisor/supervisor, or active company/university staff |
-| POST   | `/:attendanceId/adjustments`           | Placement student                           |
-| GET    | `/:placementId/adjustments`            | Assigned advisor/supervisor                 |
-| POST   | `/adjustments/:adjustmentId/review`    | Assigned advisor/supervisor                 |
-| GET    | `/organizations/:organizationId/summary` | University admin/coordinator/advisor      |
+| Method | Path                                     | Access                                                                     |
+| ------ | ---------------------------------------- | -------------------------------------------------------------------------- |
+| PUT    | `/:placementId/schedule`                 | Company admin                                                              |
+| GET    | `/:placementId/schedule`                 | Student or assigned advisor/supervisor, or active company/university staff |
+| POST   | `/:placementId/check-in`                 | Placement student                                                          |
+| POST   | `/:attendanceId/check-out`               | Placement student                                                          |
+| GET    | `/:placementId`                          | Student or assigned advisor/supervisor, or active company/university staff |
+| POST   | `/:attendanceId/adjustments`             | Placement student                                                          |
+| GET    | `/:placementId/adjustments`              | Assigned advisor/supervisor                                                |
+| POST   | `/adjustments/:adjustmentId/review`      | Assigned advisor/supervisor                                                |
+| GET    | `/organizations/:organizationId/summary` | University admin/coordinator/advisor                                       |
 
 Location is captured only when the student explicitly checks in or out;
 continuous tracking is never performed. Timestamps always come from the
@@ -394,7 +394,10 @@ schedule's grace period and end time.
 Request a time correction:
 
 ```json
-{ "proposedCheckOutAt": "2027-03-01T10:00:00.000Z", "reason": "Forgot to check out after the on-site visit." }
+{
+  "proposedCheckOutAt": "2027-03-01T10:00:00.000Z",
+  "reason": "Forgot to check out after the on-site visit."
+}
 ```
 
 Review it:

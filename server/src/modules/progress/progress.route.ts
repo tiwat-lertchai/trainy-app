@@ -33,16 +33,10 @@ export const progressRoute = new Hono<{ Variables: AuthVariables }>()
       201,
     ),
   )
-  .get(
-    "/placements/:placementId",
-    zValidator("param", placementParam),
-    async (c) =>
-      c.json({
-        data: await service.list(
-          c.get("authUser").id,
-          c.req.valid("param").placementId,
-        ),
-      }),
+  .get("/placements/:placementId", zValidator("param", placementParam), async (c) =>
+    c.json({
+      data: await service.list(c.get("authUser").id, c.req.valid("param").placementId),
+    }),
   )
   .patch(
     "/:reportId",
@@ -57,16 +51,10 @@ export const progressRoute = new Hono<{ Variables: AuthVariables }>()
         ),
       }),
   )
-  .post(
-    "/:reportId/submit",
-    zValidator("param", reportIdParamSchema),
-    async (c) =>
-      c.json({
-        data: await service.submit(
-          c.get("authUser").id,
-          c.req.valid("param").reportId,
-        ),
-      }),
+  .post("/:reportId/submit", zValidator("param", reportIdParamSchema), async (c) =>
+    c.json({
+      data: await service.submit(c.get("authUser").id, c.req.valid("param").reportId),
+    }),
   )
   .post(
     "/:reportId/review",

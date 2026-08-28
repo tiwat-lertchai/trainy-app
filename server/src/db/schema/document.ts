@@ -1,14 +1,5 @@
 import { relations, sql } from "drizzle-orm";
-import {
-  check,
-  index,
-  integer,
-  pgEnum,
-  pgTable,
-  text,
-  timestamp,
-  uuid,
-} from "drizzle-orm/pg-core";
+import { check, index, integer, pgEnum, pgTable, text, timestamp, uuid } from "drizzle-orm/pg-core";
 import { user } from "./auth";
 import { placement } from "./placement";
 
@@ -19,11 +10,7 @@ export const documentType = pgEnum("document_type", [
   "final_report",
   "other",
 ]);
-export const documentStatus = pgEnum("document_status", [
-  "submitted",
-  "approved",
-  "rejected",
-]);
+export const documentStatus = pgEnum("document_status", ["submitted", "approved", "rejected"]);
 
 export const placementDocument = pgTable(
   "placement_document",
@@ -46,9 +33,7 @@ export const placementDocument = pgTable(
     }),
     feedback: text("feedback"),
     reviewedAt: timestamp("reviewed_at", { withTimezone: true }),
-    createdAt: timestamp("created_at", { withTimezone: true })
-      .defaultNow()
-      .notNull(),
+    createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
     updatedAt: timestamp("updated_at", { withTimezone: true })
       .defaultNow()
       .$onUpdate(() => new Date())
@@ -64,22 +49,19 @@ export const placementDocument = pgTable(
   ],
 );
 
-export const placementDocumentRelations = relations(
-  placementDocument,
-  ({ one }) => ({
-    placement: one(placement, {
-      fields: [placementDocument.placementId],
-      references: [placement.id],
-    }),
-    student: one(user, {
-      fields: [placementDocument.studentUserId],
-      references: [user.id],
-      relationName: "documentStudent",
-    }),
-    reviewer: one(user, {
-      fields: [placementDocument.reviewerUserId],
-      references: [user.id],
-      relationName: "documentReviewer",
-    }),
+export const placementDocumentRelations = relations(placementDocument, ({ one }) => ({
+  placement: one(placement, {
+    fields: [placementDocument.placementId],
+    references: [placement.id],
   }),
-);
+  student: one(user, {
+    fields: [placementDocument.studentUserId],
+    references: [user.id],
+    relationName: "documentStudent",
+  }),
+  reviewer: one(user, {
+    fields: [placementDocument.reviewerUserId],
+    references: [user.id],
+    relationName: "documentReviewer",
+  }),
+}));

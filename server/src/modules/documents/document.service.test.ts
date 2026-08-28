@@ -1,9 +1,5 @@
 import { describe, expect, test } from "bun:test";
-import type {
-  DocumentPlacement,
-  DocumentRecord,
-  DocumentRepository,
-} from "./document.repository";
+import type { DocumentPlacement, DocumentRecord, DocumentRepository } from "./document.repository";
 import { DocumentService } from "./document.service";
 import type { DocumentStorage } from "./document-storage";
 
@@ -13,19 +9,33 @@ describe("DocumentService", () => {
     expect(await upload(repo, "student")).toMatchObject({
       status: "submitted",
     });
-    expect(
-      upload(new MemoryDocumentRepository(), "outsider"),
-    ).rejects.toMatchObject({ code: "PLACEMENT_NOT_FOUND" });
+    expect(upload(new MemoryDocumentRepository(), "outsider")).rejects.toMatchObject({
+      code: "PLACEMENT_NOT_FOUND",
+    });
   });
   test("rejects file content that does not match the declared MIME type", async () => {
     const repo = new MemoryDocumentRepository();
-    expect(new DocumentService(repo, () => new Date(), undefined, new MemoryStorage()).upload({ actorUserId: "student", placementId: "placement", type: "consent", fileName: "fake.pdf", mimeType: "application/pdf", bytes: new Uint8Array([1, 2, 3]) })).rejects.toMatchObject({ code: "DOCUMENT_CONTENT_INVALID" });
+    expect(
+      new DocumentService(repo, () => new Date(), undefined, new MemoryStorage()).upload({
+        actorUserId: "student",
+        placementId: "placement",
+        type: "consent",
+        fileName: "fake.pdf",
+        mimeType: "application/pdf",
+        bytes: new Uint8Array([1, 2, 3]),
+      }),
+    ).rejects.toMatchObject({ code: "DOCUMENT_CONTENT_INVALID" });
   });
   test("downloads only for placement participants", async () => {
-    const repo = new MemoryDocumentRepository(); repo.document = record();
+    const repo = new MemoryDocumentRepository();
+    repo.document = record();
     const service = new DocumentService(repo, () => new Date(), undefined, new MemoryStorage());
-    expect((await service.download("student", "document")).bytes).toEqual(new Uint8Array([1, 2, 3]));
-    expect(service.download("outsider", "document")).rejects.toMatchObject({ code: "PLACEMENT_ACCESS_REQUIRED" });
+    expect((await service.download("student", "document")).bytes).toEqual(
+      new Uint8Array([1, 2, 3]),
+    );
+    expect(service.download("outsider", "document")).rejects.toMatchObject({
+      code: "PLACEMENT_ACCESS_REQUIRED",
+    });
   });
   test("allows only assigned reviewers", async () => {
     const repo = new MemoryDocumentRepository();
@@ -45,12 +55,7 @@ describe("DocumentService", () => {
     const repo = new MemoryDocumentRepository();
     repo.document = record({ status: "approved" });
     expect(
-      new DocumentService(repo).review(
-        "advisor",
-        "document",
-        "rejected",
-        "No longer valid",
-      ),
+      new DocumentService(repo).review("advisor", "document", "rejected", "No longer valid"),
     ).rejects.toMatchObject({ code: "DOCUMENT_ALREADY_REVIEWED" });
   });
   test("notifies the student after review", async () => {
@@ -84,12 +89,8 @@ class MemoryDocumentRepository implements DocumentRepository {
     this.document = record(input);
     return this.document;
   }
-  async review(
-    id: string,
-    changes: Parameters<DocumentRepository["review"]>[1],
-  ) {
-    if (!this.document || id !== this.document.id)
-      throw new Error("Missing document");
+  async review(id: string, changes: Parameters<DocumentRepository["review"]>[1]) {
+    if (!this.document || id !== this.document.id) throw new Error("Missing document");
     Object.assign(this.document, changes);
     return this.document;
   }
@@ -98,8 +99,12 @@ class MemoryDocumentRepository implements DocumentRepository {
   }
 }
 class MemoryStorage implements DocumentStorage {
-  async save() { return "placements/placement/file.pdf"; }
-  async read() { return new Uint8Array([1, 2, 3]); }
+  async save() {
+    return "placements/placement/file.pdf";
+  }
+  async read() {
+    return new Uint8Array([1, 2, 3]);
+  }
   async remove() {}
 }
 function upload(repo: DocumentRepository, actorUserId: string) {

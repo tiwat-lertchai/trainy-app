@@ -41,19 +41,14 @@ export const progressReport = pgTable(
     feedback: text("feedback"),
     submittedAt: timestamp("submitted_at", { withTimezone: true }),
     reviewedAt: timestamp("reviewed_at", { withTimezone: true }),
-    createdAt: timestamp("created_at", { withTimezone: true })
-      .defaultNow()
-      .notNull(),
+    createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
     updatedAt: timestamp("updated_at", { withTimezone: true })
       .defaultNow()
       .$onUpdate(() => new Date())
       .notNull(),
   },
   (table) => [
-    check(
-      "progress_report_period_order",
-      sql`${table.periodEnd} >= ${table.periodStart}`,
-    ),
+    check("progress_report_period_order", sql`${table.periodEnd} >= ${table.periodStart}`),
     check(
       "progress_report_hours_range",
       sql`${table.hoursWorked} >= 0 and ${table.hoursWorked} <= 744`,

@@ -6,7 +6,6 @@ describe("audit mutation filter", () => {
       expect(isAuditedMethod(method)).toBe(true);
   });
   test("does not audit read-only methods", () => {
-    for (const method of ["GET", "HEAD", "OPTIONS"])
-      expect(isAuditedMethod(method)).toBe(false);
+    for (const method of ["GET", "HEAD", "OPTIONS"]) expect(isAuditedMethod(method)).toBe(false);
   });
 });

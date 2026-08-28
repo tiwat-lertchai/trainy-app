@@ -11,12 +11,21 @@ export function documentStatusLabel(status: DocumentStatus) {
 }
 
 export function documentTypeLabel(type: string) {
-	return { resume: "ประวัติย่อ", consent: "หนังสือยินยอม", progress_evidence: "หลักฐานความก้าวหน้า", final_report: "รายงานฉบับสมบูรณ์", other: "เอกสารอื่น" }[type] ?? type;
+	return (
+		{
+			resume: "ประวัติย่อ",
+			consent: "หนังสือยินยอม",
+			progress_evidence: "หลักฐานความก้าวหน้า",
+			final_report: "รายงานฉบับสมบูรณ์",
+			other: "เอกสารอื่น",
+		}[type] ?? type
+	);
 }
 
 export function validateDocumentFile(file: Pick<File, "size" | "type">) {
 	if (file.size < 1) return "ไฟล์ต้องไม่ว่างเปล่า";
 	if (file.size > MAX_DOCUMENT_BYTES) return "ไฟล์ต้องมีขนาดไม่เกิน 20 MB";
-	if (!ALLOWED_DOCUMENT_TYPES.includes(file.type as typeof ALLOWED_DOCUMENT_TYPES[number])) return "รองรับเฉพาะไฟล์ PDF, JPEG และ PNG";
+	if (!ALLOWED_DOCUMENT_TYPES.includes(file.type as (typeof ALLOWED_DOCUMENT_TYPES)[number]))
+		return "รองรับเฉพาะไฟล์ PDF, JPEG และ PNG";
 	return null;
 }

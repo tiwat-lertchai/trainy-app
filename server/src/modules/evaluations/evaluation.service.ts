@@ -17,28 +17,12 @@ export class EvaluationService {
     const placement = await this.requirePlacement(placementId);
     const type = this.evaluatorType(placement, actorUserId);
     if (!type)
-      throw new AppError(
-        "Assigned evaluator access is required",
-        403,
-        "EVALUATOR_REQUIRED",
-      );
-    if (
-      !(["active", "completed"] as const).includes(
-        placement.status as "active" | "completed",
-      )
-    )
-      throw new AppError(
-        "Placement is not ready for evaluation",
-        409,
-        "PLACEMENT_NOT_EVALUATABLE",
-      );
+      throw new AppError("Assigned evaluator access is required", 403, "EVALUATOR_REQUIRED");
+    if (!(["active", "completed"] as const).includes(placement.status as "active" | "completed"))
+      throw new AppError("Placement is not ready for evaluation", 409, "PLACEMENT_NOT_EVALUATABLE");
     const existing = await this.repository.findByType(placement.id, type);
     if (existing?.status === "submitted")
-      throw new AppError(
-        "Submitted evaluation is immutable",
-        409,
-        "EVALUATION_IMMUTABLE",
-      );
+      throw new AppError("Submitted evaluation is immutable", 409, "EVALUATION_IMMUTABLE");
     return existing
       ? this.repository.update(existing.id, scores)
       : this.repository.create({
@@ -50,24 +34,11 @@ export class EvaluationService {
   }
   async submit(actorUserId: string, id: string) {
     const record = await this.repository.findById(id);
-    if (!record)
-      throw new AppError(
-        "Evaluation was not found",
-        404,
-        "EVALUATION_NOT_FOUND",
-      );
+    if (!record) throw new AppError("Evaluation was not found", 404, "EVALUATION_NOT_FOUND");
     if (record.evaluatorUserId !== actorUserId)
-      throw new AppError(
-        "Evaluation was not found",
-        404,
-        "EVALUATION_NOT_FOUND",
-      );
+      throw new AppError("Evaluation was not found", 404, "EVALUATION_NOT_FOUND");
     if (record.status !== "draft")
-      throw new AppError(
-        "Evaluation is already submitted",
-        409,
-        "EVALUATION_IMMUTABLE",
-      );
+      throw new AppError("Evaluation is already submitted", 409, "EVALUATION_IMMUTABLE");
     const submitted = await this.repository.update(id, {
       status: "submitted",
       submittedAt: this.now(),
@@ -91,21 +62,15 @@ export class EvaluationService {
       placement.supervisorUserId,
     ].includes(actorUserId);
     if (!isParticipant)
-      throw new AppError(
-        "Placement access is required",
-        403,
-        "PLACEMENT_ACCESS_REQUIRED",
-      );
+      throw new AppError("Placement access is required", 403, "PLACEMENT_ACCESS_REQUIRED");
     const records = await this.repository.list(placementId);
     return records.filter(
-      (record) =>
-        record.status === "submitted" || record.evaluatorUserId === actorUserId,
+      (record) => record.status === "submitted" || record.evaluatorUserId === actorUserId,
     );
   }
   private async requirePlacement(id: string) {
     const r = await this.repository.findPlacement(id);
-    if (!r)
-      throw new AppError("Placement was not found", 404, "PLACEMENT_NOT_FOUND");
+    if (!r) throw new AppError("Placement was not found", 404, "PLACEMENT_NOT_FOUND");
     return r;
   }
   private evaluatorType(

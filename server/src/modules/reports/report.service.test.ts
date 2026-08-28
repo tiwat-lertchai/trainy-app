@@ -8,9 +8,7 @@ describe("ReportService", () => {
       role: "company_admin",
       status: "active",
     });
-    expect(
-      await new ReportService(r).organizationSummary("admin", "company"),
-    ).toMatchObject({
+    expect(await new ReportService(r).organizationSummary("admin", "company")).toMatchObject({
       organizationType: "company",
       activeMembers: 3,
       internships: 2,
@@ -22,9 +20,9 @@ describe("ReportService", () => {
       role: "supervisor",
       status: "active",
     });
-    expect(
-      new ReportService(r).organizationSummary("supervisor", "company"),
-    ).rejects.toMatchObject({ code: "ORGANIZATION_ADMIN_REQUIRED" });
+    expect(new ReportService(r).organizationSummary("supervisor", "company")).rejects.toMatchObject(
+      { code: "ORGANIZATION_ADMIN_REQUIRED" },
+    );
   });
 });
 class MemoryReportRepository implements ReportRepository {

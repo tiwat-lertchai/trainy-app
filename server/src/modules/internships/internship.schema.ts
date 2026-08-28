@@ -27,12 +27,9 @@ export const createInternshipSchema = z.object({
 export const updateInternshipSchema = createInternshipSchema
   .partial()
   .extend({ status: z.enum(internshipStatuses).optional() })
-  .refine(
-    (value) => Object.values(value).some((field) => field !== undefined),
-    {
-      message: "At least one internship field must be provided",
-    },
-  );
+  .refine((value) => Object.values(value).some((field) => field !== undefined), {
+    message: "At least one internship field must be provided",
+  });
 
 export const createApplicationSchema = z.object({
   universityOrganizationId: z.string().uuid(),

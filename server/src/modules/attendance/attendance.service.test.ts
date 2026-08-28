@@ -17,11 +17,7 @@ describe("AttendanceService", () => {
     test("rejects an actor without company_admin access", () => {
       const repository = seededRepository();
       expect(
-        new AttendanceService(repository).saveSchedule(
-          "outsider",
-          "placement",
-          scheduleInput(),
-        ),
+        new AttendanceService(repository).saveSchedule("outsider", "placement", scheduleInput()),
       ).rejects.toMatchObject({ code: "ORGANIZATION_ACCESS_REQUIRED" });
     });
 
@@ -66,38 +62,23 @@ describe("AttendanceService", () => {
       repository.placement.status = "pending";
       repository.schedules.push(schedule());
       expect(
-        new AttendanceService(repository, () => MONDAY_MORNING).checkIn(
-          "student",
-          "placement",
-          {},
-        ),
+        new AttendanceService(repository, () => MONDAY_MORNING).checkIn("student", "placement", {}),
       ).rejects.toMatchObject({ code: "PLACEMENT_NOT_ACTIVE" });
     });
 
     test("rejects when no schedule exists for the day", () => {
       const repository = seededRepository();
       expect(
-        new AttendanceService(repository, () => MONDAY_MORNING).checkIn(
-          "student",
-          "placement",
-          {},
-        ),
+        new AttendanceService(repository, () => MONDAY_MORNING).checkIn("student", "placement", {}),
       ).rejects.toMatchObject({ code: "ATTENDANCE_SCHEDULE_NOT_FOUND" });
     });
 
     test("rejects a duplicate check-in for the same day", () => {
       const repository = seededRepository();
       repository.schedules.push(schedule());
-      repository.attendance.set(
-        "existing",
-        attendanceRecord({ workDate: "2026-10-05" }),
-      );
+      repository.attendance.set("existing", attendanceRecord({ workDate: "2026-10-05" }));
       expect(
-        new AttendanceService(repository, () => MONDAY_MORNING).checkIn(
-          "student",
-          "placement",
-          {},
-        ),
+        new AttendanceService(repository, () => MONDAY_MORNING).checkIn("student", "placement", {}),
       ).rejects.toMatchObject({ code: "ATTENDANCE_ALREADY_EXISTS" });
     });
 
@@ -105,11 +86,7 @@ describe("AttendanceService", () => {
       const repository = seededRepository();
       repository.schedules.push(schedule({ locationPolicy: "required_onsite" }));
       expect(
-        new AttendanceService(repository, () => MONDAY_MORNING).checkIn(
-          "student",
-          "placement",
-          {},
-        ),
+        new AttendanceService(repository, () => MONDAY_MORNING).checkIn("student", "placement", {}),
       ).rejects.toMatchObject({ code: "ATTENDANCE_LOCATION_REQUIRED" });
     });
 
@@ -117,35 +94,35 @@ describe("AttendanceService", () => {
       const repository = seededRepository();
       repository.schedules.push(schedule({ locationPolicy: "required_onsite" }));
       expect(
-        new AttendanceService(repository, () => MONDAY_MORNING).checkIn(
-          "student",
-          "placement",
-          { location: { latitude: 0, longitude: 0, accuracyMeters: 5 } },
-        ),
+        new AttendanceService(repository, () => MONDAY_MORNING).checkIn("student", "placement", {
+          location: { latitude: 0, longitude: 0, accuracyMeters: 5 },
+        }),
       ).rejects.toMatchObject({ code: "ATTENDANCE_OUTSIDE_GEOFENCE" });
     });
 
     test("records attendance with an exception reason when onsite is required", async () => {
       const repository = seededRepository();
       repository.schedules.push(schedule({ locationPolicy: "required_onsite" }));
-      const record = await new AttendanceService(
-        repository,
-        () => MONDAY_MORNING,
-      ).checkIn("student", "placement", {
-        locationExceptionReason: "Company wifi disabled device GPS today.",
-      });
+      const record = await new AttendanceService(repository, () => MONDAY_MORNING).checkIn(
+        "student",
+        "placement",
+        {
+          locationExceptionReason: "Company wifi disabled device GPS today.",
+        },
+      );
       expect(record).toMatchObject({ status: "checked_in" });
     });
 
     test("records attendance inside the geofence", async () => {
       const repository = seededRepository();
       repository.schedules.push(schedule({ locationPolicy: "required_onsite" }));
-      const record = await new AttendanceService(
-        repository,
-        () => MONDAY_MORNING,
-      ).checkIn("student", "placement", {
-        location: { latitude: 13.75, longitude: 100.5, accuracyMeters: 5 },
-      });
+      const record = await new AttendanceService(repository, () => MONDAY_MORNING).checkIn(
+        "student",
+        "placement",
+        {
+          location: { latitude: 13.75, longitude: 100.5, accuracyMeters: 5 },
+        },
+      );
       expect(record.checkInLocation?.insideGeofence).toBe(true);
     });
   });
@@ -153,10 +130,7 @@ describe("AttendanceService", () => {
   describe("checkOut", () => {
     test("rejects checking out an already complete attendance", () => {
       const repository = seededRepository();
-      repository.attendance.set(
-        "attendance",
-        attendanceRecord({ checkedOutAt: MONDAY_EVENING }),
-      );
+      repository.attendance.set("attendance", attendanceRecord({ checkedOutAt: MONDAY_EVENING }));
       expect(
         new AttendanceService(repository).checkOut("student", "attendance", {}),
       ).rejects.toMatchObject({ code: "ATTENDANCE_ALREADY_COMPLETE" });
@@ -185,10 +159,11 @@ describe("AttendanceService", () => {
         "attendance",
         attendanceRecord({ checkedInAt: MONDAY_ON_TIME, scheduleId: "schedule" }),
       );
-      const record = await new AttendanceService(
-        repository,
-        () => MONDAY_EVENING,
-      ).checkOut("student", "attendance", {});
+      const record = await new AttendanceService(repository, () => MONDAY_EVENING).checkOut(
+        "student",
+        "attendance",
+        {},
+      );
       expect(record.status).toBe("complete");
       expect(record.netMinutes).toBeGreaterThan(0);
     });
@@ -203,27 +178,21 @@ describe("AttendanceService", () => {
         adjustment({ attendanceId: "attendance", status: "pending" }),
       );
       expect(
-        new AttendanceService(repository).requestAdjustment(
-          "student",
-          "attendance",
-          { reason: "Forgot to check out on time yesterday." },
-        ),
+        new AttendanceService(repository).requestAdjustment("student", "attendance", {
+          reason: "Forgot to check out on time yesterday.",
+        }),
       ).rejects.toMatchObject({ code: "ATTENDANCE_ADJUSTMENT_PENDING" });
     });
 
     test("rejects an adjustment reviewed by a non-reviewer", () => {
       const repository = seededRepository();
       repository.attendance.set("attendance", attendanceRecord());
-      repository.adjustments.set(
-        "adjustment",
-        adjustment({ attendanceId: "attendance" }),
-      );
+      repository.adjustments.set("adjustment", adjustment({ attendanceId: "attendance" }));
       expect(
-        new AttendanceService(repository).reviewAdjustment(
-          "outsider",
-          "adjustment",
-          { decision: "approved", note: "Looks fine to me." },
-        ),
+        new AttendanceService(repository).reviewAdjustment("outsider", "adjustment", {
+          decision: "approved",
+          note: "Looks fine to me.",
+        }),
       ).rejects.toMatchObject({ code: "ATTENDANCE_REVIEWER_REQUIRED" });
     });
 
@@ -297,7 +266,10 @@ class MemoryAttendanceRepository implements AttendanceRepository {
     createdAt: new Date("2026-08-27"),
     updatedAt: new Date("2026-08-27"),
   };
-  memberships = new Map<string, string>([["university:coordinator", "coordinator"], ["company:company-admin", "company_admin"]]);
+  memberships = new Map<string, string>([
+    ["university:coordinator", "coordinator"],
+    ["company:company-admin", "company_admin"],
+  ]);
   schedules: WorkSchedule[] = [];
   attendance = new Map<string, AttendanceRecord>();
   adjustments = new Map<string, AdjustmentRecord>();
@@ -311,10 +283,24 @@ class MemoryAttendanceRepository implements AttendanceRepository {
     return role ? { role } : undefined;
   }
   async findSchedule(placementId: string, weekday: number) {
-    return this.schedules.find((item) => item.placementId === placementId && item.weekday === weekday);
+    return this.schedules.find(
+      (item) => item.placementId === placementId && item.weekday === weekday,
+    );
   }
-  async replaceSchedules(placementId: string, schedules: Array<Omit<WorkSchedule, "id" | "placementId" | "createdAt" | "updatedAt">>) {
-    this.schedules = schedules.map((day, index) => ({ ...day, id: `schedule-${index}`, placementId, createdAt: new Date(), updatedAt: new Date() }) as WorkSchedule);
+  async replaceSchedules(
+    placementId: string,
+    schedules: Array<Omit<WorkSchedule, "id" | "placementId" | "createdAt" | "updatedAt">>,
+  ) {
+    this.schedules = schedules.map(
+      (day, index) =>
+        ({
+          ...day,
+          id: `schedule-${index}`,
+          placementId,
+          createdAt: new Date(),
+          updatedAt: new Date(),
+        }) as WorkSchedule,
+    );
     return this.schedules;
   }
   async listSchedules(placementId: string) {
@@ -324,10 +310,17 @@ class MemoryAttendanceRepository implements AttendanceRepository {
     return this.attendance.get(id);
   }
   async findAttendanceForDate(placementId: string, workDate: string) {
-    return [...this.attendance.values()].find((item) => item.placementId === placementId && item.workDate === workDate);
+    return [...this.attendance.values()].find(
+      (item) => item.placementId === placementId && item.workDate === workDate,
+    );
   }
   async createAttendance(input: AttendanceRecord) {
-    if ([...this.attendance.values()].some((item) => item.placementId === input.placementId && item.workDate === input.workDate)) return undefined;
+    if (
+      [...this.attendance.values()].some(
+        (item) => item.placementId === input.placementId && item.workDate === input.workDate,
+      )
+    )
+      return undefined;
     const record = attendanceRecord(input);
     this.attendance.set(record.id, record);
     return record;
@@ -342,7 +335,9 @@ class MemoryAttendanceRepository implements AttendanceRepository {
     return [...this.attendance.values()].filter((item) => item.placementId === placementId);
   }
   async createAdjustment(input: AdjustmentRecord) {
-    const pending = [...this.adjustments.values()].some((item) => item.attendanceId === input.attendanceId && item.status === "pending");
+    const pending = [...this.adjustments.values()].some(
+      (item) => item.attendanceId === input.attendanceId && item.status === "pending",
+    );
     if (pending) return undefined;
     const record = adjustment(input);
     this.adjustments.set(record.id, record);
@@ -352,17 +347,33 @@ class MemoryAttendanceRepository implements AttendanceRepository {
     return this.adjustments.get(id);
   }
   async listPendingAdjustments(placementId: string) {
-    const attendanceIds = [...this.attendance.values()].filter((item) => item.placementId === placementId).map((item) => item.id);
-    return [...this.adjustments.values()].filter((item) => attendanceIds.includes(item.attendanceId) && item.status === "pending");
+    const attendanceIds = [...this.attendance.values()]
+      .filter((item) => item.placementId === placementId)
+      .map((item) => item.id);
+    return [...this.adjustments.values()].filter(
+      (item) => attendanceIds.includes(item.attendanceId) && item.status === "pending",
+    );
   }
-  async reviewAdjustment(input: { adjustment: AdjustmentRecord; reviewerUserId: string; decision: "approved" | "rejected"; note: string; attendanceChanges?: Partial<AttendanceRecord>; reviewedAt: Date }) {
+  async reviewAdjustment(input: {
+    adjustment: AdjustmentRecord;
+    reviewerUserId: string;
+    decision: "approved" | "rejected";
+    note: string;
+    attendanceChanges?: Partial<AttendanceRecord>;
+    reviewedAt: Date;
+  }) {
     if (input.attendanceChanges) {
       const attendance = this.attendance.get(input.adjustment.attendanceId);
       if (attendance) Object.assign(attendance, input.attendanceChanges);
     }
     const record = this.adjustments.get(input.adjustment.id);
     if (!record) throw new Error("Missing adjustment");
-    Object.assign(record, { status: input.decision, reviewerUserId: input.reviewerUserId, reviewNote: input.note, reviewedAt: input.reviewedAt });
+    Object.assign(record, {
+      status: input.decision,
+      reviewerUserId: input.reviewerUserId,
+      reviewNote: input.note,
+      reviewedAt: input.reviewedAt,
+    });
     return record;
   }
   async listUniversityAttendance() {

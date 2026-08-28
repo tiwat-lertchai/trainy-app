@@ -40,6 +40,7 @@ them. The `postgres` driver path (local Docker / integration tests) was
 unchanged.
 
 Verified directly against the real Neon database (not just types):
+
 - `db.transaction()` now executes and returns real query results instead
   of throwing.
 - Ran the exact previously-crashing code path

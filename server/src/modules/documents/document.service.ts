@@ -22,18 +22,18 @@ export class DocumentService {
     const placement = await this.requirePlacement(input.placementId);
     if (placement.studentUserId !== input.actorUserId)
       throw new AppError("Placement was not found", 404, "PLACEMENT_NOT_FOUND");
-    if (
-      !(["pending", "active"] as const).includes(
-        placement.status as "pending" | "active",
-      )
-    )
+    if (!(["pending", "active"] as const).includes(placement.status as "pending" | "active"))
       throw new AppError(
         "Placement no longer accepts documents",
         409,
         "DOCUMENT_SUBMISSION_CLOSED",
       );
     if (!hasExpectedSignature(input.mimeType, input.bytes))
-      throw new AppError("File content does not match its MIME type", 422, "DOCUMENT_CONTENT_INVALID");
+      throw new AppError(
+        "File content does not match its MIME type",
+        422,
+        "DOCUMENT_CONTENT_INVALID",
+      );
     if (!this.storage) throw new Error("Document storage is not configured");
     const storageKey = await this.storage.save(input);
     try {
@@ -55,7 +55,11 @@ export class DocumentService {
   async download(actorUserId: string, documentId: string) {
     const document = await this.requireDocument(documentId);
     const placement = await this.requirePlacement(document.placementId);
-    if (![placement.studentUserId, placement.advisorUserId, placement.supervisorUserId].includes(actorUserId))
+    if (
+      ![placement.studentUserId, placement.advisorUserId, placement.supervisorUserId].includes(
+        actorUserId,
+      )
+    )
       throw new AppError("Placement access is required", 403, "PLACEMENT_ACCESS_REQUIRED");
     if (!this.storage) throw new Error("Document storage is not configured");
     try {
@@ -72,28 +76,12 @@ export class DocumentService {
   ) {
     const document = await this.requireDocument(documentId);
     const placement = await this.requirePlacement(document.placementId);
-    if (
-      ![placement.advisorUserId, placement.supervisorUserId].includes(
-        actorUserId,
-      )
-    )
-      throw new AppError(
-        "Assigned reviewer access is required",
-        403,
-        "DOCUMENT_REVIEWER_REQUIRED",
-      );
+    if (![placement.advisorUserId, placement.supervisorUserId].includes(actorUserId))
+      throw new AppError("Assigned reviewer access is required", 403, "DOCUMENT_REVIEWER_REQUIRED");
     if (document.status !== "submitted")
-      throw new AppError(
-        "Document has already been reviewed",
-        409,
-        "DOCUMENT_ALREADY_REVIEWED",
-      );
+      throw new AppError("Document has already been reviewed", 409, "DOCUMENT_ALREADY_REVIEWED");
     if (decision === "rejected" && !feedback?.trim())
-      throw new AppError(
-        "Feedback is required",
-        422,
-        "DOCUMENT_FEEDBACK_REQUIRED",
-      );
+      throw new AppError("Feedback is required", 422, "DOCUMENT_FEEDBACK_REQUIRED");
     const reviewed = await this.repository.review(document.id, {
       status: decision,
       reviewerUserId: actorUserId,
@@ -105,9 +93,7 @@ export class DocumentService {
       type: "document_reviewed",
       title: "Document reviewed",
       message:
-        decision === "approved"
-          ? "Your document was approved."
-          : "Your document was rejected.",
+        decision === "approved" ? "Your document was approved." : "Your document was rejected.",
       entityType: "placement_document",
       entityId: document.id,
     });
@@ -116,36 +102,36 @@ export class DocumentService {
   async list(actorUserId: string, placementId: string) {
     const placement = await this.requirePlacement(placementId);
     if (
-      ![
-        placement.studentUserId,
-        placement.advisorUserId,
-        placement.supervisorUserId,
-      ].includes(actorUserId)
+      ![placement.studentUserId, placement.advisorUserId, placement.supervisorUserId].includes(
+        actorUserId,
+      )
     )
-      throw new AppError(
-        "Placement access is required",
-        403,
-        "PLACEMENT_ACCESS_REQUIRED",
-      );
+      throw new AppError("Placement access is required", 403, "PLACEMENT_ACCESS_REQUIRED");
     return this.repository.list(placementId);
   }
   private async requirePlacement(id: string) {
     const record = await this.repository.findPlacement(id);
-    if (!record)
-      throw new AppError("Placement was not found", 404, "PLACEMENT_NOT_FOUND");
+    if (!record) throw new AppError("Placement was not found", 404, "PLACEMENT_NOT_FOUND");
     return record;
   }
   private async requireDocument(id: string) {
     const record = await this.repository.findDocument(id);
-    if (!record)
-      throw new AppError("Document was not found", 404, "DOCUMENT_NOT_FOUND");
+    if (!record) throw new AppError("Document was not found", 404, "DOCUMENT_NOT_FOUND");
     return record;
   }
 }
 
 function hasExpectedSignature(mimeType: string, bytes: Uint8Array) {
-  if (mimeType === "application/pdf") return bytes.length >= 5 && String.fromCharCode(...bytes.slice(0, 5)) === "%PDF-";
-  if (mimeType === "image/jpeg") return bytes.length >= 3 && bytes[0] === 0xff && bytes[1] === 0xd8 && bytes[2] === 0xff;
-  if (mimeType === "image/png") return bytes.length >= 8 && [0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a].every((value, index) => bytes[index] === value);
+  if (mimeType === "application/pdf")
+    return bytes.length >= 5 && String.fromCharCode(...bytes.slice(0, 5)) === "%PDF-";
+  if (mimeType === "image/jpeg")
+    return bytes.length >= 3 && bytes[0] === 0xff && bytes[1] === 0xd8 && bytes[2] === 0xff;
+  if (mimeType === "image/png")
+    return (
+      bytes.length >= 8 &&
+      [0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a].every(
+        (value, index) => bytes[index] === value,
+      )
+    );
   return false;
 }

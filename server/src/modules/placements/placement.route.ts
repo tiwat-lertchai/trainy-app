@@ -29,19 +29,14 @@ export const placementRoute = new Hono<{ Variables: AuthVariables }>()
       201,
     ),
   )
-  .get("/me", async (c) =>
-    c.json({ data: await service.listMyPlacements(c.get("authUser").id) }),
-  )
-  .get(
-    "/organizations/:organizationId",
-    zValidator("param", organizationParamSchema),
-    async (c) =>
-      c.json({
-        data: await service.listOrganizationPlacements(
-          c.get("authUser").id,
-          c.req.valid("param").organizationId,
-        ),
-      }),
+  .get("/me", async (c) => c.json({ data: await service.listMyPlacements(c.get("authUser").id) }))
+  .get("/organizations/:organizationId", zValidator("param", organizationParamSchema), async (c) =>
+    c.json({
+      data: await service.listOrganizationPlacements(
+        c.get("authUser").id,
+        c.req.valid("param").organizationId,
+      ),
+    }),
   )
   .patch(
     "/:placementId/advisor",

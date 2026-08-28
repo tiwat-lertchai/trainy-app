@@ -57,8 +57,7 @@ export class DrizzleEvaluationRepository implements EvaluationRepository {
   }
   findByType(placementId: string, type: "advisor" | "supervisor") {
     return this.database.query.placementEvaluation.findFirst({
-      where: (t, { and }) =>
-        and(eq(t.placementId, placementId), eq(t.evaluatorType, type)),
+      where: (t, { and }) => and(eq(t.placementId, placementId), eq(t.evaluatorType, type)),
     });
   }
   findById(id: string) {
@@ -67,17 +66,11 @@ export class DrizzleEvaluationRepository implements EvaluationRepository {
     });
   }
   async create(input: Parameters<EvaluationRepository["create"]>[0]) {
-    const [r] = await this.database
-      .insert(placementEvaluation)
-      .values(input)
-      .returning();
+    const [r] = await this.database.insert(placementEvaluation).values(input).returning();
     if (!r) throw new Error("Database did not return evaluation");
     return r;
   }
-  async update(
-    id: string,
-    changes: Parameters<EvaluationRepository["update"]>[1],
-  ) {
+  async update(id: string, changes: Parameters<EvaluationRepository["update"]>[1]) {
     const [r] = await this.database
       .update(placementEvaluation)
       .set(changes)

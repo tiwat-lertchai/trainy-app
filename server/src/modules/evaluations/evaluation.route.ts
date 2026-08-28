@@ -19,30 +19,15 @@ export const evaluationRoute = new Hono<{ Variables: AuthVariables }>()
   .use("*", requireAuth)
   .post("/", zValidator("json", saveEvaluationSchema), async (c) => {
     const { placementId, ...scores } = c.req.valid("json");
-    return c.json(
-      { data: await service.save(c.get("authUser").id, placementId, scores) },
-      201,
-    );
+    return c.json({ data: await service.save(c.get("authUser").id, placementId, scores) }, 201);
   })
-  .get(
-    "/placements/:placementId",
-    zValidator("param", placementIdParamSchema),
-    async (c) =>
-      c.json({
-        data: await service.list(
-          c.get("authUser").id,
-          c.req.valid("param").placementId,
-        ),
-      }),
+  .get("/placements/:placementId", zValidator("param", placementIdParamSchema), async (c) =>
+    c.json({
+      data: await service.list(c.get("authUser").id, c.req.valid("param").placementId),
+    }),
   )
-  .post(
-    "/:evaluationId/submit",
-    zValidator("param", evaluationIdParamSchema),
-    async (c) =>
-      c.json({
-        data: await service.submit(
-          c.get("authUser").id,
-          c.req.valid("param").evaluationId,
-        ),
-      }),
+  .post("/:evaluationId/submit", zValidator("param", evaluationIdParamSchema), async (c) =>
+    c.json({
+      data: await service.submit(c.get("authUser").id, c.req.valid("param").evaluationId),
+    }),
   );

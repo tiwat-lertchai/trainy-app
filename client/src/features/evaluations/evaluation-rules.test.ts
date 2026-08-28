@@ -14,8 +14,14 @@ describe("evaluation presentation rules", () => {
 	});
 	test("hides drafts from students and from the other evaluator", () => {
 		expect(visibleEvaluations(records, "student").map((item) => item.id)).toEqual(["supervisor"]);
-		expect(visibleEvaluations(records, "supervisor").map((item) => item.id)).toEqual(["supervisor"]);
-		expect(visibleEvaluations(records, "advisor").map((item) => item.id)).toEqual(["advisor", "supervisor"]);
+		expect(visibleEvaluations(records, "supervisor").map((item) => item.id)).toEqual([
+			"supervisor",
+		]);
+		expect(visibleEvaluations(records, "advisor").map((item) => item.id)).toEqual([
+			"advisor",
+			"supervisor",
+		]);
 	});
-	test("labels evaluator roles in Thai", () => expect(evaluatorLabel("advisor")).toBe("อาจารย์ที่ปรึกษา"));
+	test("labels evaluator roles in Thai", () =>
+		expect(evaluatorLabel("advisor")).toBe("อาจารย์ที่ปรึกษา"));
 });

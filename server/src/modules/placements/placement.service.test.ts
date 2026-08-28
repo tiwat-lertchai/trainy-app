@@ -64,11 +64,7 @@ describe("PlacementService", () => {
     const repository = seededRepository();
     repository.record = placementRecord();
     expect(
-      new PlacementService(repository).assignAdvisor(
-        "coordinator",
-        "placement",
-        "outsider",
-      ),
+      new PlacementService(repository).assignAdvisor("coordinator", "placement", "outsider"),
     ).rejects.toMatchObject({ code: "ORGANIZATION_ACCESS_REQUIRED" });
   });
 
@@ -76,11 +72,7 @@ describe("PlacementService", () => {
     const repository = seededRepository();
     repository.record = placementRecord({ advisorUserId: "advisor" });
     expect(
-      new PlacementService(repository).updateStatus(
-        "coordinator",
-        "placement",
-        "active",
-      ),
+      new PlacementService(repository).updateStatus("coordinator", "placement", "active"),
     ).rejects.toMatchObject({ code: "PLACEMENT_ASSIGNMENTS_REQUIRED" });
   });
 
@@ -102,11 +94,7 @@ describe("PlacementService", () => {
     const repository = seededRepository();
     repository.record = placementRecord({ status: "completed" });
     expect(
-      new PlacementService(repository).updateStatus(
-        "coordinator",
-        "placement",
-        "active",
-      ),
+      new PlacementService(repository).updateStatus("coordinator", "placement", "active"),
     ).rejects.toMatchObject({ code: "INVALID_PLACEMENT_TRANSITION" });
   });
 });
@@ -128,14 +116,11 @@ class MemoryPlacementRepository implements PlacementRepository {
   }
   async findMembership(organizationId: string, userId: string) {
     return this.memberships.find(
-      (item) =>
-        item.organizationId === organizationId && item.userId === userId,
+      (item) => item.organizationId === organizationId && item.userId === userId,
     );
   }
   async findByApplication(applicationId: string) {
-    return this.record?.applicationId === applicationId
-      ? this.record
-      : undefined;
+    return this.record?.applicationId === applicationId ? this.record : undefined;
   }
   async findById(id: string) {
     return this.record?.id === id ? this.record : undefined;
@@ -145,12 +130,8 @@ class MemoryPlacementRepository implements PlacementRepository {
     this.record = placementRecord(input);
     return this.record;
   }
-  async update(
-    id: string,
-    changes: Parameters<PlacementRepository["update"]>[1],
-  ) {
-    if (!this.record || this.record.id !== id)
-      throw new Error("Missing placement");
+  async update(id: string, changes: Parameters<PlacementRepository["update"]>[1]) {
+    if (!this.record || this.record.id !== id) throw new Error("Missing placement");
     Object.assign(this.record, changes);
     return this.record;
   }
@@ -159,10 +140,9 @@ class MemoryPlacementRepository implements PlacementRepository {
   }
   async listForOrganization(organizationId: string) {
     return this.record &&
-      [
-        this.record.universityOrganizationId,
-        this.record.companyOrganizationId,
-      ].includes(organizationId)
+      [this.record.universityOrganizationId, this.record.companyOrganizationId].includes(
+        organizationId,
+      )
       ? [this.record]
       : [];
   }
@@ -188,9 +168,7 @@ function membership(
   return { userId, organizationId, organizationType, role, status: "active" };
 }
 
-function placementRecord(
-  overrides: Partial<PlacementRecord> = {},
-): PlacementRecord {
+function placementRecord(overrides: Partial<PlacementRecord> = {}): PlacementRecord {
   const now = new Date("2026-08-27");
   return {
     id: "placement",

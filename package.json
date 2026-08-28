@@ -21,6 +21,8 @@
     "lint": "turbo lint",
     "type-check": "turbo type-check",
     "test": "turbo test",
+    "fmt": "prettier --write \"**/*.{ts,tsx,js,json,md}\"",
+    "fmt:check": "prettier --check \"**/*.{ts,tsx,js,json,md}\"",
     "postinstall": "turbo build --filter=shared --filter=server"
   },
   "keywords": [
@@ -33,6 +35,7 @@
   ],
   "devDependencies": {
     "bun-types": "^1.4.0",
+    "prettier": "^3.9.6",
     "turbo": "^2.10.12"
   },
   "peerDependencies": {

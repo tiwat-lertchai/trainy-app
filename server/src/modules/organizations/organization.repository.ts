@@ -1,18 +1,12 @@
 import { and, eq, sql } from "drizzle-orm";
 import type { Database } from "../../db";
-import {
-  organization,
-  organizationMembership,
-  user,
-} from "../../db/schema";
-import type {
-  MembershipStatus,
-  OrganizationRole,
-  OrganizationType,
-} from "./organization.schema";
+import { organization, organizationMembership, user } from "../../db/schema";
+import type { MembershipStatus, OrganizationRole, OrganizationType } from "./organization.schema";
 
 export type OrganizationRecord = typeof organization.$inferSelect;
-export type MembershipRecord = typeof organizationMembership.$inferSelect & { user?: { id: string; name: string; email: string } };
+export type MembershipRecord = typeof organizationMembership.$inferSelect & {
+  user?: { id: string; name: string; email: string };
+};
 export type OrganizationMembershipRecord = {
   organization: OrganizationRecord;
   membership: MembershipRecord;
@@ -28,15 +22,9 @@ export interface OrganizationRepository {
   }): Promise<OrganizationRecord>;
   findBySlug(slug: string): Promise<OrganizationRecord | undefined>;
   userExists(userId: string): Promise<boolean>;
-  findForUser(
-    organizationId: string,
-    userId: string,
-  ): Promise<OrganizationRecord | undefined>;
+  findForUser(organizationId: string, userId: string): Promise<OrganizationRecord | undefined>;
   listForUser(userId: string): Promise<OrganizationMembershipRecord[]>;
-  findMembership(
-    organizationId: string,
-    userId: string,
-  ): Promise<MembershipRecord | undefined>;
+  findMembership(organizationId: string, userId: string): Promise<MembershipRecord | undefined>;
   findMembershipById(
     organizationId: string,
     membershipId: string,
@@ -51,15 +39,10 @@ export interface OrganizationRepository {
     membershipId: string,
     changes: { role?: OrganizationRole; status?: MembershipStatus },
   ): Promise<MembershipRecord>;
-  countActiveAdmins(
-    organizationId: string,
-    adminRole: OrganizationRole,
-  ): Promise<number>;
+  countActiveAdmins(organizationId: string, adminRole: OrganizationRole): Promise<number>;
 }
 
-export class DrizzleOrganizationRepository
-  implements OrganizationRepository
-{
+export class DrizzleOrganizationRepository implements OrganizationRepository {
   constructor(private readonly database: Database) {}
 
   async createWithOwner(input: {
@@ -108,10 +91,7 @@ export class DrizzleOrganizationRepository
     const [record] = await this.database
       .select({ organization })
       .from(organization)
-      .innerJoin(
-        organizationMembership,
-        eq(organizationMembership.organizationId, organization.id),
-      )
+      .innerJoin(organizationMembership, eq(organizationMembership.organizationId, organization.id))
       .where(
         and(
           eq(organization.id, organizationId),
@@ -128,15 +108,9 @@ export class DrizzleOrganizationRepository
     return this.database
       .select({ organization, membership: organizationMembership })
       .from(organization)
-      .innerJoin(
-        organizationMembership,
-        eq(organizationMembership.organizationId, organization.id),
-      )
+      .innerJoin(organizationMembership, eq(organizationMembership.organizationId, organization.id))
       .where(
-        and(
-          eq(organizationMembership.userId, userId),
-          eq(organizationMembership.status, "active"),
-        ),
+        and(eq(organizationMembership.userId, userId), eq(organizationMembership.status, "active")),
       );
   }
 
@@ -165,11 +139,7 @@ export class DrizzleOrganizationRepository
     });
   }
 
-  async addMembership(input: {
-    organizationId: string;
-    userId: string;
-    role: OrganizationRole;
-  }) {
+  async addMembership(input: { organizationId: string; userId: string; role: OrganizationRole }) {
     const [membership] = await this.database
       .insert(organizationMembership)
       .values(input)
@@ -199,10 +169,7 @@ export class DrizzleOrganizationRepository
     return membership;
   }
 
-  async countActiveAdmins(
-    organizationId: string,
-    adminRole: OrganizationRole,
-  ) {
+  async countActiveAdmins(organizationId: string, adminRole: OrganizationRole) {
     const [result] = await this.database
       .select({ count: sql<number>`count(*)::int` })
       .from(organizationMembership)

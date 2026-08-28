@@ -31,10 +31,5 @@
     "noUnusedParameters": false,
     "noPropertyAccessFromIndexSignature": false
   },
-  "exclude": [
-    "node_modules",
-    "client/dist",
-    "server/dist",
-    "shared/dist"
-  ]
+  "exclude": ["node_modules", "client/dist", "server/dist", "shared/dist"]
 }

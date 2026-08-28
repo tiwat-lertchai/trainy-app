@@ -34,16 +34,10 @@ export const attendanceRoute = new Hono<{ Variables: AuthVariables }>()
         ),
       }),
   )
-  .get(
-    "/:placementId/schedule",
-    zValidator("param", placementIdParamSchema),
-    async (c) =>
-      c.json({
-        data: await service.listSchedules(
-          c.get("authUser").id,
-          c.req.valid("param").placementId,
-        ),
-      }),
+  .get("/:placementId/schedule", zValidator("param", placementIdParamSchema), async (c) =>
+    c.json({
+      data: await service.listSchedules(c.get("authUser").id, c.req.valid("param").placementId),
+    }),
   )
   .post(
     "/:placementId/check-in",
@@ -104,16 +98,10 @@ export const attendanceRoute = new Hono<{ Variables: AuthVariables }>()
         201,
       ),
   )
-  .get(
-    "/:placementId/adjustments",
-    zValidator("param", placementIdParamSchema),
-    async (c) =>
-      c.json({
-        data: await service.listAdjustments(
-          c.get("authUser").id,
-          c.req.valid("param").placementId,
-        ),
-      }),
+  .get("/:placementId/adjustments", zValidator("param", placementIdParamSchema), async (c) =>
+    c.json({
+      data: await service.listAdjustments(c.get("authUser").id, c.req.valid("param").placementId),
+    }),
   )
   .post(
     "/adjustments/:adjustmentId/review",

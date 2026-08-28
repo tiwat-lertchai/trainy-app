@@ -1,9 +1,5 @@
 import { describe, expect, test } from "bun:test";
-import type {
-  ProgressPlacement,
-  ProgressRecord,
-  ProgressRepository,
-} from "./progress.repository";
+import type { ProgressPlacement, ProgressRecord, ProgressRepository } from "./progress.repository";
 import { ProgressService } from "./progress.service";
 
 describe("ProgressService", () => {
@@ -41,40 +37,30 @@ describe("ProgressService", () => {
     const repository = new MemoryProgressRepository();
     repository.report = report({ status: "submitted" });
     expect(
-      new ProgressService(repository).review(
-        "advisor",
-        "report",
-        "revision_requested",
-      ),
+      new ProgressService(repository).review("advisor", "report", "revision_requested"),
     ).rejects.toMatchObject({ code: "PROGRESS_FEEDBACK_REQUIRED" });
   });
   test("supports submit, revision, edit, resubmit, and approval", async () => {
     const repository = new MemoryProgressRepository();
     repository.report = report();
     const notifications: unknown[] = [];
-    const service = new ProgressService(
-      repository,
-      () => new Date("2026-10-10"),
-      {
-        async notify(input) {
-          notifications.push(input);
-        },
+    const service = new ProgressService(repository, () => new Date("2026-10-10"), {
+      async notify(input) {
+        notifications.push(input);
       },
-    );
+    });
     await service.submit("student", "report");
-    await service.review(
-      "advisor",
-      "report",
-      "revision_requested",
-      "Add measurable outcomes.",
-    );
-    expect(await service.update("student", "report", {
-      summary: "Updated summary with measurable outcomes and completed tasks.",
-    })).toMatchObject({ status: "draft", feedback: null });
-    await service.submit("student", "report");
+    await service.review("advisor", "report", "revision_requested", "Add measurable outcomes.");
     expect(
-      await service.review("supervisor", "report", "approved"),
-    ).toMatchObject({ status: "approved", reviewerUserId: "supervisor" });
+      await service.update("student", "report", {
+        summary: "Updated summary with measurable outcomes and completed tasks.",
+      }),
+    ).toMatchObject({ status: "draft", feedback: null });
+    await service.submit("student", "report");
+    expect(await service.review("supervisor", "report", "approved")).toMatchObject({
+      status: "approved",
+      reviewerUserId: "supervisor",
+    });
     expect(notifications).toHaveLength(2);
   });
 });
@@ -99,12 +85,8 @@ class MemoryProgressRepository implements ProgressRepository {
     this.report = report(input);
     return this.report;
   }
-  async update(
-    id: string,
-    changes: Parameters<ProgressRepository["update"]>[1],
-  ) {
-    if (!this.report || this.report.id !== id)
-      throw new Error("Missing report");
+  async update(id: string, changes: Parameters<ProgressRepository["update"]>[1]) {
+    if (!this.report || this.report.id !== id) throw new Error("Missing report");
     Object.assign(this.report, changes);
     return this.report;
   }
@@ -119,8 +101,7 @@ function create(repository: ProgressRepository) {
     placementId: "placement",
     periodStart: new Date("2026-10-01"),
     periodEnd: new Date("2026-10-07"),
-    summary:
-      "Completed assigned backend tasks and documented the implementation.",
+    summary: "Completed assigned backend tasks and documented the implementation.",
     hoursWorked: 40,
   });
 }
@@ -132,8 +113,7 @@ function report(overrides: Partial<ProgressRecord> = {}): ProgressRecord {
     studentUserId: "student",
     periodStart: new Date("2026-10-01"),
     periodEnd: new Date("2026-10-07"),
-    summary:
-      "Completed assigned backend tasks and documented the implementation.",
+    summary: "Completed assigned backend tasks and documented the implementation.",
     hoursWorked: 40,
     status: "draft",
     reviewerUserId: null,

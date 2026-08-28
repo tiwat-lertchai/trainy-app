@@ -3,9 +3,7 @@ import { DrizzleNotificationRepository } from "./notification.repository";
 import { NotificationService } from "./notification.service";
 import type { DomainNotifier } from "../../lib/domain-notifier";
 
-export const notificationService = new NotificationService(
-  new DrizzleNotificationRepository(db),
-);
+export const notificationService = new NotificationService(new DrizzleNotificationRepository(db));
 
 export const domainNotifier: DomainNotifier = {
   async notify(input) {

@@ -25,39 +25,34 @@ export const documentRoute = new Hono<{ Variables: AuthVariables }>()
   .post("/", zValidator("form", uploadDocumentSchema), async (c) => {
     const input = c.req.valid("form");
     return c.json(
-      { data: await service.upload({
+      {
+        data: await service.upload({
           actorUserId: c.get("authUser").id,
           placementId: input.placementId,
           type: input.type,
           fileName: input.file.name,
           mimeType: input.file.type,
           bytes: new Uint8Array(await input.file.arrayBuffer()),
-        }) },
+        }),
+      },
       201,
     );
   })
-  .get(
-    "/placements/:placementId",
-    zValidator("param", placementParam),
-    async (c) =>
-      c.json({
-        data: await service.list(
-          c.get("authUser").id,
-          c.req.valid("param").placementId,
-        ),
-      }),
+  .get("/placements/:placementId", zValidator("param", placementParam), async (c) =>
+    c.json({
+      data: await service.list(c.get("authUser").id, c.req.valid("param").placementId),
+    }),
   )
-  .get(
-    "/:documentId/download",
-    zValidator("param", documentIdParamSchema),
-    async (c) => {
-      const result = await service.download(c.get("authUser").id, c.req.valid("param").documentId);
-      c.header("Content-Type", result.document.mimeType);
-      c.header("Content-Disposition", `attachment; filename*=UTF-8''${encodeURIComponent(result.document.fileName)}`);
-      c.header("Cache-Control", "private, no-store");
-      return c.body(result.bytes.buffer as ArrayBuffer);
-    },
-  )
+  .get("/:documentId/download", zValidator("param", documentIdParamSchema), async (c) => {
+    const result = await service.download(c.get("authUser").id, c.req.valid("param").documentId);
+    c.header("Content-Type", result.document.mimeType);
+    c.header(
+      "Content-Disposition",
+      `attachment; filename*=UTF-8''${encodeURIComponent(result.document.fileName)}`,
+    );
+    c.header("Cache-Control", "private, no-store");
+    return c.body(result.bytes.buffer as ArrayBuffer);
+  })
   .post(
     "/:documentId/review",
     zValidator("param", documentIdParamSchema),
