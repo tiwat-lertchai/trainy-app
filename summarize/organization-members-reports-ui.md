@@ -80,7 +80,7 @@ authorization and data flow are verified directly instead (above).
 
 ## Commit information
 
-Not yet committed — pending user confirmation.
+`e1ba8cb feat(organizations): add Members and Reports admin UI` — committed locally on `master`, later pushed to `origin/master` along with the rest of this session's work.
 
 ## Suggested next steps
 
