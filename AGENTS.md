@@ -30,20 +30,26 @@ These instructions apply to the entire Trainy monorepo.
    `feat(auth): configure LINE login`, `fix(server): validate trusted origins`,
    or `docs(api): document backend endpoint contract`.
 8. Do not push automatically. Push only when the user explicitly asks.
-9. Test experimental dependencies or new technology on a separate branch named
-   like `dev-<experiment>`. Report the results before proceeding, and never
-   merge the experiment into `master` automatically.
+9. Before every commit and before every push, scan the actual staged/pushed
+   diff for secrets — API keys, tokens, passwords, private keys, connection
+   strings with embedded credentials, `.env` contents, or any other
+   credential-shaped value — even in files whose name looks innocuous. If
+   anything suspicious is found, stop and do not commit or push until it is
+   removed or confirmed safe with the user.
+10. Test experimental dependencies or new technology on a separate branch
+    named like `dev-<experiment>`. Report the results before proceeding, and
+    never merge the experiment into `master` automatically.
 
 ## Architecture and security
 
-10. Treat security as a primary requirement. Pay particular attention to strict
+11. Treat security as a primary requirement. Pay particular attention to strict
     CORS and cross-site policies, cookies, authentication, tenant isolation,
     request limits, secret management, and light adversarial testing limited to
     systems running locally under our control.
-11. Complete backend behavior, database workflows, security controls, and API
+12. Complete backend behavior, database workflows, security controls, and API
     documentation before building frontend features that depend on them. The
     frontend must integrate with the real backend contract.
-12. Before any security-relevant change (auth, CORS, headers, tenant isolation,
+13. Before any security-relevant change (auth, CORS, headers, tenant isolation,
     new endpoints, file/document handling, etc.) is considered shippable, run a
     self-penetration-test pass against the running local dev environment,
     OWASP-aligned and black-box, from a disposable Kali container on
@@ -59,13 +65,13 @@ These instructions apply to the entire Trainy monorepo.
 
 ## Clarification
 
-13. Ask immediately when something appears unusual or a requirement is unclear,
+14. Ask immediately when something appears unusual or a requirement is unclear,
     especially when guessing could affect the architecture, business rules, or
     data integrity.
 
 ## Library documentation
 
-14. When a library or framework API is unclear, consult its current official
+15. When a library or framework API is unclear, consult its current official
     documentation before implementing. Prefer documentation that matches the
     version installed in this repository, including official `llms.txt` or
     `llms-full.txt` files when available, followed by the official reference,
@@ -75,17 +81,17 @@ These instructions apply to the entire Trainy monorepo.
 
 ## Dependency safety and compatibility
 
-15. Before starting implementation, inspect the current dependency and lockfile
+16. Before starting implementation, inspect the current dependency and lockfile
     state. Check for known vulnerabilities, incompatible versions, and peer
     dependency conflicts. Report any vulnerability found, including its
     severity, affected package, likely impact, and proposed remediation.
-16. Update a dependency when an update is required for the task, resolves a
+17. Update a dependency when an update is required for the task, resolves a
     relevant vulnerability, or is explicitly requested. Select the safest
     compatible version after reviewing official release notes and migration
     guidance. Do not perform unrelated dependency churn. Test major-version or
     experimental upgrades on a separate `dev-<experiment>` branch as required
     by the Git workflow above.
-17. After any dependency or lockfile update, run the complete repository test
+18. After any dependency or lockfile update, run the complete repository test
     suite plus all applicable type checks, lint checks, and production builds.
     Report every command and its actual result. If credentials, infrastructure,
     or another environmental requirement prevents a check, explicitly mark the
@@ -93,12 +99,12 @@ These instructions apply to the entire Trainy monorepo.
 
 ## Project summaries
 
-18. After each completed task, add an English-only Markdown summary under
+19. After each completed task, add an English-only Markdown summary under
     `summarize/`. Use a descriptive, stable filename and include the task scope,
     files or systems changed, important decisions, dependency changes,
     verification commands and results, known limitations, commit information,
     and suggested next steps. Never include secrets, credentials, or personal
     data.
-19. Before starting follow-up work, read the relevant files in `summarize/` and
+20. Before starting follow-up work, read the relevant files in `summarize/` and
     use them as the project's concise working memory. Keep each summary factual
     and compact enough to reduce repeated repository investigation.
