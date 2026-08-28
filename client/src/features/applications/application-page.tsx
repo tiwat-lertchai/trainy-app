@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { Link } from "@tanstack/react-router";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { BriefcaseBusiness, CalendarDays, Mail, UserRound } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -130,7 +131,17 @@ export function ApplicationPage() {
 			{applications.isError && (
 				<Notice message="ไม่สามารถโหลดใบสมัครได้ กรุณาลองใหม่" destructive />
 			)}
-			{applications.data?.data.length === 0 && <Notice message="ยังไม่มีใบสมัครในขณะนี้" />}
+			{applications.data?.data.length === 0 &&
+				(role === "student" ? (
+					<div className="mt-8 rounded-2xl border bg-white p-10 text-center text-muted-foreground">
+						<p>ยังไม่มีใบสมัครในขณะนี้</p>
+						<Button className="mt-4" asChild>
+							<Link to="/app/internships">ไปดูตำแหน่งฝึกงาน</Link>
+						</Button>
+					</div>
+				) : (
+					<Notice message="ยังไม่มีใบสมัครในขณะนี้" />
+				))}
 			<div className="mt-8 grid gap-4">
 				{applications.data?.data.map((application) => {
 					const details = application as typeof application & {
