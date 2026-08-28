@@ -18,6 +18,7 @@ import {
 	Settings,
 	TicketCheck,
 	UsersRound,
+	X,
 } from "lucide-react";
 import { BrandMark } from "@/components/brand/brand-mark";
 import { Button } from "@/components/ui/button";
@@ -94,6 +95,7 @@ export function AppDashboard() {
 	const [storedWorkspaceId, setStoredWorkspaceId] = useState(() =>
 		localStorage.getItem(WORKSPACE_KEY),
 	);
+	const [mobileNavOpen, setMobileNavOpen] = useState(false);
 	const organizations = useQuery({
 		queryKey: ["organizations"],
 		queryFn: loadOrganizations,
@@ -157,6 +159,28 @@ export function AppDashboard() {
 		? report.isLoading
 		: placements.isLoading || (role === "student" && applications.isLoading);
 	const dashboardError = isAdmin ? report.isError : placements.isError || applications.isError;
+	const renderNavItems = (onNavigate?: () => void) =>
+		navigation.map((key, index) => {
+			const { label, icon: Icon } = navigationDetails[key];
+			const active = pathname === "/app" ? index === 0 : pathname.includes(key);
+			const className = `flex w-full items-center gap-3 rounded-xl px-3 py-3 text-sm font-medium transition ${active ? "bg-white/12 text-white" : "text-slate-300 hover:bg-white/7 hover:text-white"}`;
+			return key in links ? (
+				<Link
+					key={key}
+					to={links[key as keyof typeof links]}
+					className={className}
+					onClick={onNavigate}
+				>
+					<Icon className="size-5" />
+					{t(label)}
+				</Link>
+			) : (
+				<button key={key} className={className} onClick={onNavigate}>
+					<Icon className="size-5" />
+					{t(label)}
+				</button>
+			);
+		});
 
 	return (
 		<div className="min-h-screen bg-background lg:grid lg:grid-cols-[260px_1fr]">
@@ -165,22 +189,7 @@ export function AppDashboard() {
 					<BrandMark />
 				</div>
 				<nav className="flex-1 space-y-1 p-4" aria-label="Application navigation">
-					{navigation.map((key, index) => {
-						const { label, icon: Icon } = navigationDetails[key];
-						const active = pathname === "/app" ? index === 0 : pathname.includes(key);
-						const className = `flex w-full items-center gap-3 rounded-xl px-3 py-3 text-sm font-medium transition ${active ? "bg-white/12 text-white" : "text-slate-300 hover:bg-white/7 hover:text-white"}`;
-						return key in links ? (
-							<Link key={key} to={links[key as keyof typeof links]} className={className}>
-								<Icon className="size-5" />
-								{t(label)}
-							</Link>
-						) : (
-							<button key={key} className={className}>
-								<Icon className="size-5" />
-								{t(label)}
-							</button>
-						);
-					})}
+					{renderNavItems()}
 				</nav>
 				<div className="border-t border-white/10 p-4">
 					<button className="flex w-full items-center gap-3 rounded-xl px-3 py-3 text-sm text-slate-300 hover:bg-white/7">
@@ -189,6 +198,34 @@ export function AppDashboard() {
 					</button>
 				</div>
 			</aside>
+			{mobileNavOpen && (
+				<div className="fixed inset-0 z-50 lg:hidden">
+					<button
+						className="absolute inset-0 bg-black/50"
+						aria-label={t("dashboard.closeNavigation")}
+						onClick={() => setMobileNavOpen(false)}
+					/>
+					<aside className="relative flex h-full w-72 max-w-[80vw] flex-col bg-sidebar text-sidebar-foreground">
+						<div className="flex h-20 items-center justify-between border-b border-white/10 px-6">
+							<BrandMark />
+							<Button
+								variant="ghost"
+								size="icon"
+								aria-label={t("dashboard.closeNavigation")}
+								onClick={() => setMobileNavOpen(false)}
+							>
+								<X />
+							</Button>
+						</div>
+						<nav
+							className="flex-1 space-y-1 overflow-y-auto p-4"
+							aria-label="Application navigation"
+						>
+							{renderNavItems(() => setMobileNavOpen(false))}
+						</nav>
+					</aside>
+				</div>
+			)}
 			<div className="min-w-0">
 				<header className="flex h-20 items-center gap-4 border-b bg-white px-5 sm:px-8">
 					<Button
@@ -196,6 +233,7 @@ export function AppDashboard() {
 						variant="ghost"
 						size="icon"
 						aria-label={t("dashboard.openNavigation")}
+						onClick={() => setMobileNavOpen(true)}
 					>
 						<Menu />
 					</Button>
