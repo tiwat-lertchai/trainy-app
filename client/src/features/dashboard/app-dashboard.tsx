@@ -16,6 +16,7 @@ import {
 	Menu,
 	Search,
 	Settings,
+	TicketCheck,
 	UsersRound,
 } from "lucide-react";
 import { BrandMark } from "@/components/brand/brand-mark";
@@ -53,6 +54,7 @@ const navigationDetails: Record<
 	progress: { label: "nav.progress", icon: FileText },
 	documents: { label: "nav.documents", icon: FileCheck2 },
 	evaluations: { label: "nav.evaluations", icon: ClipboardCheck },
+	invites: { label: "nav.invites", icon: TicketCheck },
 	members: { label: "nav.members", icon: UsersRound },
 	reports: { label: "nav.reports", icon: FileText },
 };
@@ -73,6 +75,7 @@ const links = {
 	progress: "/app/progress",
 	documents: "/app/documents",
 	evaluations: "/app/evaluations",
+	invites: "/app/invites",
 	members: "/app/members",
 	reports: "/app/reports",
 } as const;
