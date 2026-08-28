@@ -3,7 +3,7 @@
   "version": "0.5.1",
   "description": "Trainy: internship management platform connecting students, universities, and companies through one internship workflow.",
   "author": "Tiwat Lertchai",
-  "license": "MIT",
+  "license": "AGPL-3.0-or-later",
   "private": true,
   "packageManager": "bun@1.4.0",
   "workspaces": [

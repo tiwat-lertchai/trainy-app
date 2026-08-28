@@ -68,3 +68,16 @@ bun run build
 Every change should pass the relevant tests plus type-check, lint, and
 build before committing. See [`AGENTS.md`](AGENTS.md) for the full set of
 project conventions.
+
+## License
+
+Copyright (C) 2026 Tiwat Lertchai
+
+Trainy is free software: you can redistribute it and/or modify it under
+the terms of the GNU Affero General Public License as published by the
+Free Software Foundation, either version 3 of the License, or (at your
+option) any later version. See [`LICENSE`](LICENSE) for the full text.
+
+This means anyone who modifies Trainy and runs it as a network service —
+including a university or company hosting their own copy — must make the
+source of their modified version available to that service's users.

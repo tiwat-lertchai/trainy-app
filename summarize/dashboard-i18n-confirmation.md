@@ -59,7 +59,7 @@ None. `bun audit` checked 308 packages and found no known vulnerabilities.
 
 ## Commit information
 
-- `35cdf14 feat(dashboard): add authorized metrics and confirmations`
+- Local commit: `feat(dashboard): add authorized metrics and confirmations`.
 - Committed locally on `master`; no push performed.
 
 ## Suggested next steps
