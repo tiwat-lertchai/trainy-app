@@ -276,6 +276,8 @@ Assignment bodies:
 Placement states are `pending → active → completed`, with `cancelled` available
 from pending or active. Advisor and supervisor must both be assigned before
 activation. Completed and cancelled placements are terminal.
+Placement list responses include internship, student, advisor, and supervisor
+display details after the relevant student or organization access check.
 
 ## Progress reports and logbooks
 

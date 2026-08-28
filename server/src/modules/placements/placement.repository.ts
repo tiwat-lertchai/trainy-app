@@ -10,6 +10,12 @@ import {
 import type { PlacementStatus } from "./placement.schema";
 
 export type PlacementRecord = typeof placement.$inferSelect;
+export type PlacementView = PlacementRecord & {
+  internship?: { id: string; title: string };
+  student?: { id: string; name: string; email: string };
+  advisor?: { id: string; name: string; email: string } | null;
+  supervisor?: { id: string; name: string; email: string } | null;
+};
 export type AcceptedApplication = Pick<
   typeof internshipApplication.$inferSelect,
   | "id"
@@ -51,8 +57,8 @@ export interface PlacementRepository {
       Pick<PlacementRecord, "advisorUserId" | "supervisorUserId" | "status">
     >,
   ): Promise<PlacementRecord>;
-  listForStudent(userId: string): Promise<PlacementRecord[]>;
-  listForOrganization(organizationId: string): Promise<PlacementRecord[]>;
+  listForStudent(userId: string): Promise<PlacementView[]>;
+  listForOrganization(organizationId: string): Promise<PlacementView[]>;
 }
 
 export class DrizzlePlacementRepository implements PlacementRepository {
@@ -141,6 +147,7 @@ export class DrizzlePlacementRepository implements PlacementRepository {
   async listForStudent(userId: string) {
     return this.database.query.placement.findMany({
       where: eq(placement.studentUserId, userId),
+      with: { internship: { columns: { id: true, title: true } }, student: { columns: { id: true, name: true, email: true } }, advisor: { columns: { id: true, name: true, email: true } }, supervisor: { columns: { id: true, name: true, email: true } } },
       orderBy: [desc(placement.createdAt)],
     });
   }
@@ -152,6 +159,7 @@ export class DrizzlePlacementRepository implements PlacementRepository {
           eq(table.universityOrganizationId, organizationId),
           eq(table.companyOrganizationId, organizationId),
         ),
+      with: { internship: { columns: { id: true, title: true } }, student: { columns: { id: true, name: true, email: true } }, advisor: { columns: { id: true, name: true, email: true } }, supervisor: { columns: { id: true, name: true, email: true } } },
       orderBy: [desc(placement.createdAt)],
     });
   }

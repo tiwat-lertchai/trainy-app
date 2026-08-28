@@ -12,7 +12,7 @@ import type {
 } from "./organization.schema";
 
 export type OrganizationRecord = typeof organization.$inferSelect;
-export type MembershipRecord = typeof organizationMembership.$inferSelect;
+export type MembershipRecord = typeof organizationMembership.$inferSelect & { user?: { id: string; name: string; email: string } };
 export type OrganizationMembershipRecord = {
   organization: OrganizationRecord;
   membership: MembershipRecord;
@@ -161,6 +161,7 @@ export class DrizzleOrganizationRepository
   async listMemberships(organizationId: string) {
     return this.database.query.organizationMembership.findMany({
       where: eq(organizationMembership.organizationId, organizationId),
+      with: { user: { columns: { id: true, name: true, email: true } } },
     });
   }
 
