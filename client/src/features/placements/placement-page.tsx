@@ -1,6 +1,9 @@
+import { useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { BriefcaseBusiness, CalendarDays, UserRound } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { ConfirmationDialog } from "@/components/ui/confirmation-dialog";
+import { useLanguage } from "@/i18n/config";
 import { apiClient } from "@/lib/api-client";
 import type { OrganizationRole } from "@/features/organizations/role-navigation";
 import { availablePlacementActions, type PlacementStatus } from "./placement-rules";
@@ -9,7 +12,9 @@ const WORKSPACE_KEY = "trainy-workspace-id";
 const universityManagers = ["university_admin", "coordinator"];
 
 export function PlacementPage() {
+	const { t } = useLanguage();
 	const queryClient = useQueryClient();
+	const [confirmation, setConfirmation] = useState<{ placementId: string; status: "completed" | "cancelled" } | null>(null);
 	const organizations = useQuery({ queryKey: ["organizations"], queryFn: async () => { const response = await apiClient.api.v1.organizations.$get(); if (!response.ok) throw new Error("ORGANIZATIONS_FAILED"); return response.json(); } });
 	const contexts = organizations.data?.data ?? [];
 	const context = contexts.find((item) => item.organization.id === localStorage.getItem(WORKSPACE_KEY)) ?? contexts[0];
@@ -38,7 +43,7 @@ export function PlacementPage() {
 			if (input.kind === "supervisor") { const response = await apiClient.api.v1.placements[":placementId"].supervisor.$patch({ param: { placementId: input.placementId }, json: { supervisorUserId: input.userId } }); if (!response.ok) throw new Error(`PLACEMENT_${response.status}`); return response.json(); }
 			const response = await apiClient.api.v1.placements[":placementId"].status.$patch({ param: { placementId: input.placementId }, json: { status: input.status } }); if (!response.ok) throw new Error(`PLACEMENT_${response.status}`); return response.json();
 		},
-		onSuccess: async () => queryClient.invalidateQueries({ queryKey: ["placements"] }),
+		onSuccess: async () => { setConfirmation(null); await queryClient.invalidateQueries({ queryKey: ["placements"] }); },
 	});
 	const acceptedItems = accepted.data?.data.filter((item) => item.status === "accepted") ?? [];
 	const memberItems = (members.data?.data ?? []).map((item) => item as typeof item & { user?: { id: string; name: string; email: string } });
@@ -48,7 +53,7 @@ export function PlacementPage() {
 		{placements.isLoading && <div className="mt-8 h-40 animate-pulse rounded-2xl bg-muted" />}{placements.isError && <div role="alert" className="mt-8 rounded-2xl border border-destructive/20 bg-white p-6 text-destructive">โหลดข้อมูลการฝึกงานไม่สำเร็จ</div>}{placements.data?.data.length === 0 && <div className="mt-8 rounded-2xl border bg-white p-10 text-center text-muted-foreground">ยังไม่มีการฝึกงาน</div>}
 		<div className="mt-8 grid gap-5">{placements.data?.data.map((placement) => { const view = placement as typeof placement & { internship?: { title: string }; student?: { name: string }; advisor?: { name: string } | null; supervisor?: { name: string } | null }; const status = placement.status as PlacementStatus; const canManageStatus = universityManagers.includes(role ?? ""); return <article key={placement.id} className="rounded-2xl border bg-white p-6"><div className="flex flex-col justify-between gap-3 sm:flex-row"><div className="flex gap-3"><span className="grid size-11 place-items-center rounded-xl bg-[#edf3ff] text-primary"><BriefcaseBusiness /></span><div><h2 className="font-bold">{view.internship?.title ?? "การฝึกงาน"}</h2><p className="mt-1 text-sm text-muted-foreground">{view.student?.name ?? (isStudent ? "การฝึกงานของฉัน" : placement.studentUserId)}</p></div></div><Badge status={status} /></div><div className="mt-5 grid gap-3 text-sm sm:grid-cols-3"><Info icon={CalendarDays} label="ระยะเวลา" value={`${formatDate(placement.startDate)} – ${formatDate(placement.endDate)}`} /><Info icon={UserRound} label="อาจารย์ที่ปรึกษา" value={view.advisor?.name ?? "ยังไม่มอบหมาย"} /><Info icon={UserRound} label="พี่เลี้ยง" value={view.supervisor?.name ?? "ยังไม่มอบหมาย"} /></div>
 			{status === "pending" && role === "university_admin" || status === "pending" && role === "coordinator" ? <Assignment placementId={placement.id} kind="advisor" members={memberItems.filter((item) => item.role === "advisor" && item.status === "active")} pending={mutate.isPending} onAssign={(userId) => mutate.mutate({ kind: "advisor", placementId: placement.id, userId })} /> : null}{status === "pending" && role === "company_admin" && <Assignment placementId={placement.id} kind="supervisor" members={memberItems.filter((item) => item.role === "supervisor" && item.status === "active")} pending={mutate.isPending} onAssign={(userId) => mutate.mutate({ kind: "supervisor", placementId: placement.id, userId })} />}
-			<div className="mt-5 flex gap-2">{availablePlacementActions(status, Boolean(placement.advisorUserId && placement.supervisorUserId), canManageStatus).map((next) => <Button key={next} variant={next === "cancelled" ? "outline" : "default"} disabled={mutate.isPending} onClick={() => mutate.mutate({ kind: "status", placementId: placement.id, status: next })}>{next === "active" ? "เริ่มฝึกงาน" : next === "completed" ? "จบการฝึกงาน" : "ยกเลิก"}</Button>)}</div>{mutate.isError && <p role="alert" className="mt-3 text-sm text-destructive">ดำเนินการไม่สำเร็จ กรุณาตรวจสอบสิทธิ์และสถานะล่าสุด</p>}</article>; })}</div></div>;
+			<div className="mt-5 flex gap-2">{availablePlacementActions(status, Boolean(placement.advisorUserId && placement.supervisorUserId), canManageStatus).map((next) => <Button key={next} variant={next === "cancelled" ? "outline" : "default"} disabled={mutate.isPending} onClick={() => next === "active" ? mutate.mutate({ kind: "status", placementId: placement.id, status: next }) : setConfirmation({ placementId: placement.id, status: next })}>{next === "active" ? "เริ่มฝึกงาน" : next === "completed" ? "จบการฝึกงาน" : "ยกเลิก"}</Button>)}</div>{mutate.isError && <p role="alert" className="mt-3 text-sm text-destructive">ดำเนินการไม่สำเร็จ กรุณาตรวจสอบสิทธิ์และสถานะล่าสุด</p>}</article>; })}</div><ConfirmationDialog open={Boolean(confirmation)} title={t("confirm.terminalTitle")} description={t("confirm.irreversible")} confirmLabel={t("common.confirm")} cancelLabel={t("common.cancel")} destructive={confirmation?.status === "cancelled"} pending={mutate.isPending} onCancel={() => setConfirmation(null)} onConfirm={() => confirmation && mutate.mutate({ kind: "status", ...confirmation })} /></div>;
 }
 
 function Assignment({ kind, members, pending, onAssign }: { placementId: string; kind: "advisor" | "supervisor"; members: Array<{ userId: string; user?: { name: string } }>; pending: boolean; onAssign: (id: string) => void }) { return <div className="mt-5 flex flex-col gap-2 rounded-xl bg-muted p-4 sm:flex-row"><select className="h-10 flex-1 rounded-lg border bg-white px-3 text-sm" defaultValue="" onChange={(event) => event.target.value && onAssign(event.target.value)} disabled={pending}><option value="">เลือก{kind === "advisor" ? "อาจารย์ที่ปรึกษา" : "พี่เลี้ยง"}</option>{members.map((member) => <option key={member.userId} value={member.userId}>{member.user?.name ?? member.userId}</option>)}</select></div>; }

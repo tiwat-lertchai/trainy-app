@@ -1,7 +1,9 @@
-import type { FormEvent } from "react";
+import { useState, type FormEvent } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { UserRoundCog, UsersRound } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { ConfirmationDialog } from "@/components/ui/confirmation-dialog";
+import { useLanguage } from "@/i18n/config";
 import { apiClient } from "@/lib/api-client";
 import type { OrganizationRole } from "./role-navigation";
 
@@ -14,7 +16,9 @@ const roleLabels: Record<OrganizationRole, string> = {
 };
 
 export function MembersPage() {
+	const { t } = useLanguage();
 	const queryClient = useQueryClient();
+	const [suspendingId, setSuspendingId] = useState<string | null>(null);
 	const organizations = useQuery({ queryKey: ["organizations"], queryFn: async () => { const r = await apiClient.api.v1.organizations.$get(); if (!r.ok) throw new Error(); return r.json(); } });
 	const context = organizations.data?.data.find((item) => item.organization.id === localStorage.getItem(WORKSPACE_KEY)) ?? organizations.data?.data[0];
 	const organizationId = context?.organization.id;
@@ -33,7 +37,7 @@ export function MembersPage() {
 	});
 	const updateMember = useMutation({
 		mutationFn: async (input: { membershipId: string; role?: OrganizationRole; status?: "active" | "suspended" }) => { const r = await apiClient.api.v1.organizations[":organizationId"].members[":membershipId"].$patch({ param: { organizationId: organizationId!, membershipId: input.membershipId }, json: { role: input.role, status: input.status } }); if (!r.ok) throw new Error(`MEMBER_${r.status}`); return r.json(); },
-		onSuccess: () => queryClient.invalidateQueries({ queryKey: ["organizations", organizationId, "members"] }),
+		onSuccess: () => { setSuspendingId(null); return queryClient.invalidateQueries({ queryKey: ["organizations", organizationId, "members"] }); },
 	});
 
 	function submitAddMember(event: FormEvent<HTMLFormElement>) {
@@ -87,7 +91,7 @@ export function MembersPage() {
 									{availableRoles.map((role) => <option key={role} value={role}>{roleLabels[role]}</option>)}
 								</select>
 								<span className={`rounded-full px-3 py-1 text-xs font-semibold ${member.status === "active" ? "bg-emerald-50 text-emerald-700" : "bg-slate-100 text-slate-600"}`}>{member.status === "active" ? "ใช้งานอยู่" : "ระงับการใช้งาน"}</span>
-								<Button variant="outline" size="sm" disabled={updateMember.isPending} onClick={() => updateMember.mutate({ membershipId: member.id, status: member.status === "active" ? "suspended" : "active" })}>
+								<Button variant="outline" size="sm" disabled={updateMember.isPending} onClick={() => member.status === "active" ? setSuspendingId(member.id) : updateMember.mutate({ membershipId: member.id, status: "active" })}>
 									<UserRoundCog className="size-4" />{member.status === "active" ? "ระงับ" : "เปิดใช้งาน"}
 								</Button>
 							</div>
@@ -95,7 +99,7 @@ export function MembersPage() {
 					);
 				})}
 			</div>
-			{updateMember.isError && <p role="alert" className="mt-3 text-sm text-destructive">ดำเนินการไม่สำเร็จ (อาจเป็นผู้ดูแลคนสุดท้ายขององค์กร)</p>}
+			{updateMember.isError && <p role="alert" className="mt-3 text-sm text-destructive">ดำเนินการไม่สำเร็จ (อาจเป็นผู้ดูแลคนสุดท้ายขององค์กร)</p>}<ConfirmationDialog open={Boolean(suspendingId)} title={t("confirm.terminalTitle")} description={t("confirm.irreversible")} confirmLabel={t("common.confirm")} cancelLabel={t("common.cancel")} destructive pending={updateMember.isPending} onCancel={() => setSuspendingId(null)} onConfirm={() => suspendingId && updateMember.mutate({ membershipId: suspendingId, status: "suspended" })} />
 		</div>
 	);
 }

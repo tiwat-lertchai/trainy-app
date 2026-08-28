@@ -1,6 +1,9 @@
+import { useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { BriefcaseBusiness, CalendarDays, Mail, UserRound } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { ConfirmationDialog } from "@/components/ui/confirmation-dialog";
+import { useLanguage } from "@/i18n/config";
 import { apiClient } from "@/lib/api-client";
 import type { OrganizationRole } from "@/features/organizations/role-navigation";
 import { applicationStatusLabels, availableReviewActions, canWithdrawApplication, type ApplicationStatus } from "./application-rules";
@@ -14,7 +17,9 @@ async function loadOrganizations() {
 }
 
 export function ApplicationPage() {
+	const { t } = useLanguage();
 	const queryClient = useQueryClient();
+	const [confirmation, setConfirmation] = useState<{ id: string; action: "withdrawn" | "accepted" | "rejected" } | null>(null);
 	const organizations = useQuery({ queryKey: ["organizations"], queryFn: loadOrganizations });
 	const memberships = organizations.data?.data ?? [];
 	const storedId = localStorage.getItem(WORKSPACE_KEY);
@@ -67,7 +72,7 @@ export function ApplicationPage() {
 			if (!response.ok) throw new Error(`APPLICATION_${response.status}`);
 			return response.json();
 		},
-		onSuccess: async () => queryClient.invalidateQueries({ queryKey: ["applications"] }),
+		onSuccess: async () => { setConfirmation(null); await queryClient.invalidateQueries({ queryKey: ["applications"] }); },
 	});
 
 	return <div><div><p className="text-sm font-semibold text-primary">APPLICATIONS</p><h1 className="mt-2 text-3xl font-black">ใบสมัครฝึกงาน</h1><p className="mt-2 text-muted-foreground">{role === "student" ? "ติดตามผลและจัดการใบสมัครของคุณ" : role?.startsWith("company") || role === "supervisor" ? "ตรวจสอบผู้สมัครในตำแหน่งของบริษัท" : "ติดตามใบสมัครของนักศึกษาในมหาวิทยาลัย"}</p></div>
@@ -82,9 +87,9 @@ export function ApplicationPage() {
 				<div className="mt-5 grid gap-2 text-sm text-muted-foreground sm:grid-cols-3">{details.student && <><span className="flex items-center gap-2"><UserRound className="size-4" />{details.student.name}</span><span className="flex items-center gap-2"><Mail className="size-4" />{details.student.email}</span></>}<span className="flex items-center gap-2"><CalendarDays className="size-4" />{new Intl.DateTimeFormat("th-TH", { dateStyle: "medium" }).format(new Date(application.submittedAt))}</span></div>
 				<div className="mt-5 rounded-xl bg-muted p-4 text-sm leading-6"><span className="font-semibold">เหตุผลที่สมัคร:</span> {application.statement}</div>
 				{mutation.isError && mutation.variables?.id === application.id && <p role="alert" className="mt-3 text-sm text-destructive">ดำเนินการไม่สำเร็จ สถานะอาจถูกเปลี่ยนไปแล้วหรือจำนวนรับเต็ม</p>}
-				<div className="mt-5 flex flex-wrap gap-2">{role === "student" && canWithdrawApplication(status) && <Button variant="outline" disabled={mutation.isPending} onClick={() => mutation.mutate({ id: application.id, action: "withdrawn" })}>ถอนใบสมัคร</Button>}{actions.map((action) => <Button key={action} variant={action === "rejected" ? "outline" : "default"} disabled={mutation.isPending} onClick={() => mutation.mutate({ id: application.id, action })}>{action === "under_review" ? "เริ่มตรวจสอบ" : action === "accepted" ? "รับเข้าฝึกงาน" : "ไม่รับ"}</Button>)}</div>
+				<div className="mt-5 flex flex-wrap gap-2">{role === "student" && canWithdrawApplication(status) && <Button variant="outline" disabled={mutation.isPending} onClick={() => setConfirmation({ id: application.id, action: "withdrawn" })}>ถอนใบสมัคร</Button>}{actions.map((action) => <Button key={action} variant={action === "rejected" ? "outline" : "default"} disabled={mutation.isPending} onClick={() => action === "under_review" ? mutation.mutate({ id: application.id, action }) : setConfirmation({ id: application.id, action })}>{action === "under_review" ? "เริ่มตรวจสอบ" : action === "accepted" ? "รับเข้าฝึกงาน" : "ไม่รับ"}</Button>)}</div>
 			</article>;
-		})}</div></div>;
+		})}</div><ConfirmationDialog open={Boolean(confirmation)} title={t("confirm.terminalTitle")} description={t("confirm.irreversible")} confirmLabel={t("common.confirm")} cancelLabel={t("common.cancel")} destructive={confirmation?.action !== "accepted"} pending={mutation.isPending} onCancel={() => setConfirmation(null)} onConfirm={() => confirmation && mutation.mutate(confirmation)} /></div>;
 }
 
 function StatusBadge({ status }: { status: ApplicationStatus }) { const tone = status === "accepted" ? "bg-emerald-50 text-emerald-700" : status === "rejected" || status === "withdrawn" ? "bg-slate-100 text-slate-600" : "bg-amber-50 text-amber-700"; return <span className={`w-fit rounded-full px-3 py-1 text-xs font-semibold ${tone}`}>{applicationStatusLabels[status]}</span>; }
