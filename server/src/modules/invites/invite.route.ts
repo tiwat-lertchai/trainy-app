@@ -24,16 +24,10 @@ export const inviteRoute = new Hono<{ Variables: AuthVariables }>()
       201,
     ),
   )
-  .get(
-    "/organization/:organizationId",
-    zValidator("param", organizationIdParamSchema),
-    async (c) =>
-      c.json({
-        data: await service.listInvites(
-          c.get("authUser").id,
-          c.req.valid("param").organizationId,
-        ),
-      }),
+  .get("/organization/:organizationId", zValidator("param", organizationIdParamSchema), async (c) =>
+    c.json({
+      data: await service.listInvites(c.get("authUser").id, c.req.valid("param").organizationId),
+    }),
   )
   .delete("/:inviteId", zValidator("param", inviteIdParamSchema), async (c) =>
     c.json({

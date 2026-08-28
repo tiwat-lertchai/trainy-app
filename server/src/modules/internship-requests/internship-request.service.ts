@@ -39,9 +39,7 @@ export class InternshipRequestService {
     companyContactPhone?: string;
   }): Promise<RequestWithApprovals> {
     await this.requireMembership(input.actorUserId, input.universityOrganizationId, ["student"]);
-    await this.requireMembership(input.advisorUserId, input.universityOrganizationId, [
-      "advisor",
-    ]);
+    await this.requireMembership(input.advisorUserId, input.universityOrganizationId, ["advisor"]);
 
     const major = await this.repository.findMajorContext(input.academicMajorId);
     if (!major || major.organizationId !== input.universityOrganizationId)
@@ -171,7 +169,10 @@ export class InternshipRequestService {
 
   async listForReview(actorUserId: string) {
     const active = await this.repository.listActive();
-    const reviewerMemberships = new Map<string, Awaited<ReturnType<InternshipRequestRepository["findMembership"]>>>();
+    const reviewerMemberships = new Map<
+      string,
+      Awaited<ReturnType<InternshipRequestRepository["findMembership"]>>
+    >();
     const result: RequestWithApprovals[] = [];
     for (const request of active) {
       const step = currentStep(request);
@@ -188,7 +189,9 @@ export class InternshipRequestService {
         const membership = reviewerMemberships.get(request.universityOrganizationId);
         if (
           membership?.status === "active" &&
-          universityManagerRoles.includes(membership.role as (typeof universityManagerRoles)[number])
+          universityManagerRoles.includes(
+            membership.role as (typeof universityManagerRoles)[number],
+          )
         )
           result.push(request);
       } else if (approval.reviewerUserId === actorUserId) {

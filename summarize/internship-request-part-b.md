@@ -56,6 +56,7 @@ joins the system.
   the system (i.e. redeemed its Part A invite).
 
 Endpoints (all behind `requireAuth`):
+
 ```
 POST /api/v1/internship-requests
 GET  /api/v1/internship-requests/me
@@ -86,7 +87,7 @@ POST  /api/v1/placements/from-request
   `InternshipRequestService`, 8 for the new `AcademicService` methods), 45
   client tests pass (unaffected — this task is backend-only).
 - Live: rebuilt the server Docker image and ran `docker compose up -d
-  --build`. Migration `0011` applied cleanly to the already-migrated local
+--build`. Migration `0011` applied cleanly to the already-migrated local
   Postgres container — notably one that already had Part A's `invite`
   schema from a separate session, confirming the two parallel efforts
   don't collide. Confirmed all three new route groups

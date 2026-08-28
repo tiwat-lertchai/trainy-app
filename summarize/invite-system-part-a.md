@@ -62,7 +62,7 @@ confirmed via AskUserQuestion.
   client tests pass, including 9 new `InviteService` tests: create,
   role-forbidden, bad target org, redeem grants membership, and rejection
   of expired/already-redeemed/revoked/conflicting redemption), `bun run
-  build` — all green at the repo root.
+build` — all green at the repo root.
 - Live: rebuilt the server Docker image, applied migration `0010` to the
   already-migrated local Postgres container with no errors, confirmed all
   four invite routes return `401` with no session (auth wiring correct).

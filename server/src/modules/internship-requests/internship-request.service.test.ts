@@ -15,20 +15,19 @@ type OrgRow = { id: string; type: "university" | "company"; status: "active" | "
 
 const now = new Date("2026-08-29T00:00:00.000Z");
 
-function approvals(overrides: Partial<Record<InternshipRequestStep, Partial<ApprovalRecord>>> = {}) {
-  return internshipRequestSteps.map(
-    (step): ApprovalRecord => ({
-      id: `${step}-approval`,
-      requestId: "request-1",
-      step,
-      reviewerUserId:
-        step === "advisor" ? "advisor-1" : step === "program_chair" ? "chair-1" : null,
-      decision: "pending",
-      note: null,
-      decidedAt: null,
-      ...overrides[step],
-    }),
-  );
+function approvals(
+  overrides: Partial<Record<InternshipRequestStep, Partial<ApprovalRecord>>> = {},
+) {
+  return internshipRequestSteps.map((step): ApprovalRecord => ({
+    id: `${step}-approval`,
+    requestId: "request-1",
+    step,
+    reviewerUserId: step === "advisor" ? "advisor-1" : step === "program_chair" ? "chair-1" : null,
+    decision: "pending",
+    note: null,
+    decidedAt: null,
+    ...overrides[step],
+  }));
 }
 
 function request(overrides: Partial<RequestWithApprovals> = {}): RequestWithApprovals {
@@ -70,7 +69,12 @@ class FakeRepository implements InternshipRequestRepository {
   key(organizationId: string, userId: string) {
     return `${organizationId}:${userId}`;
   }
-  setMembership(organizationId: string, userId: string, role: string, status: Membership["status"] = "active") {
+  setMembership(
+    organizationId: string,
+    userId: string,
+    role: string,
+    status: Membership["status"] = "active",
+  ) {
     this.memberships.set(this.key(organizationId, userId), { role, status });
   }
 
@@ -97,17 +101,15 @@ class FakeRepository implements InternshipRequestRepository {
   async create(input: Parameters<InternshipRequestRepository["create"]>[0]) {
     const record = request({
       ...(input.request as RequestInsert),
-      approvals: internshipRequestSteps.map(
-        (step): ApprovalRecord => ({
-          id: `${step}-approval`,
-          requestId: "request-1",
-          step,
-          reviewerUserId: input.reviewers[step] ?? null,
-          decision: "pending",
-          note: null,
-          decidedAt: null,
-        }),
-      ),
+      approvals: internshipRequestSteps.map((step): ApprovalRecord => ({
+        id: `${step}-approval`,
+        requestId: "request-1",
+        step,
+        reviewerUserId: input.reviewers[step] ?? null,
+        decision: "pending",
+        note: null,
+        decidedAt: null,
+      })),
     });
     this.requests.push(record);
     return record;
@@ -276,9 +278,7 @@ describe("InternshipRequestService.reviewStep", () => {
       decision: "approved",
     });
     expect(record.status).toBe("approved");
-    expect(record.approvals.find((a) => a.step === "center")?.reviewerUserId).toBe(
-      "coordinator-1",
-    );
+    expect(record.approvals.find((a) => a.step === "center")?.reviewerUserId).toBe("coordinator-1");
   });
 
   test("rejects the whole request when any step is rejected", async () => {

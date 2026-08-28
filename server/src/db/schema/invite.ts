@@ -1,5 +1,14 @@
 import { relations, sql } from "drizzle-orm";
-import { check, index, pgEnum, pgTable, text, timestamp, uniqueIndex, uuid } from "drizzle-orm/pg-core";
+import {
+  check,
+  index,
+  pgEnum,
+  pgTable,
+  text,
+  timestamp,
+  uniqueIndex,
+  uuid,
+} from "drizzle-orm/pg-core";
 import { user } from "./auth";
 import { organization } from "./organization";
 

@@ -43,20 +43,19 @@ type Membership = {
   id: string;
   organizationId: string;
   userId: string;
-  role:
-    | "university_admin"
-    | "coordinator"
-    | "advisor"
-    | "student"
-    | "company_admin"
-    | "supervisor";
+  role: "university_admin" | "coordinator" | "advisor" | "student" | "company_admin" | "supervisor";
   status: "active";
   createdAt: Date;
   updatedAt: Date;
 };
 
 function membership(values: Omit<Membership, "id" | "createdAt" | "updatedAt">): Membership {
-  return { id: `${values.organizationId}:${values.userId}`, createdAt: now, updatedAt: now, ...values };
+  return {
+    id: `${values.organizationId}:${values.userId}`,
+    createdAt: now,
+    updatedAt: now,
+    ...values,
+  };
 }
 
 class FakeRepository implements InviteRepository {
@@ -111,7 +110,12 @@ class FakeRepository implements InviteRepository {
     record.redeemedByUserId = input.redeemerUserId;
     this.memberships.set(
       `${organizationId}:${input.redeemerUserId}`,
-      membership({ organizationId, userId: input.redeemerUserId, role: record.role, status: "active" }),
+      membership({
+        organizationId,
+        userId: input.redeemerUserId,
+        role: record.role,
+        status: "active",
+      }),
     );
     return record;
   }
@@ -121,7 +125,12 @@ function service(setup?: (repository: FakeRepository) => void) {
   const repository = new FakeRepository();
   repository.memberships.set(
     `${university.id}:admin`,
-    membership({ organizationId: university.id, userId: "admin", role: "university_admin", status: "active" }),
+    membership({
+      organizationId: university.id,
+      userId: "admin",
+      role: "university_admin",
+      status: "active",
+    }),
   );
   setup?.(repository);
   return { repository, service: new InviteService(repository) };
@@ -204,7 +213,12 @@ describe("InviteService", () => {
     repository.invites.push(invite({ id: "conflict", token: "conflict-token" }));
     repository.memberships.set(
       `${company.id}:existing`,
-      membership({ organizationId: company.id, userId: "existing", role: "supervisor", status: "active" }),
+      membership({
+        organizationId: company.id,
+        userId: "existing",
+        role: "supervisor",
+        status: "active",
+      }),
     );
     await expect(svc.redeemInvite("existing", "conflict-token")).rejects.toThrow(AppError);
   });

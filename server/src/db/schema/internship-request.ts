@@ -13,10 +13,7 @@ import { user } from "./auth";
 import { academicMajor } from "./academic";
 import { organization } from "./organization";
 
-export const internshipRequestType = pgEnum("internship_request_type", [
-  "regular",
-  "cooperative",
-]);
+export const internshipRequestType = pgEnum("internship_request_type", ["regular", "cooperative"]);
 
 export const internshipRequestStatus = pgEnum("internship_request_status", [
   "submitted",
@@ -110,7 +107,9 @@ export const internshipRequestApproval = pgTable(
     note: text("note"),
     decidedAt: timestamp("decided_at", { withTimezone: true }),
   },
-  (table) => [uniqueIndex("internship_request_approval_request_step_uidx").on(table.requestId, table.step)],
+  (table) => [
+    uniqueIndex("internship_request_approval_request_step_uidx").on(table.requestId, table.step),
+  ],
 );
 
 export const internshipRequestDocument = pgTable(
