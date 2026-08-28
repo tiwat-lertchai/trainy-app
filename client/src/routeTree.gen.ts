@@ -17,9 +17,11 @@ import { Route as AppAttendanceRouteImport } from './routes/app.attendance'
 import { Route as AppDocumentsRouteImport } from './routes/app.documents'
 import { Route as AppEvaluationsRouteImport } from './routes/app.evaluations'
 import { Route as AppInternshipsRouteImport } from './routes/app.internships'
+import { Route as AppMembersRouteImport } from './routes/app.members'
 import { Route as AppOnboardingRouteImport } from './routes/app.onboarding'
 import { Route as AppPlacementsRouteImport } from './routes/app.placements'
 import { Route as AppProgressRouteImport } from './routes/app.progress'
+import { Route as AppReportsRouteImport } from './routes/app.reports'
 import { Route as AppReviewsRouteImport } from './routes/app.reviews'
 
 const IndexRoute = IndexRouteImport.update({
@@ -62,6 +64,11 @@ const AppInternshipsRoute = AppInternshipsRouteImport.update({
   path: '/internships',
   getParentRoute: () => AppRoute,
 } as any)
+const AppMembersRoute = AppMembersRouteImport.update({
+  id: '/members',
+  path: '/members',
+  getParentRoute: () => AppRoute,
+} as any)
 const AppOnboardingRoute = AppOnboardingRouteImport.update({
   id: '/onboarding',
   path: '/onboarding',
@@ -75,6 +82,11 @@ const AppPlacementsRoute = AppPlacementsRouteImport.update({
 const AppProgressRoute = AppProgressRouteImport.update({
   id: '/progress',
   path: '/progress',
+  getParentRoute: () => AppRoute,
+} as any)
+const AppReportsRoute = AppReportsRouteImport.update({
+  id: '/reports',
+  path: '/reports',
   getParentRoute: () => AppRoute,
 } as any)
 const AppReviewsRoute = AppReviewsRouteImport.update({
@@ -92,9 +104,11 @@ export interface FileRoutesByFullPath {
   '/app/documents': typeof AppDocumentsRoute
   '/app/evaluations': typeof AppEvaluationsRoute
   '/app/internships': typeof AppInternshipsRoute
+  '/app/members': typeof AppMembersRoute
   '/app/onboarding': typeof AppOnboardingRoute
   '/app/placements': typeof AppPlacementsRoute
   '/app/progress': typeof AppProgressRoute
+  '/app/reports': typeof AppReportsRoute
   '/app/reviews': typeof AppReviewsRoute
 }
 export interface FileRoutesByTo {
@@ -106,9 +120,11 @@ export interface FileRoutesByTo {
   '/app/documents': typeof AppDocumentsRoute
   '/app/evaluations': typeof AppEvaluationsRoute
   '/app/internships': typeof AppInternshipsRoute
+  '/app/members': typeof AppMembersRoute
   '/app/onboarding': typeof AppOnboardingRoute
   '/app/placements': typeof AppPlacementsRoute
   '/app/progress': typeof AppProgressRoute
+  '/app/reports': typeof AppReportsRoute
   '/app/reviews': typeof AppReviewsRoute
 }
 export interface FileRoutesById {
@@ -121,9 +137,11 @@ export interface FileRoutesById {
   '/app/documents': typeof AppDocumentsRoute
   '/app/evaluations': typeof AppEvaluationsRoute
   '/app/internships': typeof AppInternshipsRoute
+  '/app/members': typeof AppMembersRoute
   '/app/onboarding': typeof AppOnboardingRoute
   '/app/placements': typeof AppPlacementsRoute
   '/app/progress': typeof AppProgressRoute
+  '/app/reports': typeof AppReportsRoute
   '/app/reviews': typeof AppReviewsRoute
 }
 export interface FileRouteTypes {
@@ -137,9 +155,11 @@ export interface FileRouteTypes {
     | '/app/documents'
     | '/app/evaluations'
     | '/app/internships'
+    | '/app/members'
     | '/app/onboarding'
     | '/app/placements'
     | '/app/progress'
+    | '/app/reports'
     | '/app/reviews'
   fileRoutesByTo: FileRoutesByTo
   to:
@@ -151,9 +171,11 @@ export interface FileRouteTypes {
     | '/app/documents'
     | '/app/evaluations'
     | '/app/internships'
+    | '/app/members'
     | '/app/onboarding'
     | '/app/placements'
     | '/app/progress'
+    | '/app/reports'
     | '/app/reviews'
   id:
     | '__root__'
@@ -165,9 +187,11 @@ export interface FileRouteTypes {
     | '/app/documents'
     | '/app/evaluations'
     | '/app/internships'
+    | '/app/members'
     | '/app/onboarding'
     | '/app/placements'
     | '/app/progress'
+    | '/app/reports'
     | '/app/reviews'
   fileRoutesById: FileRoutesById
 }
@@ -234,6 +258,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AppInternshipsRouteImport
       parentRoute: typeof AppRoute
     }
+    '/app/members': {
+      id: '/app/members'
+      path: '/members'
+      fullPath: '/app/members'
+      preLoaderRoute: typeof AppMembersRouteImport
+      parentRoute: typeof AppRoute
+    }
     '/app/onboarding': {
       id: '/app/onboarding'
       path: '/onboarding'
@@ -255,6 +286,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AppProgressRouteImport
       parentRoute: typeof AppRoute
     }
+    '/app/reports': {
+      id: '/app/reports'
+      path: '/reports'
+      fullPath: '/app/reports'
+      preLoaderRoute: typeof AppReportsRouteImport
+      parentRoute: typeof AppRoute
+    }
     '/app/reviews': {
       id: '/app/reviews'
       path: '/reviews'
@@ -272,9 +310,11 @@ interface AppRouteChildren {
   AppDocumentsRoute: typeof AppDocumentsRoute
   AppEvaluationsRoute: typeof AppEvaluationsRoute
   AppInternshipsRoute: typeof AppInternshipsRoute
+  AppMembersRoute: typeof AppMembersRoute
   AppOnboardingRoute: typeof AppOnboardingRoute
   AppPlacementsRoute: typeof AppPlacementsRoute
   AppProgressRoute: typeof AppProgressRoute
+  AppReportsRoute: typeof AppReportsRoute
   AppReviewsRoute: typeof AppReviewsRoute
 }
 
@@ -285,9 +325,11 @@ const AppRouteChildren: AppRouteChildren = {
   AppDocumentsRoute: AppDocumentsRoute,
   AppEvaluationsRoute: AppEvaluationsRoute,
   AppInternshipsRoute: AppInternshipsRoute,
+  AppMembersRoute: AppMembersRoute,
   AppOnboardingRoute: AppOnboardingRoute,
   AppPlacementsRoute: AppPlacementsRoute,
   AppProgressRoute: AppProgressRoute,
+  AppReportsRoute: AppReportsRoute,
   AppReviewsRoute: AppReviewsRoute,
 }
 
