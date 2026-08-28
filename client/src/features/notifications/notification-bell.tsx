@@ -2,10 +2,12 @@ import { useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { Bell, Check } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { useLanguage } from "@/i18n/config";
 import { apiClient } from "@/lib/api-client";
 import { countUnread } from "./notification-rules";
 
 export function NotificationBell() {
+	const { locale, t } = useLanguage();
 	const [open, setOpen] = useState(false);
 	const queryClient = useQueryClient();
 	const notifications = useQuery({
@@ -32,7 +34,7 @@ export function NotificationBell() {
 			<Button
 				variant="ghost"
 				size="icon"
-				aria-label="Notifications"
+				aria-label={t("notifications.label")}
 				aria-expanded={open}
 				onClick={() => setOpen((value) => !value)}
 			>
@@ -46,20 +48,22 @@ export function NotificationBell() {
 			{open && (
 				<div className="absolute right-0 top-12 z-50 w-[min(22rem,calc(100vw-2rem))] overflow-hidden rounded-2xl border bg-white shadow-xl">
 					<div className="border-b p-4">
-						<h2 className="font-bold">การแจ้งเตือน</h2>
-						<p className="mt-1 text-xs text-muted-foreground">ยังไม่ได้อ่าน {unread} รายการ</p>
+						<h2 className="font-bold">{t("notifications.title")}</h2>
+						<p className="mt-1 text-xs text-muted-foreground">
+							{t("notifications.unread", { count: unread })}
+						</p>
 					</div>
 					<div className="max-h-96 overflow-y-auto">
 						{notifications.isLoading && (
-							<p className="p-5 text-sm text-muted-foreground">กำลังโหลด...</p>
+							<p className="p-5 text-sm text-muted-foreground">{t("notifications.loading")}</p>
 						)}
 						{notifications.isError && (
 							<p role="alert" className="p-5 text-sm text-destructive">
-								โหลดการแจ้งเตือนไม่สำเร็จ
+								{t("notifications.loadError")}
 							</p>
 						)}
 						{notifications.data?.data.length === 0 && (
-							<p className="p-5 text-sm text-muted-foreground">ยังไม่มีการแจ้งเตือน</p>
+							<p className="p-5 text-sm text-muted-foreground">{t("notifications.empty")}</p>
 						)}
 						{notifications.data?.data.map((item) => (
 							<div
@@ -71,7 +75,7 @@ export function NotificationBell() {
 										<p className="text-sm font-semibold">{item.title}</p>
 										<p className="mt-1 text-sm leading-6 text-muted-foreground">{item.message}</p>
 										<p className="mt-2 text-xs text-muted-foreground">
-											{new Intl.DateTimeFormat("th-TH", {
+											{new Intl.DateTimeFormat(locale === "th" ? "th-TH" : "en-US", {
 												dateStyle: "medium",
 												timeStyle: "short",
 											}).format(new Date(item.createdAt))}
@@ -81,7 +85,7 @@ export function NotificationBell() {
 										<Button
 											size="icon"
 											variant="ghost"
-											aria-label="Mark notification as read"
+											aria-label={t("notifications.markRead")}
 											disabled={markRead.isPending}
 											onClick={() => markRead.mutate(item.id)}
 										>

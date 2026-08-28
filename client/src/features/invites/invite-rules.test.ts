@@ -42,5 +42,7 @@ describe("invite rules", () => {
 	it("maps known codes and safely falls back", () => {
 		expect(inviteErrorMessage("MEMBERSHIP_CONFLICT")).toContain("สมาชิก");
 		expect(inviteErrorMessage("UNKNOWN")).toContain("ลองใหม่");
+		expect(inviteErrorMessage("MEMBERSHIP_CONFLICT", "en")).toContain("already a member");
+		expect(inviteErrorMessage("UNKNOWN", "en")).toContain("try again");
 	});
 });
