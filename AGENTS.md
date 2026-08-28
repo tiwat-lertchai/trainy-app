@@ -43,16 +43,29 @@ These instructions apply to the entire Trainy monorepo.
 11. Complete backend behavior, database workflows, security controls, and API
     documentation before building frontend features that depend on them. The
     frontend must integrate with the real backend contract.
+12. Before any security-relevant change (auth, CORS, headers, tenant isolation,
+    new endpoints, file/document handling, etc.) is considered shippable, run a
+    self-penetration-test pass against the running local dev environment,
+    OWASP-aligned and black-box, from a disposable Kali container on
+    `--network host` (see `summarize/localhost-pentest-owasp.md` for the
+    established pattern and tooling). This runs only after all other
+    verification (tests, type checks, lint, build) already passes. Stop and
+    remove the Kali container when the pass is done. If the pentest finds an
+    exploitable issue, fix it, re-run the check that found it, and do not mark
+    the work done or push it until it is clean. Keep committing completed,
+    already-verified increments locally throughout this process (per rule 6)
+    so work in progress is never lost, but never push while a self-pentest
+    finding is still open.
 
 ## Clarification
 
-12. Ask immediately when something appears unusual or a requirement is unclear,
+13. Ask immediately when something appears unusual or a requirement is unclear,
     especially when guessing could affect the architecture, business rules, or
     data integrity.
 
 ## Library documentation
 
-13. When a library or framework API is unclear, consult its current official
+14. When a library or framework API is unclear, consult its current official
     documentation before implementing. Prefer documentation that matches the
     version installed in this repository, including official `llms.txt` or
     `llms-full.txt` files when available, followed by the official reference,
@@ -62,17 +75,17 @@ These instructions apply to the entire Trainy monorepo.
 
 ## Dependency safety and compatibility
 
-14. Before starting implementation, inspect the current dependency and lockfile
+15. Before starting implementation, inspect the current dependency and lockfile
     state. Check for known vulnerabilities, incompatible versions, and peer
     dependency conflicts. Report any vulnerability found, including its
     severity, affected package, likely impact, and proposed remediation.
-15. Update a dependency when an update is required for the task, resolves a
+16. Update a dependency when an update is required for the task, resolves a
     relevant vulnerability, or is explicitly requested. Select the safest
     compatible version after reviewing official release notes and migration
     guidance. Do not perform unrelated dependency churn. Test major-version or
     experimental upgrades on a separate `dev-<experiment>` branch as required
     by the Git workflow above.
-16. After any dependency or lockfile update, run the complete repository test
+17. After any dependency or lockfile update, run the complete repository test
     suite plus all applicable type checks, lint checks, and production builds.
     Report every command and its actual result. If credentials, infrastructure,
     or another environmental requirement prevents a check, explicitly mark the
@@ -80,12 +93,12 @@ These instructions apply to the entire Trainy monorepo.
 
 ## Project summaries
 
-17. After each completed task, add an English-only Markdown summary under
+18. After each completed task, add an English-only Markdown summary under
     `summarize/`. Use a descriptive, stable filename and include the task scope,
     files or systems changed, important decisions, dependency changes,
     verification commands and results, known limitations, commit information,
     and suggested next steps. Never include secrets, credentials, or personal
     data.
-18. Before starting follow-up work, read the relevant files in `summarize/` and
+19. Before starting follow-up work, read the relevant files in `summarize/` and
     use them as the project's concise working memory. Keep each summary factual
     and compact enough to reduce repeated repository investigation.
