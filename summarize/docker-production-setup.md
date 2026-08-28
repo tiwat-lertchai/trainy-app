@@ -93,7 +93,69 @@ been checked with `docker ps` before running `docker compose up` given a
    stack was left in place (not deleted) since it wasn't part of this task
    and deleting volumes wasn't authorized.
 
+## Follow-up: same-origin deploy (client + server on one domain)
+
+Changed the design from two separate origins (client on one host/port,
+server on another) to a single public origin, at the user's request, since
+they plan to deploy client and server under one domain with the API at
+`/api`. This also avoids Better Auth's session cookie needing cross-site
+cookie handling.
+
+- `client/nginx.conf` — added a `location /api/` block that reverse-proxies
+  to `http://server:3000` over the internal Compose network (no path in
+  `proxy_pass`, so the `/api/` prefix is forwarded unchanged, matching where
+  `server/src/app.ts` mounts its routes). CSP's `connect-src` simplified
+  from a templated external origin to plain `'self'`.
+- `client/Dockerfile` — dropped the `sed` step that used to bake
+  `VITE_SERVER_URL` into the nginx config's CSP; no longer needed now that
+  `connect-src` is just `'self'`. The build arg is still used for the Vite
+  build itself (`import.meta.env.VITE_SERVER_URL`, read by
+  `client/src/lib/api-client.ts` and `auth-client.ts` — both treat it as an
+  origin with no path, which is why it works whether the API lives on its
+  own host or is proxied under `/api` on the same one).
+- `compose.yaml` — removed the server's published port (`3001:3000`); it's
+  reachable only from `client` over the internal network now. Local-testing
+  defaults for `BETTER_AUTH_URL`/`VITE_SERVER_URL` changed from
+  `http://localhost:3001` to `http://localhost:8081` (the client's own
+  origin) to match.
+- `.env.example` — rewritten to explain that `CORS_ORIGINS`, `BETTER_AUTH_URL`,
+  and `VITE_SERVER_URL` are now all the same public URL.
+
+### Bug found and fixed during verification
+
+The `/api/` location had no `add_header` of its own, so per nginx's
+inheritance rule (a location only inherits server-level `add_header`s if it
+defines none of its own) it was inheriting the client's static-page security
+headers **on top of** the server's own (already correct, JSON-appropriate)
+headers — duplicate `Content-Security-Policy`, `Permissions-Policy`,
+`X-Frame-Options`, etc. on every API response. Fixed by adding one
+`add_header X-Proxied-By "trainy-client"` in that location, which is enough
+to stop the inheritance; the server's headers now pass through untouched.
+
+### Unrelated volume/password mismatch hit during verification (not a bug in this change)
+
+Re-testing hit `password authentication failed for user "trainy"` on the
+`db` service. Cause: the `trainy-app_db-data` volume from the very first
+verification pass (earlier in this task) was initialized with that pass's
+dummy `POSTGRES_PASSWORD`; Postgres only applies `POSTGRES_PASSWORD` on
+first init, so it silently ignored the real password now in `.env`. Fixed
+by removing that leftover volume (`docker volume rm trainy-app_db-data`)
+before retesting — it held no real data, only schema from the earlier
+disposable test run.
+
+### Also noticed, not fixed (user's own `.env`, not committed)
+
+The user's local root `.env` has `CORS_ORIGINS=https://trainy.snowy.page/`
+— with a trailing slash. `server/src/config/env.ts`'s `readOrigins` stores
+the raw string after validating it's a URL, and the CORS check in
+`server/src/app.ts` does an exact-string match against the browser's
+`Origin` header, which never has a trailing slash. As written, that origin
+would never match and CORS would silently reject the real domain. Flagged
+to the user in chat; not changed here since it's their local `.env`, not a
+repo file.
+
 ## Commits
 
 - `f724f79 feat(docker): add production Dockerfiles and compose stack for portable deploys`
-  — local only, not pushed (per Git workflow rule 8).
+- `24d429c feat(docker): serve client and server from one origin via nginx reverse proxy`
+  — both local only, not pushed (per Git workflow rule 8).
