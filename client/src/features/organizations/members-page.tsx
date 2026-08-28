@@ -4,6 +4,7 @@ import { UserRoundCog, UsersRound } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { ConfirmationDialog } from "@/components/ui/confirmation-dialog";
 import { useLanguage } from "@/i18n/config";
+import type { MessageKey } from "@/i18n/messages";
 import { apiClient } from "@/lib/api-client";
 import type { OrganizationRole } from "./role-navigation";
 
@@ -15,13 +16,13 @@ const universityRoles: OrganizationRole[] = [
 	"student",
 ];
 const companyRoles: OrganizationRole[] = ["company_admin", "supervisor"];
-const roleLabels: Record<OrganizationRole, string> = {
-	university_admin: "ผู้ดูแลมหาวิทยาลัย",
-	coordinator: "ผู้ประสานงาน",
-	advisor: "อาจารย์ที่ปรึกษา",
-	student: "นักศึกษา",
-	company_admin: "ผู้ดูแลสถานประกอบการ",
-	supervisor: "ผู้ควบคุมการฝึกงาน",
+const roleLabels: Record<OrganizationRole, MessageKey> = {
+	university_admin: "role.university_admin",
+	coordinator: "role.coordinator",
+	advisor: "role.advisor",
+	student: "role.student",
+	company_admin: "role.company_admin",
+	supervisor: "role.supervisor",
 };
 
 export function MembersPage() {
@@ -104,22 +105,22 @@ export function MembersPage() {
 	if (organizations.isLoading)
 		return (
 			<div className="grid min-h-80 place-items-center text-muted-foreground">
-				กำลังโหลดข้อมูล...
+				{t("members.loading")}
 			</div>
 		);
 	if (!isAdmin)
 		return (
 			<div className="mx-auto max-w-xl rounded-3xl border bg-white p-8 text-center text-muted-foreground">
-				หน้านี้สำหรับผู้ดูแลองค์กรเท่านั้น
+				{t("members.forbidden")}
 			</div>
 		);
 
 	return (
 		<div>
-			<p className="text-sm font-semibold text-primary">MEMBERS</p>
-			<h1 className="mt-2 text-3xl font-black">สมาชิกองค์กร</h1>
+			<p className="text-sm font-semibold text-primary">{t("members.eyebrow")}</p>
+			<h1 className="mt-2 text-3xl font-black">{t("members.title")}</h1>
 			<p className="mt-2 text-muted-foreground">
-				จัดการสิทธิ์และสถานะสมาชิกของ {context?.organization.name}
+				{t("members.description", { organization: context?.organization.name ?? "" })}
 			</p>
 
 			<form
@@ -127,36 +128,36 @@ export function MembersPage() {
 				onSubmit={submitAddMember}
 			>
 				<label className="grid gap-2 text-sm font-semibold">
-					รหัสผู้ใช้ (User ID)
+					{t("members.userId")}
 					<input
 						name="userId"
 						required
-						placeholder="รหัสบัญชีผู้ใช้ที่มีอยู่แล้วในระบบ"
+						placeholder={t("members.userIdPlaceholder")}
 						className="h-11 rounded-xl border bg-background px-3 font-normal outline-none focus:border-primary focus:ring-3 focus:ring-primary/10"
 					/>
 				</label>
 				<label className="grid gap-2 text-sm font-semibold">
-					บทบาท
+					{t("members.role")}
 					<select name="role" className="h-11 rounded-xl border bg-background px-3 font-normal">
 						{availableRoles.map((role) => (
 							<option key={role} value={role}>
-								{roleLabels[role]}
+								{t(roleLabels[role])}
 							</option>
 						))}
 					</select>
 				</label>
-				<Button disabled={addMember.isPending}>เพิ่มสมาชิก</Button>
+				<Button disabled={addMember.isPending}>{t("members.add")}</Button>
 			</form>
 			{addMember.isError && (
 				<p role="alert" className="mt-2 text-sm text-destructive">
-					เพิ่มสมาชิกไม่สำเร็จ ตรวจสอบรหัสผู้ใช้และสิทธิ์อีกครั้ง
+					{t("members.addError")}
 				</p>
 			)}
 
 			{members.isLoading && <div className="mt-8 h-32 animate-pulse rounded-2xl bg-muted" />}
 			{members.data?.data.length === 0 && (
 				<div className="mt-8 rounded-2xl border bg-white p-10 text-center text-muted-foreground">
-					ยังไม่มีสมาชิก
+					{t("members.empty")}
 				</div>
 			)}
 
@@ -195,14 +196,14 @@ export function MembersPage() {
 								>
 									{availableRoles.map((role) => (
 										<option key={role} value={role}>
-											{roleLabels[role]}
+											{t(roleLabels[role])}
 										</option>
 									))}
 								</select>
 								<span
 									className={`rounded-full px-3 py-1 text-xs font-semibold ${member.status === "active" ? "bg-emerald-50 text-emerald-700" : "bg-slate-100 text-slate-600"}`}
 								>
-									{member.status === "active" ? "ใช้งานอยู่" : "ระงับการใช้งาน"}
+									{member.status === "active" ? t("members.active") : t("members.suspended")}
 								</span>
 								<Button
 									variant="outline"
@@ -215,7 +216,7 @@ export function MembersPage() {
 									}
 								>
 									<UserRoundCog className="size-4" />
-									{member.status === "active" ? "ระงับ" : "เปิดใช้งาน"}
+									{member.status === "active" ? t("members.suspend") : t("members.activate")}
 								</Button>
 							</div>
 						</article>
@@ -224,7 +225,7 @@ export function MembersPage() {
 			</div>
 			{updateMember.isError && (
 				<p role="alert" className="mt-3 text-sm text-destructive">
-					ดำเนินการไม่สำเร็จ (อาจเป็นผู้ดูแลคนสุดท้ายขององค์กร)
+					{t("members.updateError")}
 				</p>
 			)}
 			<ConfirmationDialog

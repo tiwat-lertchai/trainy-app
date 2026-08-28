@@ -2,6 +2,8 @@ import { useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { Building2, CheckCircle2, ClipboardCheck, Clock3, XCircle } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { useLanguage } from "@/i18n/config";
+import type { MessageKey } from "@/i18n/messages";
 import { apiClient } from "@/lib/api-client";
 
 async function loadReviews() {
@@ -11,6 +13,7 @@ async function loadReviews() {
 }
 
 export function OnboardingReviewPage() {
+	const { locale, t } = useLanguage();
 	const queryClient = useQueryClient();
 	const reviews = useQuery({ queryKey: ["onboarding", "reviews"], queryFn: loadReviews });
 	const [notes, setNotes] = useState<Record<string, string>>({});
@@ -36,20 +39,22 @@ export function OnboardingReviewPage() {
 	return (
 		<div>
 			<div>
-				<p className="text-sm font-semibold text-primary">ACCESS REVIEWS</p>
-				<h1 className="mt-2 text-3xl font-black">ตรวจสอบคำขอเข้าใช้งาน</h1>
-				<p className="mt-2 text-muted-foreground">ระบบแสดงเฉพาะคำขอที่คุณมีสิทธิ์ตรวจสอบเท่านั้น</p>
+				<p className="text-sm font-semibold text-primary">{t("onboardingReview.eyebrow")}</p>
+				<h1 className="mt-2 text-3xl font-black">{t("onboardingReview.title")}</h1>
+				<p className="mt-2 text-muted-foreground">{t("onboardingReview.description")}</p>
 			</div>
-			{reviews.isLoading && <p className="mt-8 text-muted-foreground">กำลังโหลดคำขอ...</p>}
+			{reviews.isLoading && (
+				<p className="mt-8 text-muted-foreground">{t("onboardingReview.loading")}</p>
+			)}
 			{reviews.isError && (
 				<p role="alert" className="mt-8 rounded-xl bg-red-50 p-4 text-destructive">
-					ไม่สามารถโหลดคำขอได้
+					{t("onboardingReview.loadError")}
 				</p>
 			)}
 			{reviews.data?.data.length === 0 && (
 				<div className="mt-8 rounded-2xl border bg-white p-10 text-center">
 					<ClipboardCheck className="mx-auto size-10 text-muted-foreground" />
-					<h2 className="mt-4 font-bold">ไม่มีคำขอที่รอตรวจสอบ</h2>
+					<h2 className="mt-4 font-bold">{t("onboardingReview.empty")}</h2>
 				</div>
 			)}
 			<div className="mt-8 grid gap-5">
@@ -63,10 +68,10 @@ export function OnboardingReviewPage() {
 										{company ? <Building2 /> : <Clock3 />}
 									</span>
 									<div>
-										<h2 className="text-lg font-bold">{roleLabel(item.requestedRole)}</h2>
+										<h2 className="text-lg font-bold">{roleLabel(item.requestedRole, t)}</h2>
 										<p className="mt-1 text-sm text-muted-foreground">
-											ส่งเมื่อ{" "}
-											{new Intl.DateTimeFormat("th-TH", {
+											{t("onboardingReview.submittedAt")}{" "}
+											{new Intl.DateTimeFormat(locale === "th" ? "th-TH" : "en-US", {
 												dateStyle: "medium",
 												timeStyle: "short",
 											}).format(new Date(item.submittedAt))}
@@ -74,7 +79,7 @@ export function OnboardingReviewPage() {
 									</div>
 								</div>
 								<span className="h-fit rounded-full bg-amber-50 px-3 py-1 text-xs font-semibold text-amber-700">
-									รอตรวจสอบ
+									{t("onboardingReview.pending")}
 								</span>
 							</div>
 							<dl className="mt-5 grid gap-3 rounded-xl bg-muted p-4 text-sm sm:grid-cols-2">
@@ -103,15 +108,15 @@ export function OnboardingReviewPage() {
 										}
 									/>
 									<span>
-										<strong>ยืนยันว่าตรวจเอกสารบริษัทแล้ว</strong>
+										<strong>{t("onboardingReview.documentsVerified")}</strong>
 										<span className="mt-1 block text-amber-800">
-											อนุมัติไม่ได้จนกว่าเจ้าหน้าที่ CWIE จะตรวจหลักฐานจริงเรียบร้อย
+											{t("onboardingReview.documentsDetail")}
 										</span>
 									</span>
 								</label>
 							)}
 							<label className="mt-5 grid gap-2 text-sm font-semibold">
-								หมายเหตุ
+								{t("onboardingReview.note")}
 								<textarea
 									className="min-h-24 rounded-xl border bg-background p-3 font-normal"
 									value={notes[item.id] ?? ""}
@@ -122,7 +127,7 @@ export function OnboardingReviewPage() {
 							</label>
 							{review.isError && (
 								<p role="alert" className="mt-3 text-sm text-destructive">
-									ดำเนินการไม่สำเร็จ กรุณาตรวจสิทธิ์หรือข้อมูลที่ต้องยืนยัน
+									{t("onboardingReview.actionError")}
 								</p>
 							)}
 							<div className="mt-5 flex flex-col gap-2 sm:flex-row sm:justify-end">
@@ -132,7 +137,7 @@ export function OnboardingReviewPage() {
 									onClick={() => review.mutate({ id: item.id, decision: "revision_requested" })}
 								>
 									<Clock3 />
-									ขอแก้ไข
+									{t("onboardingReview.revision")}
 								</Button>
 								<Button
 									variant="destructive"
@@ -140,14 +145,14 @@ export function OnboardingReviewPage() {
 									onClick={() => review.mutate({ id: item.id, decision: "rejected" })}
 								>
 									<XCircle />
-									ไม่อนุมัติ
+									{t("onboardingReview.reject")}
 								</Button>
 								<Button
 									disabled={(company && !verified[item.id]) || review.isPending}
 									onClick={() => review.mutate({ id: item.id, decision: "approved" })}
 								>
 									<CheckCircle2 />
-									อนุมัติ
+									{t("onboardingReview.approve")}
 								</Button>
 							</div>
 						</article>
@@ -158,17 +163,14 @@ export function OnboardingReviewPage() {
 	);
 }
 
-function roleLabel(role: string) {
-	return (
-		(
-			{
-				student: "นักศึกษา",
-				advisor: "อาจารย์ที่ปรึกษา",
-				coordinator: "เจ้าหน้าที่/ผู้ประสานงาน",
-				university_admin: "ผู้ดูแลมหาวิทยาลัย",
-				company_admin: "ผู้แทนสถานประกอบการและบริษัทใหม่",
-				supervisor: "พี่เลี้ยง/ผู้ควบคุมการฝึกงาน",
-			} as Record<string, string>
-		)[role] ?? role
-	);
+function roleLabel(role: string, t: (key: MessageKey) => string) {
+	const labels: Record<string, MessageKey> = {
+		student: "role.student",
+		advisor: "role.advisor",
+		coordinator: "role.coordinator",
+		university_admin: "role.university_admin",
+		company_admin: "role.company_admin",
+		supervisor: "role.supervisor",
+	};
+	return labels[role] ? t(labels[role]) : role;
 }
