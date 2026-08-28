@@ -39,6 +39,14 @@ None.
 - Targeted evaluation service tests: 6 passed.
 - Client production build and lint: passed.
 - Server TypeScript check: passed.
+- Full repository tests: server 112 passed; client 36 passed.
+- Full repository TypeScript, lint, production build, dependency audit, and
+  whitespace validation: passed.
+
+## Commit
+
+- `dd10e58 feat(evaluations): add submission workflow ui`
+- Committed locally on `master`; not pushed.
 
 ## Follow-up
 
