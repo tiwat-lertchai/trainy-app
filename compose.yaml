@@ -1,6 +1,57 @@
 services:
+  db:
+    image: postgres:17-alpine
+    environment:
+      POSTGRES_DB: trainy
+      POSTGRES_USER: trainy
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?set POSTGRES_PASSWORD in .env}
+    volumes:
+      - db-data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U trainy -d trainy"]
+      interval: 2s
+      timeout: 3s
+      retries: 15
+
+  server:
+    build:
+      context: .
+      dockerfile: server/Dockerfile
+    depends_on:
+      db:
+        condition: service_healthy
+    environment:
+      NODE_ENV: production
+      PORT: 3000
+      CORS_ORIGINS: ${CORS_ORIGINS:-http://localhost:8081}
+      DATABASE_URL: postgresql://trainy:${POSTGRES_PASSWORD:?set POSTGRES_PASSWORD in .env}@db:5432/trainy
+      DATABASE_DRIVER: postgres
+      BETTER_AUTH_SECRET: ${BETTER_AUTH_SECRET:?set BETTER_AUTH_SECRET in .env}
+      BETTER_AUTH_URL: ${BETTER_AUTH_URL:-http://localhost:3001}
+      LINE_CHANNEL_ID: ${LINE_CHANNEL_ID:?set LINE_CHANNEL_ID in .env}
+      LINE_CHANNEL_SECRET: ${LINE_CHANNEL_SECRET:?set LINE_CHANNEL_SECRET in .env}
+      UPLOAD_DIR: /app/server/uploads
+    volumes:
+      - uploads:/app/server/uploads
+    ports:
+      - "3001:3000"
+
+  client:
+    build:
+      context: .
+      dockerfile: client/Dockerfile
+      args:
+        VITE_SERVER_URL: ${VITE_SERVER_URL:-http://localhost:3001}
+    depends_on:
+      - server
+    ports:
+      - "8081:80"
+
+  # Used only by `bun test:integration` against a disposable local database.
+  # Not part of the app stack, so it never starts on a plain `docker compose up`.
   postgres-test:
     image: postgres:17-alpine
+    profiles: ["test"]
     environment:
       POSTGRES_DB: trainy_test
       POSTGRES_USER: trainy
@@ -14,3 +65,7 @@ services:
       retries: 15
     tmpfs:
       - /var/lib/postgresql/data
+
+volumes:
+  db-data:
+  uploads:
