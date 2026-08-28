@@ -8,6 +8,7 @@ import {
   internshipRequestDocument,
   organization,
   organizationMembership,
+  user,
 } from "../../db/schema";
 import type { InternshipRequestStep } from "./internship-request.schema";
 
@@ -21,10 +22,13 @@ export type RequestOrganization = Pick<typeof organization.$inferSelect, "id" | 
 
 const STEP_ORDER: readonly InternshipRequestStep[] = ["advisor", "program_chair", "center"];
 
+export type AdvisorOption = { userId: string; name: string };
+
 export interface InternshipRequestRepository {
   findMajorContext(majorId: string): Promise<MajorContext | undefined>;
   findOrganization(id: string): Promise<RequestOrganization | undefined>;
   findMembership(organizationId: string, userId: string): Promise<Membership | undefined>;
+  listActiveAdvisors(organizationId: string): Promise<AdvisorOption[]>;
   findById(id: string): Promise<RequestWithApprovals | undefined>;
   listMine(studentUserId: string): Promise<RequestWithApprovals[]>;
   listActive(): Promise<RequestWithApprovals[]>;
@@ -94,6 +98,21 @@ export class DrizzleInternshipRequestRepository implements InternshipRequestRepo
       where: eq(internshipRequest.id, id),
       with: { approvals: true },
     });
+  }
+
+  async listActiveAdvisors(organizationId: string) {
+    return this.database
+      .select({ userId: user.id, name: user.name })
+      .from(organizationMembership)
+      .innerJoin(user, eq(user.id, organizationMembership.userId))
+      .where(
+        and(
+          eq(organizationMembership.organizationId, organizationId),
+          eq(organizationMembership.role, "advisor"),
+          eq(organizationMembership.status, "active"),
+        ),
+      )
+      .orderBy(user.name);
   }
 
   listMine(studentUserId: string) {

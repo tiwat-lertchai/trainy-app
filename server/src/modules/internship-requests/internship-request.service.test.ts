@@ -87,6 +87,16 @@ class FakeRepository implements InternshipRequestRepository {
   async findMembership(organizationId: string, userId: string) {
     return this.memberships.get(this.key(organizationId, userId));
   }
+  async listActiveAdvisors(organizationId: string) {
+    return [...this.memberships.entries()]
+      .filter(
+        ([key, membership]) =>
+          key.startsWith(`${organizationId}:`) &&
+          membership.role === "advisor" &&
+          membership.status === "active",
+      )
+      .map(([key]) => ({ userId: key.split(":")[1]!, name: key.split(":")[1]! }));
+  }
   async findById(id: string) {
     return this.requests.find((item) => item.id === id);
   }
@@ -376,5 +386,20 @@ describe("InternshipRequestService.listForReview", () => {
     });
     const coordinatorView = await svc.listForReview("coordinator-1");
     expect(coordinatorView).toHaveLength(1);
+  });
+});
+
+describe("InternshipRequestService.listAdvisorOptions", () => {
+  test("lists active advisors at the caller's own university", async () => {
+    const { service: svc } = service();
+    const options = await svc.listAdvisorOptions("student-1", "university");
+    expect(options.map((o) => o.userId)).toEqual(["advisor-1"]);
+  });
+
+  test("rejects a caller with no membership at that university", async () => {
+    const { service: svc } = service();
+    await expect(svc.listAdvisorOptions("outsider", "university")).rejects.toMatchObject({
+      code: "ORGANIZATION_ACCESS_REQUIRED",
+    });
   });
 });

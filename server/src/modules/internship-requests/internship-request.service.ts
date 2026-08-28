@@ -167,6 +167,17 @@ export class InternshipRequestService {
     return this.repository.listMine(userId);
   }
 
+  async listAdvisorOptions(actorUserId: string, universityOrganizationId: string) {
+    const membership = await this.repository.findMembership(universityOrganizationId, actorUserId);
+    if (membership?.status !== "active")
+      throw new AppError(
+        "Required organization access was not found",
+        403,
+        "ORGANIZATION_ACCESS_REQUIRED",
+      );
+    return this.repository.listActiveAdvisors(universityOrganizationId);
+  }
+
   async listForReview(actorUserId: string) {
     const active = await this.repository.listActive();
     const reviewerMemberships = new Map<

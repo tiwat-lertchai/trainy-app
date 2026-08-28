@@ -58,6 +58,10 @@ export const reviewStepSchema = z
       context.addIssue({ code: "custom", message: "A note is required for this decision" });
   });
 
+export const advisorOptionsQuerySchema = z.object({
+  universityOrganizationId: z.string().uuid(),
+});
+
 export const requestIdParamSchema = z.object({ requestId: z.string().uuid() });
 export const requestStepParamSchema = z.object({
   requestId: z.string().uuid(),

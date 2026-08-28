@@ -4,6 +4,7 @@ import { db } from "../../db";
 import { type AuthVariables, requireAuth } from "../../middleware/require-auth";
 import { DrizzleInternshipRequestRepository } from "./internship-request.repository";
 import {
+  advisorOptionsQuerySchema,
   createInternshipRequestSchema,
   requestIdParamSchema,
   requestStepParamSchema,
@@ -27,6 +28,14 @@ export const internshipRequestRoute = new Hono<{ Variables: AuthVariables }>()
     ),
   )
   .get("/me", async (c) => c.json({ data: await service.getMine(c.get("authUser").id) }))
+  .get("/options/advisors", zValidator("query", advisorOptionsQuerySchema), async (c) =>
+    c.json({
+      data: await service.listAdvisorOptions(
+        c.get("authUser").id,
+        c.req.valid("query").universityOrganizationId,
+      ),
+    }),
+  )
   .get("/reviews", async (c) => c.json({ data: await service.listForReview(c.get("authUser").id) }))
   .post(
     "/:requestId/steps/:step/review",
