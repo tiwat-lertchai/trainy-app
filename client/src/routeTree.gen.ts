@@ -11,6 +11,7 @@
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as AppRouteImport } from './routes/app'
+import { Route as AppAcademicRouteImport } from './routes/app.academic'
 import { Route as AppApplicationsRouteImport } from './routes/app.applications'
 import { Route as AppAttendanceRouteImport } from './routes/app.attendance'
 import { Route as AppInternshipsRouteImport } from './routes/app.internships'
@@ -28,6 +29,11 @@ const AppRoute = AppRouteImport.update({
   id: '/app',
   path: '/app',
   getParentRoute: () => rootRouteImport,
+} as any)
+const AppAcademicRoute = AppAcademicRouteImport.update({
+  id: '/academic',
+  path: '/academic',
+  getParentRoute: () => AppRoute,
 } as any)
 const AppApplicationsRoute = AppApplicationsRouteImport.update({
   id: '/applications',
@@ -68,6 +74,7 @@ const AppReviewsRoute = AppReviewsRouteImport.update({
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/app': typeof AppRouteWithChildren
+  '/app/academic': typeof AppAcademicRoute
   '/app/applications': typeof AppApplicationsRoute
   '/app/attendance': typeof AppAttendanceRoute
   '/app/internships': typeof AppInternshipsRoute
@@ -79,6 +86,7 @@ export interface FileRoutesByFullPath {
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/app': typeof AppRouteWithChildren
+  '/app/academic': typeof AppAcademicRoute
   '/app/applications': typeof AppApplicationsRoute
   '/app/attendance': typeof AppAttendanceRoute
   '/app/internships': typeof AppInternshipsRoute
@@ -91,6 +99,7 @@ export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
   '/app': typeof AppRouteWithChildren
+  '/app/academic': typeof AppAcademicRoute
   '/app/applications': typeof AppApplicationsRoute
   '/app/attendance': typeof AppAttendanceRoute
   '/app/internships': typeof AppInternshipsRoute
@@ -104,6 +113,7 @@ export interface FileRouteTypes {
   fullPaths:
     | '/'
     | '/app'
+    | '/app/academic'
     | '/app/applications'
     | '/app/attendance'
     | '/app/internships'
@@ -115,6 +125,7 @@ export interface FileRouteTypes {
   to:
     | '/'
     | '/app'
+    | '/app/academic'
     | '/app/applications'
     | '/app/attendance'
     | '/app/internships'
@@ -126,6 +137,7 @@ export interface FileRouteTypes {
     | '__root__'
     | '/'
     | '/app'
+    | '/app/academic'
     | '/app/applications'
     | '/app/attendance'
     | '/app/internships'
@@ -155,6 +167,13 @@ declare module '@tanstack/react-router' {
       fullPath: '/app'
       preLoaderRoute: typeof AppRouteImport
       parentRoute: typeof rootRouteImport
+    }
+    '/app/academic': {
+      id: '/app/academic'
+      path: '/academic'
+      fullPath: '/app/academic'
+      preLoaderRoute: typeof AppAcademicRouteImport
+      parentRoute: typeof AppRoute
     }
     '/app/applications': {
       id: '/app/applications'
@@ -209,6 +228,7 @@ declare module '@tanstack/react-router' {
 }
 
 interface AppRouteChildren {
+  AppAcademicRoute: typeof AppAcademicRoute
   AppApplicationsRoute: typeof AppApplicationsRoute
   AppAttendanceRoute: typeof AppAttendanceRoute
   AppInternshipsRoute: typeof AppInternshipsRoute
@@ -219,6 +239,7 @@ interface AppRouteChildren {
 }
 
 const AppRouteChildren: AppRouteChildren = {
+  AppAcademicRoute: AppAcademicRoute,
   AppApplicationsRoute: AppApplicationsRoute,
   AppAttendanceRoute: AppAttendanceRoute,
   AppInternshipsRoute: AppInternshipsRoute,

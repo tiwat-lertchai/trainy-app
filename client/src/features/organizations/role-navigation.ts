@@ -12,6 +12,7 @@ export type NavigationKey =
 	| "applications"
 	| "placements"
 	| "attendance"
+	| "academic"
 	| "progress"
 	| "documents"
 	| "evaluations"
@@ -19,7 +20,7 @@ export type NavigationKey =
 	| "reports";
 
 const roleNavigation: Record<OrganizationRole, readonly NavigationKey[]> = {
-	university_admin: ["overview", "applications", "placements", "attendance", "members", "reports"],
+	university_admin: ["overview", "applications", "placements", "attendance", "academic", "members", "reports"],
 	coordinator: ["overview", "applications", "placements", "attendance", "reports"],
 	advisor: ["overview", "placements", "attendance", "progress", "documents", "evaluations"],
 	student: ["overview", "internships", "applications", "placements", "attendance", "progress", "documents", "evaluations"],
