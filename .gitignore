@@ -40,3 +40,6 @@ pnpm-debug.log*
 # Bun
 bun.lockb
 .turbo
+
+# Local agent-to-agent coordination. Never commit or upload this directory.
+chats/
