@@ -29,4 +29,7 @@ HEALTHCHECK --interval=10s --timeout=3s --start-period=10s --retries=5 \
 # Migrations run on container start so a fresh database is brought up to date
 # automatically; drizzle-kit is a devDependency but is present because the
 # build stage installs the full workspace, not a pruned production tree.
-CMD ["sh", "-c", "bun run db:migrate && bun run dist/index.js"]
+# db:seed is idempotent (every insert uses onConflictDoNothing, see
+# server/src/scripts/seed.ts) so it's safe to run on every start, not just
+# the first one against a fresh database.
+CMD ["sh", "-c", "bun run db:migrate && bun run db:seed && bun run dist/index.js"]
