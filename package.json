@@ -1,10 +1,10 @@
 {
   "name": "trainy-app",
   "version": "0.5.1",
-  "description": "A monorepo template built with Bun, Hono, Vite, and React",
-  "author": "Steve Simkins",
+  "description": "Trainy: internship management platform connecting students, universities, and companies through one internship workflow.",
+  "author": "Tiwat Lertchai",
   "license": "MIT",
-  "homepage": "https://github.com/stevedylandev/bhvr",
+  "private": true,
   "packageManager": "bun@1.4.0",
   "workspaces": [
     "./server",
