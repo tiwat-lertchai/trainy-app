@@ -42,7 +42,7 @@ bytes first, then persist metadata only after storage confirms success.
 
 ## Commit
 
-- `e8c3126 feat(documents): add review workflow ui`
+- `224ec12 feat(documents): add review workflow ui`
 - Committed locally on `master`; not pushed.
 
 ## Follow-up
