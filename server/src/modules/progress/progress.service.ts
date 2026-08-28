@@ -70,6 +70,7 @@ export class ProgressService {
       reviewerUserId: null,
       reviewedAt: null,
     });
+    return reviewed;
   }
   async submit(actorUserId: string, reportId: string) {
     const report = await this.requireReport(reportId);

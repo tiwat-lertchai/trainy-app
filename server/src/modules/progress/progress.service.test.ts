@@ -68,9 +68,9 @@ describe("ProgressService", () => {
       "revision_requested",
       "Add measurable outcomes.",
     );
-    await service.update("student", "report", {
+    expect(await service.update("student", "report", {
       summary: "Updated summary with measurable outcomes and completed tasks.",
-    });
+    })).toMatchObject({ status: "draft", feedback: null });
     await service.submit("student", "report");
     expect(
       await service.review("supervisor", "report", "approved"),
