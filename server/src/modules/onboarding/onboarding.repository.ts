@@ -124,13 +124,11 @@ export class DrizzleOnboardingRepository implements OnboardingRepository {
         .values({ ...input, status: "approved", reviewedAt: new Date() })
         .returning();
       if (!record) throw new Error("Database did not return the onboarding request");
-      await transaction
-        .insert(organizationMembership)
-        .values({
-          organizationId: input.targetOrganizationId,
-          userId: input.userId,
-          role: "student",
-        });
+      await transaction.insert(organizationMembership).values({
+        organizationId: input.targetOrganizationId,
+        userId: input.userId,
+        role: "student",
+      });
       return record;
     });
   }
@@ -150,13 +148,11 @@ export class DrizzleOnboardingRepository implements OnboardingRepository {
         organizationId = created.id;
       }
       if (!organizationId) throw new Error("Approved request is missing an organization");
-      await transaction
-        .insert(organizationMembership)
-        .values({
-          organizationId,
-          userId: input.request.userId,
-          role: input.request.requestedRole as OrganizationRole,
-        });
+      await transaction.insert(organizationMembership).values({
+        organizationId,
+        userId: input.request.userId,
+        role: input.request.requestedRole as OrganizationRole,
+      });
       const [updated] = await transaction
         .update(onboardingRequest)
         .set({

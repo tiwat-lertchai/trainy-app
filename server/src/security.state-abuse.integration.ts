@@ -383,20 +383,18 @@ describe("duplicate-action abuse: internship application acceptance beyond capac
     const schema = await import("./db/schema");
     const { DrizzleInternshipRepository } =
       await import("./modules/internships/internship.repository");
-    await db
-      .insert(schema.internship)
-      .values({
-        id: ids.capacityInternship,
-        companyOrganizationId: ids.company,
-        createdByUserId: users.supervisor,
-        title: "Capacity abuse internship",
-        description: "Fixture only.",
-        location: "Bangkok",
-        workMode: "onsite",
-        capacity: 1,
-        applicationDeadline: new Date("2027-01-01"),
-        status: "published",
-      });
+    await db.insert(schema.internship).values({
+      id: ids.capacityInternship,
+      companyOrganizationId: ids.company,
+      createdByUserId: users.supervisor,
+      title: "Capacity abuse internship",
+      description: "Fixture only.",
+      location: "Bangkok",
+      workMode: "onsite",
+      capacity: 1,
+      applicationDeadline: new Date("2027-01-01"),
+      status: "published",
+    });
     const [appOne] = await db
       .insert(schema.internshipApplication)
       .values({
