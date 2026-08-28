@@ -12,6 +12,8 @@ import { Route as rootRouteImport } from './routes/__root'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as AppRouteImport } from './routes/app'
 import { Route as AppInternshipsRouteImport } from './routes/app.internships'
+import { Route as AppOnboardingRouteImport } from './routes/app.onboarding'
+import { Route as AppReviewsRouteImport } from './routes/app.reviews'
 
 const IndexRoute = IndexRouteImport.update({
   id: '/',
@@ -28,29 +30,52 @@ const AppInternshipsRoute = AppInternshipsRouteImport.update({
   path: '/internships',
   getParentRoute: () => AppRoute,
 } as any)
+const AppOnboardingRoute = AppOnboardingRouteImport.update({
+  id: '/onboarding',
+  path: '/onboarding',
+  getParentRoute: () => AppRoute,
+} as any)
+const AppReviewsRoute = AppReviewsRouteImport.update({
+  id: '/reviews',
+  path: '/reviews',
+  getParentRoute: () => AppRoute,
+} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/app': typeof AppRouteWithChildren
   '/app/internships': typeof AppInternshipsRoute
+  '/app/onboarding': typeof AppOnboardingRoute
+  '/app/reviews': typeof AppReviewsRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/app': typeof AppRouteWithChildren
   '/app/internships': typeof AppInternshipsRoute
+  '/app/onboarding': typeof AppOnboardingRoute
+  '/app/reviews': typeof AppReviewsRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
   '/app': typeof AppRouteWithChildren
   '/app/internships': typeof AppInternshipsRoute
+  '/app/onboarding': typeof AppOnboardingRoute
+  '/app/reviews': typeof AppReviewsRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/' | '/app' | '/app/internships'
+  fullPaths:
+    '/' | '/app' | '/app/internships' | '/app/onboarding' | '/app/reviews'
   fileRoutesByTo: FileRoutesByTo
-  to: '/' | '/app' | '/app/internships'
-  id: '__root__' | '/' | '/app' | '/app/internships'
+  to: '/' | '/app' | '/app/internships' | '/app/onboarding' | '/app/reviews'
+  id:
+    | '__root__'
+    | '/'
+    | '/app'
+    | '/app/internships'
+    | '/app/onboarding'
+    | '/app/reviews'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -81,15 +106,33 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AppInternshipsRouteImport
       parentRoute: typeof AppRoute
     }
+    '/app/onboarding': {
+      id: '/app/onboarding'
+      path: '/onboarding'
+      fullPath: '/app/onboarding'
+      preLoaderRoute: typeof AppOnboardingRouteImport
+      parentRoute: typeof AppRoute
+    }
+    '/app/reviews': {
+      id: '/app/reviews'
+      path: '/reviews'
+      fullPath: '/app/reviews'
+      preLoaderRoute: typeof AppReviewsRouteImport
+      parentRoute: typeof AppRoute
+    }
   }
 }
 
 interface AppRouteChildren {
   AppInternshipsRoute: typeof AppInternshipsRoute
+  AppOnboardingRoute: typeof AppOnboardingRoute
+  AppReviewsRoute: typeof AppReviewsRoute
 }
 
 const AppRouteChildren: AppRouteChildren = {
   AppInternshipsRoute: AppInternshipsRoute,
+  AppOnboardingRoute: AppOnboardingRoute,
+  AppReviewsRoute: AppReviewsRoute,
 }
 
 const AppRouteWithChildren = AppRoute._addFileChildren(AppRouteChildren)

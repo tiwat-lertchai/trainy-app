@@ -8,6 +8,7 @@ import { authClient, signInWithLine } from "@/lib/auth-client";
 import { apiClient } from "@/lib/api-client";
 import { getNavigationForRole, type NavigationKey, type OrganizationRole } from "@/features/organizations/role-navigation";
 import { resolveWorkspaceId } from "@/features/organizations/workspace-selection";
+import { OnboardingPage } from "@/features/onboarding/onboarding-page";
 
 const WORKSPACE_KEY = "trainy-workspace-id";
 
@@ -57,11 +58,11 @@ export function AppDashboard() {
 				<header className="flex h-20 items-center gap-4 border-b bg-white px-5 sm:px-8">
 					<Button className="lg:hidden" variant="ghost" size="icon" aria-label="Open navigation"><Menu /></Button>
 					<div className="hidden max-w-md flex-1 items-center gap-2 rounded-xl bg-muted px-3 py-2.5 text-muted-foreground sm:flex"><Search className="size-4" /><span className="text-sm">ค้นหาใน Trainy</span></div>
-					<div className="ml-auto flex items-center gap-2"><Button variant="ghost" size="icon" aria-label="Notifications"><Bell /></Button><div className="hidden text-right sm:block"><p className="text-sm font-semibold">{user.name}</p><p className="text-xs text-muted-foreground">{user.email}</p></div><span className="grid size-10 place-items-center rounded-full bg-[#edf3ff] font-bold text-primary">{user.name.slice(0, 1).toUpperCase()}</span></div>
+					<div className="ml-auto flex items-center gap-2"><Button variant="ghost" size="sm" asChild><Link to="/app/reviews"><ClipboardCheck /><span className="hidden sm:inline">ตรวจคำขอ</span></Link></Button><Button variant="ghost" size="icon" aria-label="Notifications"><Bell /></Button><div className="hidden text-right sm:block"><p className="text-sm font-semibold">{user.name}</p><p className="text-xs text-muted-foreground">{user.email}</p></div><span className="grid size-10 place-items-center rounded-full bg-[#edf3ff] font-bold text-primary">{user.name.slice(0, 1).toUpperCase()}</span></div>
 				</header>
 
 				<main className="mx-auto max-w-7xl px-5 py-8 sm:px-8 sm:py-10">
-					{pathname !== "/app" ? <Outlet /> : <>
+					{pathname !== "/app" ? <Outlet /> : !organizations.isLoading && !activeContext ? <OnboardingPage /> : <>
 					<div className="flex flex-col justify-between gap-4 sm:flex-row sm:items-end"><div><p className="text-sm font-semibold text-primary">{activeContext ? `${activeContext.organization.name} · ${role ? roleLabels[role] : ""}` : "TRAINY WORKSPACE"}</p><h1 className="mt-2 text-3xl font-black tracking-tight">สวัสดี, {user.name}</h1><p className="mt-2 text-muted-foreground">ติดตามงานสำคัญและสถานะการฝึกงานของคุณ</p></div><Button variant="outline" onClick={() => authClient.signOut()}><LogOut />ออกจากระบบ</Button></div>
 					<section className="mt-8 grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
 						<StatCard label="องค์กรของฉัน" value={organizations.data?.data.length ?? "—"} icon={Building2} />

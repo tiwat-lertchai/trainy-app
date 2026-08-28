@@ -30,6 +30,7 @@ beforeAll(async () => {
 
   await database.delete(schema.internshipApplication);
   await database.delete(schema.internship);
+  await database.delete(schema.onboardingRequest);
   await database.delete(schema.organizationMembership);
   await database.delete(schema.organization);
   await database.delete(schema.user);

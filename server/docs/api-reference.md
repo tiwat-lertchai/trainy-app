@@ -120,6 +120,70 @@ Update a membership:
 
 The last active organization admin cannot be demoted or suspended.
 
+## First-time onboarding and approvals
+
+Base path: `/api/v1/onboarding`
+
+| Method | Path                            | Access |
+| ------ | ------------------------------- | ------ |
+| GET    | `/me`                           | Current authenticated user |
+| GET    | `/organizations`                | Active universities and companies available for onboarding |
+| POST   | `/`                             | User without a request, or correcting a `revision_requested` request |
+| GET    | `/reviews`                      | CWIE platform staff or eligible tenant admin |
+| POST   | `/:onboardingId/review`         | Eligible reviewer for the requested role |
+
+Students select an active university and receive an active student membership
+immediately. Privileged roles never self-activate:
+
+| Requested role | Reviewer |
+| -------------- | -------- |
+| `advisor`, `coordinator` | Active `university_admin` in the selected university |
+| `supervisor` | Active `company_admin` in the selected company |
+| `university_admin` | Active CWIE platform staff |
+| First `company_admin` and new company | Active CWIE platform staff |
+
+Company approval requires `documentsVerified: true`. CWIE staff must verify the
+submitted company registration evidence outside the API before approving. The
+approval transaction creates the company, activates the first company admin,
+and marks the request approved atomically.
+
+When a reviewer chooses `revision_requested`, a note is required. The applicant
+can correct the form and submit it again; reviewer identity and the old decision
+are cleared while the same request ID is retained.
+
+Example student request:
+
+```json
+{
+  "requestedRole": "student",
+  "targetOrganizationId": "uuid",
+  "profile": {
+    "fullName": "Student Name",
+    "email": "student@example.ac.th",
+    "phone": "0812345678",
+    "studentId": "65000001",
+    "faculty": "Engineering",
+    "major": "Software Engineering",
+    "yearLevel": "4"
+  }
+}
+```
+
+CWIE company approval:
+
+```json
+{
+  "decision": "approved",
+  "documentsVerified": true,
+  "note": "Registration evidence verified by CWIE staff."
+}
+```
+
+`platform_staff` is a system-level assignment, not an organization role. The
+first CWIE reviewer must sign in once and then be provisioned directly by an
+authorized database operator. There is intentionally no public endpoint for
+self-assigning this privilege.
+
 ## Internships and applications
 
 Base path: `/api/v1/internships`

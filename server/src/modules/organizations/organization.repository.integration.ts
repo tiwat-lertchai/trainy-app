@@ -31,6 +31,7 @@ beforeAll(async () => {
   closeDatabase = databaseModule.closeDatabase;
   repository = new repositoryModule.DrizzleOrganizationRepository(database);
 
+  await database.delete(schema.onboardingRequest);
   await database.delete(schema.organizationMembership);
   await database.delete(schema.organization);
   await database.delete(schema.user);

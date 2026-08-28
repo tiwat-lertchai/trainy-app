@@ -50,6 +50,13 @@
       "when": 1787833390502,
       "tag": "0006_red_arachne",
       "breakpoints": true
+    },
+    {
+      "idx": 7,
+      "version": "7",
+      "when": 1787896178722,
+      "tag": "0007_aspiring_shocker",
+      "breakpoints": true
     }
   ]
 }

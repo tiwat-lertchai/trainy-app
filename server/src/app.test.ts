@@ -84,6 +84,17 @@ describe("organization routes", () => {
   });
 });
 
+describe("onboarding routes", () => {
+  it("rejects unauthenticated onboarding and review access", async () => {
+    const [mine, reviews] = await Promise.all([
+      app.request("/api/v1/onboarding/me"),
+      app.request("/api/v1/onboarding/reviews"),
+    ]);
+    expect(mine.status).toBe(401);
+    expect(reviews.status).toBe(401);
+  });
+});
+
 describe("internship routes", () => {
   it("rejects unauthenticated requests before exposing internship data", async () => {
     const response = await app.request("/api/v1/internships");

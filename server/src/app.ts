@@ -13,6 +13,7 @@ import { evaluationRoute } from "./modules/evaluations/evaluation.route";
 import { healthRoute } from "./modules/health/health.route";
 import { internshipRoute } from "./modules/internships/internship.route";
 import { notificationRoute } from "./modules/notifications/notification.route";
+import { onboardingRoute } from "./modules/onboarding/onboarding.route";
 import { organizationRoute } from "./modules/organizations/organization.route";
 import { placementRoute } from "./modules/placements/placement.route";
 import { progressRoute } from "./modules/progress/progress.route";
@@ -82,6 +83,7 @@ export const app = createApp()
   .route("/api/v1/evaluations", evaluationRoute)
   .route("/api/v1/internships", internshipRoute)
   .route("/api/v1/notifications", notificationRoute)
+  .route("/api/v1/onboarding", onboardingRoute)
   .route("/api/v1/organizations", organizationRoute)
   .route("/api/v1/placements", placementRoute)
   .route("/api/v1/progress-reports", progressRoute)
