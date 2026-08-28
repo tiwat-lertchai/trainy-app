@@ -86,4 +86,6 @@ export const env = Object.freeze({
     "LINE_CHANNEL_SECRET",
     process.env.LINE_CHANNEL_SECRET,
   ),
+  UPLOAD_DIR: resolve(process.env.UPLOAD_DIR ?? "uploads"),
 });
+import { resolve } from "node:path";

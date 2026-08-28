@@ -29,23 +29,25 @@ function createApp() {
   // fail inside middleware registered later in the pipeline.
   app.use("*", logger());
   app.use("*", requestId());
-  app.use(
-    "*",
-    bodyLimit({
-      maxSize: 1024 * 1024,
+  app.use("*", async (c, next) => {
+    const documentUpload = c.req.method === "POST" && c.req.path === "/api/v1/documents";
+    return bodyLimit({
+      maxSize: documentUpload ? 21 * 1024 * 1024 : 1024 * 1024,
       onError: (c) =>
         c.json(
           {
             success: false,
             error: {
               code: "REQUEST_BODY_TOO_LARGE",
-              message: "Request body exceeds the 1 MiB limit",
+              message: documentUpload
+                ? "Document upload exceeds the 20 MiB file limit"
+                : "Request body exceeds the 1 MiB limit",
             },
           },
           413,
         ),
-    }),
-  );
+    })(c, next);
+  });
   app.use(
     "*",
     secureHeaders({

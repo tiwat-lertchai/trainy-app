@@ -29,6 +29,7 @@ const documentedRouteFamilies = [
   "/faculties/:facultyId/majors",
   "/api/v1/documents",
   "/:documentId/review",
+  "/:documentId/download",
   "/api/v1/evaluations",
   "/:evaluationId/submit",
   "/api/v1/notifications",

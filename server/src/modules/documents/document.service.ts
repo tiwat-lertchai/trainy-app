@@ -2,21 +2,22 @@ import { AppError } from "../../lib/app-error";
 import { type DomainNotifier, noOpNotifier } from "../../lib/domain-notifier";
 import type { DocumentRepository } from "./document.repository";
 import type { documentTypes } from "./document.schema";
+import type { DocumentStorage } from "./document-storage";
 
 export class DocumentService {
   constructor(
     private readonly repository: DocumentRepository,
     private readonly now = () => new Date(),
     private readonly notifier: DomainNotifier = noOpNotifier,
+    private readonly storage?: DocumentStorage,
   ) {}
-  async submit(input: {
+  async upload(input: {
     actorUserId: string;
     placementId: string;
     type: (typeof documentTypes)[number];
     fileName: string;
-    storageKey: string;
     mimeType: string;
-    sizeBytes: number;
+    bytes: Uint8Array;
   }) {
     const placement = await this.requirePlacement(input.placementId);
     if (placement.studentUserId !== input.actorUserId)
@@ -31,10 +32,37 @@ export class DocumentService {
         409,
         "DOCUMENT_SUBMISSION_CLOSED",
       );
-    return this.repository.create({
-      ...input,
-      studentUserId: input.actorUserId,
-    });
+    if (!hasExpectedSignature(input.mimeType, input.bytes))
+      throw new AppError("File content does not match its MIME type", 422, "DOCUMENT_CONTENT_INVALID");
+    if (!this.storage) throw new Error("Document storage is not configured");
+    const storageKey = await this.storage.save(input);
+    try {
+      return await this.repository.create({
+        placementId: input.placementId,
+        studentUserId: input.actorUserId,
+        type: input.type,
+        fileName: input.fileName,
+        storageKey,
+        mimeType: input.mimeType,
+        sizeBytes: input.bytes.byteLength,
+      });
+    } catch (error) {
+      await this.storage.remove(storageKey);
+      throw error;
+    }
+  }
+
+  async download(actorUserId: string, documentId: string) {
+    const document = await this.requireDocument(documentId);
+    const placement = await this.requirePlacement(document.placementId);
+    if (![placement.studentUserId, placement.advisorUserId, placement.supervisorUserId].includes(actorUserId))
+      throw new AppError("Placement access is required", 403, "PLACEMENT_ACCESS_REQUIRED");
+    if (!this.storage) throw new Error("Document storage is not configured");
+    try {
+      return { document, bytes: await this.storage.read(document.storageKey) };
+    } catch {
+      throw new AppError("Document file was not found", 404, "DOCUMENT_FILE_NOT_FOUND");
+    }
   }
   async review(
     actorUserId: string,
@@ -113,4 +141,11 @@ export class DocumentService {
       throw new AppError("Document was not found", 404, "DOCUMENT_NOT_FOUND");
     return record;
   }
+}
+
+function hasExpectedSignature(mimeType: string, bytes: Uint8Array) {
+  if (mimeType === "application/pdf") return bytes.length >= 5 && String.fromCharCode(...bytes.slice(0, 5)) === "%PDF-";
+  if (mimeType === "image/jpeg") return bytes.length >= 3 && bytes[0] === 0xff && bytes[1] === 0xd8 && bytes[2] === 0xff;
+  if (mimeType === "image/png") return bytes.length >= 8 && [0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a].every((value, index) => bytes[index] === value);
+  return false;
 }

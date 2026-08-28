@@ -6,22 +6,13 @@ export const documentTypes = [
   "final_report",
   "other",
 ] as const;
-export const submitDocumentSchema = z.object({
+export const uploadDocumentSchema = z.object({
   placementId: z.string().uuid(),
   type: z.enum(documentTypes),
-  fileName: z.string().trim().min(1).max(255),
-  storageKey: z
-    .string()
-    .trim()
-    .min(16)
-    .max(1024)
-    .regex(/^[a-zA-Z0-9/_\-.]+$/),
-  mimeType: z.enum(["application/pdf", "image/jpeg", "image/png"]),
-  sizeBytes: z
-    .number()
-    .int()
-    .min(1)
-    .max(20 * 1024 * 1024),
+  file: z.instanceof(File)
+    .refine((file) => file.name.trim().length > 0 && file.name.length <= 255, "File name must be between 1 and 255 characters")
+    .refine((file) => ["application/pdf", "image/jpeg", "image/png"].includes(file.type), "File type is not allowed")
+    .refine((file) => file.size > 0 && file.size <= 20 * 1024 * 1024, "File must be between 1 byte and 20 MiB"),
 });
 export const reviewDocumentSchema = z
   .object({

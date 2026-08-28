@@ -7,29 +7,35 @@ import { DrizzleDocumentRepository } from "./document.repository";
 import {
   documentIdParamSchema,
   reviewDocumentSchema,
-  submitDocumentSchema,
+  uploadDocumentSchema,
 } from "./document.schema";
 import { DocumentService } from "./document.service";
+import { DiskDocumentStorage } from "./document-storage";
+import { env } from "../../config/env";
 import { domainNotifier } from "../notifications/notification.instance";
 const service = new DocumentService(
   new DrizzleDocumentRepository(db),
   () => new Date(),
   domainNotifier,
+  new DiskDocumentStorage(env.UPLOAD_DIR),
 );
 const placementParam = z.object({ placementId: z.string().uuid() });
 export const documentRoute = new Hono<{ Variables: AuthVariables }>()
   .use("*", requireAuth)
-  .post("/", zValidator("json", submitDocumentSchema), async (c) =>
-    c.json(
-      {
-        data: await service.submit({
+  .post("/", zValidator("form", uploadDocumentSchema), async (c) => {
+    const input = c.req.valid("form");
+    return c.json(
+      { data: await service.upload({
           actorUserId: c.get("authUser").id,
-          ...c.req.valid("json"),
-        }),
-      },
+          placementId: input.placementId,
+          type: input.type,
+          fileName: input.file.name,
+          mimeType: input.file.type,
+          bytes: new Uint8Array(await input.file.arrayBuffer()),
+        }) },
       201,
-    ),
-  )
+    );
+  })
   .get(
     "/placements/:placementId",
     zValidator("param", placementParam),
@@ -40,6 +46,17 @@ export const documentRoute = new Hono<{ Variables: AuthVariables }>()
           c.req.valid("param").placementId,
         ),
       }),
+  )
+  .get(
+    "/:documentId/download",
+    zValidator("param", documentIdParamSchema),
+    async (c) => {
+      const result = await service.download(c.get("authUser").id, c.req.valid("param").documentId);
+      c.header("Content-Type", result.document.mimeType);
+      c.header("Content-Disposition", `attachment; filename*=UTF-8''${encodeURIComponent(result.document.fileName)}`);
+      c.header("Cache-Control", "private, no-store");
+      return c.body(result.bytes.buffer as ArrayBuffer);
+    },
   )
   .post(
     "/:documentId/review",

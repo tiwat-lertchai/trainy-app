@@ -5,16 +5,27 @@ import type {
   DocumentRepository,
 } from "./document.repository";
 import { DocumentService } from "./document.service";
+import type { DocumentStorage } from "./document-storage";
 
 describe("DocumentService", () => {
-  test("lets only the placement student submit metadata", async () => {
+  test("lets only the placement student upload a file", async () => {
     const repo = new MemoryDocumentRepository();
-    expect(await submit(repo, "student")).toMatchObject({
+    expect(await upload(repo, "student")).toMatchObject({
       status: "submitted",
     });
     expect(
-      submit(new MemoryDocumentRepository(), "outsider"),
+      upload(new MemoryDocumentRepository(), "outsider"),
     ).rejects.toMatchObject({ code: "PLACEMENT_NOT_FOUND" });
+  });
+  test("rejects file content that does not match the declared MIME type", async () => {
+    const repo = new MemoryDocumentRepository();
+    expect(new DocumentService(repo, () => new Date(), undefined, new MemoryStorage()).upload({ actorUserId: "student", placementId: "placement", type: "consent", fileName: "fake.pdf", mimeType: "application/pdf", bytes: new Uint8Array([1, 2, 3]) })).rejects.toMatchObject({ code: "DOCUMENT_CONTENT_INVALID" });
+  });
+  test("downloads only for placement participants", async () => {
+    const repo = new MemoryDocumentRepository(); repo.document = record();
+    const service = new DocumentService(repo, () => new Date(), undefined, new MemoryStorage());
+    expect((await service.download("student", "document")).bytes).toEqual(new Uint8Array([1, 2, 3]));
+    expect(service.download("outsider", "document")).rejects.toMatchObject({ code: "PLACEMENT_ACCESS_REQUIRED" });
   });
   test("allows only assigned reviewers", async () => {
     const repo = new MemoryDocumentRepository();
@@ -86,15 +97,19 @@ class MemoryDocumentRepository implements DocumentRepository {
     return this.document?.placementId === id ? [this.document] : [];
   }
 }
-function submit(repo: DocumentRepository, actorUserId: string) {
-  return new DocumentService(repo).submit({
+class MemoryStorage implements DocumentStorage {
+  async save() { return "placements/placement/file.pdf"; }
+  async read() { return new Uint8Array([1, 2, 3]); }
+  async remove() {}
+}
+function upload(repo: DocumentRepository, actorUserId: string) {
+  return new DocumentService(repo, () => new Date(), undefined, new MemoryStorage()).upload({
     actorUserId,
     placementId: "placement",
     type: "consent",
     fileName: "consent.pdf",
-    storageKey: "placements/placement/consent-123456.pdf",
     mimeType: "application/pdf",
-    sizeBytes: 1024,
+    bytes: new TextEncoder().encode("%PDF-test"),
   });
 }
 function record(overrides: Partial<DocumentRecord> = {}): DocumentRecord {

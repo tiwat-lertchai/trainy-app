@@ -414,25 +414,23 @@ Base path: `/api/v1/documents`
 | ------ | -------------------------- | ---------------------------- |
 | POST   | `/`                        | Placement student            |
 | GET    | `/placements/:placementId` | Student or assigned reviewer |
+| GET    | `/:documentId/download`    | Student or assigned reviewer |
 | POST   | `/:documentId/review`      | Assigned advisor/supervisor  |
 
-The API stores metadata only. Upload the file to the configured object storage
-first, then submit its opaque storage key:
+Upload as `multipart/form-data` with these fields:
 
-```json
-{
-  "placementId": "uuid",
-  "type": "consent",
-  "fileName": "consent.pdf",
-  "storageKey": "placements/uuid/opaque-file-key.pdf",
-  "mimeType": "application/pdf",
-  "sizeBytes": 102400
-}
+```text
+placementId: uuid
+type: consent
+file: consent.pdf
 ```
 
 Allowed MIME types are PDF, JPEG, and PNG. Maximum size is 20 MiB. Document
 types are `resume`, `consent`, `progress_evidence`, `final_report`, and `other`.
 Review decisions are `approved` or `rejected`; rejection requires feedback.
+Files are private runtime data under `UPLOAD_DIR` (default `uploads`) and are
+only returned through the authenticated download endpoint. The uploads folder
+must be mounted on persistent storage in production and included in backups.
 
 ## Evaluations
 

@@ -173,6 +173,18 @@ describe("document and evaluation routes", () => {
     expect(documents.status).toBe(401);
     expect(evaluations.status).toBe(401);
   });
+  it("allows document upload bodies above the generic limit but caps oversized files", async () => {
+    const accepted = new FormData();
+    accepted.set("placementId", "00000000-0000-4000-8000-000000000000");
+    accepted.set("type", "consent");
+    accepted.set("file", new File([new Uint8Array(2 * 1024 * 1024)], "document.pdf", { type: "application/pdf" }));
+    const oversized = new FormData();
+    oversized.set("placementId", "00000000-0000-4000-8000-000000000000");
+    oversized.set("type", "consent");
+    oversized.set("file", new File([new Uint8Array(22 * 1024 * 1024)], "document.pdf", { type: "application/pdf" }));
+    expect((await app.request("/api/v1/documents", { method: "POST", body: accepted })).status).toBe(401);
+    expect((await app.request("/api/v1/documents", { method: "POST", body: oversized })).status).toBe(413);
+  });
 });
 
 describe("platform service routes", () => {

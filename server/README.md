@@ -34,6 +34,10 @@ bun run dev:server
 
 Server จะเปิดให้ใช้งานที่ [http://localhost:3000](http://localhost:3000)
 
+ไฟล์เอกสารจะถูกเก็บแบบ private ใน `UPLOAD_DIR` (ค่าเริ่มต้น `uploads`) และดาวน์โหลด
+ผ่าน endpoint ที่ตรวจสิทธิ์เท่านั้น Production ต้องกำหนด `UPLOAD_DIR` ให้ชี้ไปยัง
+persistent volume และรวม directory นี้ในแผนสำรองข้อมูล ห้ามเปิดเป็น static public
+
 เมื่อต้องการเปิดทั้ง client และ server พร้อมกัน ให้ใช้:
 
 ```sh

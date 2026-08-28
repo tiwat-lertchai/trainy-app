@@ -43,3 +43,6 @@ bun.lockb
 
 # Local agent-to-agent coordination. Never commit or upload this directory.
 chats/
+
+# Private document files are runtime data and must never enter Git.
+uploads/
