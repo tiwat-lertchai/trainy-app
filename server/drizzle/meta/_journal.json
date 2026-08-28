@@ -78,6 +78,13 @@
       "when": 1787939562810,
       "tag": "0010_burly_stranger",
       "breakpoints": true
+    },
+    {
+      "idx": 11,
+      "version": "7",
+      "when": 1787940835439,
+      "tag": "0011_square_onslaught",
+      "breakpoints": true
     }
   ]
 }

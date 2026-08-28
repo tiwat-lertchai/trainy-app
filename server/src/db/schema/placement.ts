@@ -11,6 +11,7 @@ import {
 } from "drizzle-orm/pg-core";
 import { user } from "./auth";
 import { internship, internshipApplication } from "./internship";
+import { internshipRequest } from "./internship-request";
 import { organization } from "./organization";
 
 export const placementStatus = pgEnum("placement_status", [
@@ -24,12 +25,15 @@ export const placement = pgTable(
   "placement",
   {
     id: uuid("id").defaultRandom().primaryKey(),
-    applicationId: uuid("application_id")
-      .notNull()
-      .references(() => internshipApplication.id, { onDelete: "restrict" }),
-    internshipId: uuid("internship_id")
-      .notNull()
-      .references(() => internship.id, { onDelete: "restrict" }),
+    // Exactly one origin: the job-board path (applicationId + internshipId,
+    // both set together) or the self-sourced request path (requestId only).
+    applicationId: uuid("application_id").references(() => internshipApplication.id, {
+      onDelete: "restrict",
+    }),
+    internshipId: uuid("internship_id").references(() => internship.id, { onDelete: "restrict" }),
+    requestId: uuid("request_id").references(() => internshipRequest.id, {
+      onDelete: "restrict",
+    }),
     studentUserId: text("student_user_id")
       .notNull()
       .references(() => user.id, { onDelete: "restrict" }),
@@ -56,7 +60,12 @@ export const placement = pgTable(
   },
   (table) => [
     check("placement_date_order", sql`${table.endDate} > ${table.startDate}`),
+    check(
+      "placement_origin_xor",
+      sql`(${table.applicationId} is not null) <> (${table.requestId} is not null)`,
+    ),
     uniqueIndex("placement_application_uidx").on(table.applicationId),
+    uniqueIndex("placement_request_uidx").on(table.requestId),
     index("placement_student_idx").on(table.studentUserId),
     index("placement_university_idx").on(table.universityOrganizationId),
     index("placement_company_idx").on(table.companyOrganizationId),
@@ -72,6 +81,10 @@ export const placementRelations = relations(placement, ({ one }) => ({
   internship: one(internship, {
     fields: [placement.internshipId],
     references: [internship.id],
+  }),
+  request: one(internshipRequest, {
+    fields: [placement.requestId],
+    references: [internshipRequest.id],
   }),
   student: one(user, {
     fields: [placement.studentUserId],

@@ -52,6 +52,52 @@ export class PlacementService {
     return record;
   }
 
+  async createPlacementFromRequest(input: {
+    actorUserId: string;
+    requestId: string;
+    startDate: Date;
+    endDate: Date;
+  }): Promise<PlacementRecord> {
+    if (input.endDate <= input.startDate) {
+      throw new AppError("End date must be after start date", 422, "INVALID_PLACEMENT_DATES");
+    }
+    const request = await this.repository.findRequest(input.requestId);
+    if (!request) throw notFound();
+    if (request.status !== "approved") {
+      throw new AppError(
+        "Only an approved internship request can become a placement",
+        409,
+        "REQUEST_NOT_APPROVED",
+      );
+    }
+    if (!request.companyOrganizationId) {
+      throw new AppError(
+        "The company has not joined the system yet — send them their invite first",
+        409,
+        "REQUEST_COMPANY_NOT_RESOLVED",
+      );
+    }
+    await this.requireMembership(
+      input.actorUserId,
+      request.universityOrganizationId,
+      universityManagerRoles,
+    );
+    if (await this.repository.findByRequest(request.id)) {
+      throw new AppError("Request already has a placement", 409, "PLACEMENT_CONFLICT");
+    }
+
+    const record = await this.repository.create({
+      requestId: request.id,
+      studentUserId: request.studentUserId,
+      universityOrganizationId: request.universityOrganizationId,
+      companyOrganizationId: request.companyOrganizationId,
+      startDate: input.startDate,
+      endDate: input.endDate,
+    });
+    if (!record) throw new AppError("Request already has a placement", 409, "PLACEMENT_CONFLICT");
+    return record;
+  }
+
   async assignAdvisor(actorUserId: string, placementId: string, advisorUserId: string) {
     const record = await this.requirePendingPlacement(placementId);
     await this.requireMembership(

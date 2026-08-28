@@ -255,6 +255,7 @@ class MemoryAttendanceRepository implements AttendanceRepository {
     id: "placement",
     applicationId: "application",
     internshipId: "internship",
+    requestId: null,
     studentUserId: "student",
     universityOrganizationId: "university",
     companyOrganizationId: "company",

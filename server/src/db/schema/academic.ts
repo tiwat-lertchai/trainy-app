@@ -1,5 +1,6 @@
 import { relations } from "drizzle-orm";
 import { pgTable, text, timestamp, uniqueIndex, uuid } from "drizzle-orm/pg-core";
+import { user } from "./auth";
 import { organization } from "./organization";
 
 export const academicFaculty = pgTable(
@@ -23,6 +24,13 @@ export const academicMajor = pgTable(
       .notNull()
       .references(() => academicFaculty.id, { onDelete: "cascade" }),
     name: text("name").notNull(),
+    // The person who signs off the "program chair" approval step for an
+    // internship request in this major. Not a membership-level role (a user
+    // can only hold one organizationRole per org) — an explicit assignment
+    // instead, settable only by that university's university_admin.
+    programChairUserId: text("program_chair_user_id").references(() => user.id, {
+      onDelete: "restrict",
+    }),
     createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
   },
   (table) => [uniqueIndex("academic_major_faculty_name_uidx").on(table.facultyId, table.name)],
@@ -40,5 +48,9 @@ export const academicMajorRelations = relations(academicMajor, ({ one }) => ({
   faculty: one(academicFaculty, {
     fields: [academicMajor.facultyId],
     references: [academicFaculty.id],
+  }),
+  programChair: one(user, {
+    fields: [academicMajor.programChairUserId],
+    references: [user.id],
   }),
 }));

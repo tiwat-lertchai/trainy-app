@@ -1,6 +1,7 @@
 import { describe, expect, test } from "bun:test";
 import type {
   AcceptedApplication,
+  ApprovedRequest,
   PlacementMembership,
   PlacementRecord,
   PlacementRepository,
@@ -60,6 +61,48 @@ describe("PlacementService", () => {
     ).rejects.toMatchObject({ code: "PLACEMENT_CONFLICT" });
   });
 
+  test("creates a placement from an approved internship request", async () => {
+    const repository = seededRepository();
+    const record = await new PlacementService(repository).createPlacementFromRequest({
+      actorUserId: "coordinator",
+      requestId: "request",
+      startDate: new Date("2026-10-01"),
+      endDate: new Date("2027-01-31"),
+    });
+    expect(record).toMatchObject({
+      status: "pending",
+      studentUserId: "student",
+      requestId: "request",
+      applicationId: null,
+    });
+  });
+
+  test("rejects a placement from a request whose company hasn't joined yet", async () => {
+    const repository = seededRepository();
+    repository.request.companyOrganizationId = null;
+    expect(
+      new PlacementService(repository).createPlacementFromRequest({
+        actorUserId: "coordinator",
+        requestId: "request",
+        startDate: new Date("2026-10-01"),
+        endDate: new Date("2027-01-31"),
+      }),
+    ).rejects.toMatchObject({ code: "REQUEST_COMPANY_NOT_RESOLVED" });
+  });
+
+  test("rejects a placement from a request that isn't approved", async () => {
+    const repository = seededRepository();
+    repository.request.status = "submitted";
+    expect(
+      new PlacementService(repository).createPlacementFromRequest({
+        actorUserId: "coordinator",
+        requestId: "request",
+        startDate: new Date("2026-10-01"),
+        endDate: new Date("2027-01-31"),
+      }),
+    ).rejects.toMatchObject({ code: "REQUEST_NOT_APPROVED" });
+  });
+
   test("requires an advisor from the placement university", async () => {
     const repository = seededRepository();
     repository.record = placementRecord();
@@ -108,11 +151,21 @@ class MemoryPlacementRepository implements PlacementRepository {
     companyOrganizationId: "company",
     status: "accepted",
   };
+  request: ApprovedRequest = {
+    id: "request",
+    studentUserId: "student",
+    universityOrganizationId: "university",
+    companyOrganizationId: "company",
+    status: "approved",
+  };
   memberships: PlacementMembership[] = [];
   record?: PlacementRecord;
 
   async findApplication(id: string) {
     return id === this.application.id ? this.application : undefined;
+  }
+  async findRequest(id: string) {
+    return id === this.request.id ? this.request : undefined;
   }
   async findMembership(organizationId: string, userId: string) {
     return this.memberships.find(
@@ -122,12 +175,18 @@ class MemoryPlacementRepository implements PlacementRepository {
   async findByApplication(applicationId: string) {
     return this.record?.applicationId === applicationId ? this.record : undefined;
   }
+  async findByRequest(requestId: string) {
+    return this.record?.requestId === requestId ? this.record : undefined;
+  }
   async findById(id: string) {
     return this.record?.id === id ? this.record : undefined;
   }
   async create(input: Parameters<PlacementRepository["create"]>[0]) {
     if (this.record) return undefined;
-    this.record = placementRecord(input);
+    this.record =
+      "applicationId" in input
+        ? placementRecord(input)
+        : placementRecord({ ...input, applicationId: null, internshipId: null });
     return this.record;
   }
   async update(id: string, changes: Parameters<PlacementRepository["update"]>[1]) {
@@ -174,6 +233,7 @@ function placementRecord(overrides: Partial<PlacementRecord> = {}): PlacementRec
     id: "placement",
     applicationId: "application",
     internshipId: "internship",
+    requestId: null,
     studentUserId: "student",
     universityOrganizationId: "university",
     companyOrganizationId: "company",

@@ -7,7 +7,11 @@ import {
   createFacultySchema,
   createMajorSchema,
   facultyIdParamSchema,
+  majorIdParamSchema,
   organizationIdParamSchema,
+  setAcademicRecordSchema,
+  setProgramChairSchema,
+  studentUserIdParamSchema,
 } from "./academic.schema";
 import { AcademicService } from "./academic.service";
 
@@ -52,4 +56,33 @@ export const academicRoute = new Hono<{ Variables: AuthVariables }>()
         },
         201,
       ),
+  )
+  .patch(
+    "/majors/:majorId/program-chair",
+    zValidator("param", majorIdParamSchema),
+    zValidator("json", setProgramChairSchema),
+    async (c) =>
+      c.json({
+        data: await service.setProgramChair(
+          c.get("authUser").id,
+          c.req.valid("param").majorId,
+          c.req.valid("json").userId,
+        ),
+      }),
+  )
+  .put(
+    "/:organizationId/students/:studentUserId/record",
+    zValidator("param", organizationIdParamSchema.merge(studentUserIdParamSchema)),
+    zValidator("json", setAcademicRecordSchema),
+    async (c) => {
+      const param = c.req.valid("param");
+      return c.json({
+        data: await service.setAcademicRecord(
+          c.get("authUser").id,
+          param.organizationId,
+          param.studentUserId,
+          c.req.valid("json"),
+        ),
+      });
+    },
   );

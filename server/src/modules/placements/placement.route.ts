@@ -7,6 +7,7 @@ import { DrizzlePlacementRepository } from "./placement.repository";
 import {
   assignAdvisorSchema,
   assignSupervisorSchema,
+  createPlacementFromRequestSchema,
   createPlacementSchema,
   placementIdParamSchema,
   updatePlacementStatusSchema,
@@ -22,6 +23,17 @@ export const placementRoute = new Hono<{ Variables: AuthVariables }>()
     c.json(
       {
         data: await service.createPlacement({
+          actorUserId: c.get("authUser").id,
+          ...c.req.valid("json"),
+        }),
+      },
+      201,
+    ),
+  )
+  .post("/from-request", zValidator("json", createPlacementFromRequestSchema), async (c) =>
+    c.json(
+      {
+        data: await service.createPlacementFromRequest({
           actorUserId: c.get("authUser").id,
           ...c.req.valid("json"),
         }),

@@ -36,6 +36,45 @@ export class AcademicService {
     return record;
   }
 
+  async setProgramChair(actorUserId: string, majorId: string, userId: string) {
+    const major = await this.repository.findMajor(majorId);
+    if (!major) throw new AppError("Major was not found", 404, "ACADEMIC_MAJOR_NOT_FOUND");
+    const faculty = await this.requireFaculty(major.facultyId);
+    await this.requireAdmin(faculty.organizationId, actorUserId);
+    const membership = await this.repository.findActiveMembership(faculty.organizationId, userId);
+    if (!membership || membership.role !== "advisor")
+      throw new AppError(
+        "The program chair must be an active advisor at this university",
+        422,
+        "PROGRAM_CHAIR_MUST_BE_ADVISOR",
+      );
+    return this.repository.setProgramChair(majorId, userId);
+  }
+
+  async setAcademicRecord(
+    actorUserId: string,
+    organizationId: string,
+    studentUserId: string,
+    input: { cumulativeGpa?: number; lastTermGpa?: number; meetsPrerequisite?: boolean },
+  ) {
+    await this.requireUniversity(organizationId);
+    const membership = await this.repository.findActiveMembership(organizationId, actorUserId);
+    if (!membership || !["university_admin", "coordinator"].includes(membership.role))
+      throw new AppError(
+        "University staff access is required",
+        403,
+        "ORGANIZATION_ACCESS_REQUIRED",
+      );
+    const student = await this.repository.findActiveMembership(organizationId, studentUserId);
+    if (!student || student.role !== "student")
+      throw new AppError("Student was not found in this university", 404, "STUDENT_NOT_FOUND");
+    return this.repository.upsertAcademicRecord({
+      userId: studentUserId,
+      updatedByUserId: actorUserId,
+      ...input,
+    });
+  }
+
   private async requireUniversity(organizationId: string) {
     const organization = await this.repository.findOrganization(organizationId);
     if (!organization || organization.status !== "active" || organization.type !== "university")

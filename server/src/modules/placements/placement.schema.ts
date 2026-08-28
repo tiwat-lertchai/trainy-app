@@ -13,6 +13,16 @@ export const createPlacementSchema = z
     message: "End date must be after start date",
   });
 
+export const createPlacementFromRequestSchema = z
+  .object({
+    requestId: z.string().uuid(),
+    startDate: z.coerce.date(),
+    endDate: z.coerce.date(),
+  })
+  .refine((value) => value.endDate > value.startDate, {
+    message: "End date must be after start date",
+  });
+
 export const assignAdvisorSchema = z.object({
   advisorUserId: z.string().min(1),
 });

@@ -3,6 +3,7 @@ import type { Database } from "../../db";
 import {
   internship,
   internshipApplication,
+  internshipRequest,
   organization,
   organizationMembership,
   placement,
@@ -11,7 +12,7 @@ import type { PlacementStatus } from "./placement.schema";
 
 export type PlacementRecord = typeof placement.$inferSelect;
 export type PlacementView = PlacementRecord & {
-  internship?: { id: string; title: string };
+  internship?: { id: string; title: string } | null;
   student?: { id: string; name: string; email: string };
   advisor?: { id: string; name: string; email: string } | null;
   supervisor?: { id: string; name: string; email: string } | null;
@@ -20,6 +21,10 @@ export type AcceptedApplication = Pick<
   typeof internshipApplication.$inferSelect,
   "id" | "internshipId" | "studentUserId" | "universityOrganizationId" | "status"
 > & { companyOrganizationId: string };
+export type ApprovedRequest = Pick<
+  typeof internshipRequest.$inferSelect,
+  "id" | "studentUserId" | "universityOrganizationId" | "companyOrganizationId" | "status"
+>;
 export type PlacementMembership = {
   organizationId: string;
   organizationType: "university" | "company";
@@ -30,18 +35,31 @@ export type PlacementMembership = {
 
 export interface PlacementRepository {
   findApplication(id: string): Promise<AcceptedApplication | undefined>;
+  findRequest(id: string): Promise<ApprovedRequest | undefined>;
   findMembership(organizationId: string, userId: string): Promise<PlacementMembership | undefined>;
   findByApplication(applicationId: string): Promise<PlacementRecord | undefined>;
+  findByRequest(requestId: string): Promise<PlacementRecord | undefined>;
   findById(id: string): Promise<PlacementRecord | undefined>;
-  create(input: {
-    applicationId: string;
-    internshipId: string;
-    studentUserId: string;
-    universityOrganizationId: string;
-    companyOrganizationId: string;
-    startDate: Date;
-    endDate: Date;
-  }): Promise<PlacementRecord | undefined>;
+  create(
+    input:
+      | {
+          applicationId: string;
+          internshipId: string;
+          studentUserId: string;
+          universityOrganizationId: string;
+          companyOrganizationId: string;
+          startDate: Date;
+          endDate: Date;
+        }
+      | {
+          requestId: string;
+          studentUserId: string;
+          universityOrganizationId: string;
+          companyOrganizationId: string;
+          startDate: Date;
+          endDate: Date;
+        },
+  ): Promise<PlacementRecord | undefined>;
   update(
     id: string,
     changes: Partial<Pick<PlacementRecord, "advisorUserId" | "supervisorUserId" | "status">>,
@@ -91,9 +109,30 @@ export class DrizzlePlacementRepository implements PlacementRepository {
     return record;
   }
 
+  async findRequest(id: string) {
+    const [record] = await this.database
+      .select({
+        id: internshipRequest.id,
+        studentUserId: internshipRequest.studentUserId,
+        universityOrganizationId: internshipRequest.universityOrganizationId,
+        companyOrganizationId: internshipRequest.companyOrganizationId,
+        status: internshipRequest.status,
+      })
+      .from(internshipRequest)
+      .where(eq(internshipRequest.id, id))
+      .limit(1);
+    return record;
+  }
+
   async findByApplication(applicationId: string) {
     return this.database.query.placement.findFirst({
       where: eq(placement.applicationId, applicationId),
+    });
+  }
+
+  async findByRequest(requestId: string) {
+    return this.database.query.placement.findFirst({
+      where: eq(placement.requestId, requestId),
     });
   }
 
@@ -107,7 +146,9 @@ export class DrizzlePlacementRepository implements PlacementRepository {
     const [record] = await this.database
       .insert(placement)
       .values(input)
-      .onConflictDoNothing({ target: placement.applicationId })
+      .onConflictDoNothing({
+        target: "applicationId" in input ? placement.applicationId : placement.requestId,
+      })
       .returning();
     return record;
   }
