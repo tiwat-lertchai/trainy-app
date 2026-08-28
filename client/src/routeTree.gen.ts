@@ -15,6 +15,7 @@ import { Route as AppAcademicRouteImport } from './routes/app.academic'
 import { Route as AppApplicationsRouteImport } from './routes/app.applications'
 import { Route as AppAttendanceRouteImport } from './routes/app.attendance'
 import { Route as AppDocumentsRouteImport } from './routes/app.documents'
+import { Route as AppEvaluationsRouteImport } from './routes/app.evaluations'
 import { Route as AppInternshipsRouteImport } from './routes/app.internships'
 import { Route as AppOnboardingRouteImport } from './routes/app.onboarding'
 import { Route as AppPlacementsRouteImport } from './routes/app.placements'
@@ -51,6 +52,11 @@ const AppDocumentsRoute = AppDocumentsRouteImport.update({
   path: '/documents',
   getParentRoute: () => AppRoute,
 } as any)
+const AppEvaluationsRoute = AppEvaluationsRouteImport.update({
+  id: '/evaluations',
+  path: '/evaluations',
+  getParentRoute: () => AppRoute,
+} as any)
 const AppInternshipsRoute = AppInternshipsRouteImport.update({
   id: '/internships',
   path: '/internships',
@@ -84,6 +90,7 @@ export interface FileRoutesByFullPath {
   '/app/applications': typeof AppApplicationsRoute
   '/app/attendance': typeof AppAttendanceRoute
   '/app/documents': typeof AppDocumentsRoute
+  '/app/evaluations': typeof AppEvaluationsRoute
   '/app/internships': typeof AppInternshipsRoute
   '/app/onboarding': typeof AppOnboardingRoute
   '/app/placements': typeof AppPlacementsRoute
@@ -97,6 +104,7 @@ export interface FileRoutesByTo {
   '/app/applications': typeof AppApplicationsRoute
   '/app/attendance': typeof AppAttendanceRoute
   '/app/documents': typeof AppDocumentsRoute
+  '/app/evaluations': typeof AppEvaluationsRoute
   '/app/internships': typeof AppInternshipsRoute
   '/app/onboarding': typeof AppOnboardingRoute
   '/app/placements': typeof AppPlacementsRoute
@@ -111,6 +119,7 @@ export interface FileRoutesById {
   '/app/applications': typeof AppApplicationsRoute
   '/app/attendance': typeof AppAttendanceRoute
   '/app/documents': typeof AppDocumentsRoute
+  '/app/evaluations': typeof AppEvaluationsRoute
   '/app/internships': typeof AppInternshipsRoute
   '/app/onboarding': typeof AppOnboardingRoute
   '/app/placements': typeof AppPlacementsRoute
@@ -126,6 +135,7 @@ export interface FileRouteTypes {
     | '/app/applications'
     | '/app/attendance'
     | '/app/documents'
+    | '/app/evaluations'
     | '/app/internships'
     | '/app/onboarding'
     | '/app/placements'
@@ -139,6 +149,7 @@ export interface FileRouteTypes {
     | '/app/applications'
     | '/app/attendance'
     | '/app/documents'
+    | '/app/evaluations'
     | '/app/internships'
     | '/app/onboarding'
     | '/app/placements'
@@ -152,6 +163,7 @@ export interface FileRouteTypes {
     | '/app/applications'
     | '/app/attendance'
     | '/app/documents'
+    | '/app/evaluations'
     | '/app/internships'
     | '/app/onboarding'
     | '/app/placements'
@@ -208,6 +220,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AppDocumentsRouteImport
       parentRoute: typeof AppRoute
     }
+    '/app/evaluations': {
+      id: '/app/evaluations'
+      path: '/evaluations'
+      fullPath: '/app/evaluations'
+      preLoaderRoute: typeof AppEvaluationsRouteImport
+      parentRoute: typeof AppRoute
+    }
     '/app/internships': {
       id: '/app/internships'
       path: '/internships'
@@ -251,6 +270,7 @@ interface AppRouteChildren {
   AppApplicationsRoute: typeof AppApplicationsRoute
   AppAttendanceRoute: typeof AppAttendanceRoute
   AppDocumentsRoute: typeof AppDocumentsRoute
+  AppEvaluationsRoute: typeof AppEvaluationsRoute
   AppInternshipsRoute: typeof AppInternshipsRoute
   AppOnboardingRoute: typeof AppOnboardingRoute
   AppPlacementsRoute: typeof AppPlacementsRoute
@@ -263,6 +283,7 @@ const AppRouteChildren: AppRouteChildren = {
   AppApplicationsRoute: AppApplicationsRoute,
   AppAttendanceRoute: AppAttendanceRoute,
   AppDocumentsRoute: AppDocumentsRoute,
+  AppEvaluationsRoute: AppEvaluationsRoute,
   AppInternshipsRoute: AppInternshipsRoute,
   AppOnboardingRoute: AppOnboardingRoute,
   AppPlacementsRoute: AppPlacementsRoute,

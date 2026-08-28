@@ -36,6 +36,11 @@ describe("EvaluationService", () => {
       [],
     );
   });
+  test("hides another evaluator's draft", async () => {
+    const r = new MemoryEvaluationRepository();
+    await save(r, "supervisor");
+    expect(await new EvaluationService(r).list("advisor", "placement")).toEqual([]);
+  });
   test("notifies the student when an evaluation is submitted", async () => {
     const repository = new MemoryEvaluationRepository();
     const created = await save(repository, "advisor");

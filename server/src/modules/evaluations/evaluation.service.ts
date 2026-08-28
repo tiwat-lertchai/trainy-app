@@ -97,9 +97,10 @@ export class EvaluationService {
         "PLACEMENT_ACCESS_REQUIRED",
       );
     const records = await this.repository.list(placementId);
-    return actorUserId === placement.studentUserId
-      ? records.filter((r) => r.status === "submitted")
-      : records;
+    return records.filter(
+      (record) =>
+        record.status === "submitted" || record.evaluatorUserId === actorUserId,
+    );
   }
   private async requirePlacement(id: string) {
     const r = await this.repository.findPlacement(id);
