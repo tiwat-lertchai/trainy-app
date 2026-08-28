@@ -25,7 +25,11 @@ export default defineConfig({
 		// dev server serve files from ../server (and anything else in the
 		// repo) through /@fs/. Scope it to this package only.
 		fs: {
-			allow: [path.resolve(import.meta.dirname, ".")],
+			allow: [
+				path.resolve(import.meta.dirname, "."),
+				// Bun hoists this self-hosted font package to the monorepo root.
+				path.resolve(import.meta.dirname, "../node_modules/@fontsource/google-sans"),
+			],
 		},
 	},
 });
