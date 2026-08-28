@@ -14,6 +14,14 @@ export function organizationTypeForRole(role: OnboardingRole) {
 	return role === "supervisor" ? "company" : "university";
 }
 
+export function organizationFieldLabel(type: "university" | "company" | null) {
+	return type === "company" ? "องค์กร/บริษัท" : "องค์กร/มหาวิทยาลัย";
+}
+
+export function facultiesEnabledForRole(role: OnboardingRole) {
+	return role === "student" || role === "advisor";
+}
+
 export function isImmediatelyApproved(role: OnboardingRole) {
 	return role === "student";
 }

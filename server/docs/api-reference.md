@@ -313,6 +313,29 @@ Review with `{ "decision": "approved" }` or:
 States are `draft → submitted → approved`, or `submitted → revision_requested`
 and back to draft after editing.
 
+## Academic structure (faculties and majors)
+
+Base path: `/api/v1/academic`
+
+| Method | Path                              | Access                                  |
+| ------ | ---------------------------------- | ---------------------------------------- |
+| GET    | `/:organizationId/faculties`       | Any authenticated user (no membership required — used during onboarding) |
+| POST   | `/:organizationId/faculties`       | University admin                         |
+| GET    | `/faculties/:facultyId/majors`     | Any authenticated user                   |
+| POST   | `/faculties/:facultyId/majors`     | University admin (of the faculty's university) |
+
+Faculties and majors belong to a university organization. They power the
+faculty/major dropdowns on the student and advisor onboarding forms and are
+readable before the caller has a membership in that university, matching
+`GET /api/v1/onboarding/organizations`.
+
+```json
+{ "name": "คณะวิทยาการจัดการ" }
+```
+
+Faculty and major names are unique per organization/faculty; creating a
+duplicate returns `409`.
+
 ## Attendance and location evidence
 
 Base path: `/api/v1/attendance`

@@ -1,5 +1,5 @@
 import { describe, expect, it } from "bun:test";
-import { isImmediatelyApproved, organizationTypeForRole } from "./onboarding-rules";
+import { facultiesEnabledForRole, isImmediatelyApproved, organizationFieldLabel, organizationTypeForRole } from "./onboarding-rules";
 
 describe("onboarding presentation rules", () => {
 	it("auto-approves only students", () => {
@@ -12,5 +12,16 @@ describe("onboarding presentation rules", () => {
 		expect(organizationTypeForRole("advisor")).toBe("university");
 		expect(organizationTypeForRole("supervisor")).toBe("company");
 		expect(organizationTypeForRole("company_admin")).toBeNull();
+	});
+
+	it("labels the organization field so it is not mistaken for a generic org", () => {
+		expect(organizationFieldLabel("university")).toBe("องค์กร/มหาวิทยาลัย");
+		expect(organizationFieldLabel("company")).toBe("องค์กร/บริษัท");
+	});
+
+	it("shows faculty selection only for student and advisor requests", () => {
+		expect(facultiesEnabledForRole("student")).toBeTrue();
+		expect(facultiesEnabledForRole("advisor")).toBeTrue();
+		expect(facultiesEnabledForRole("supervisor")).toBeFalse();
 	});
 });

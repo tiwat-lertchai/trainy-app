@@ -119,6 +119,21 @@ describe("placement routes", () => {
   });
 });
 
+describe("academic routes", () => {
+  it("rejects unauthenticated faculty and major access", async () => {
+    const [faculties, majors] = await Promise.all([
+      app.request(
+        "/api/v1/academic/00000000-0000-4000-8000-000000000000/faculties",
+      ),
+      app.request(
+        "/api/v1/academic/faculties/00000000-0000-4000-8000-000000000000/majors",
+      ),
+    ]);
+    expect(faculties.status).toBe(401);
+    expect(majors.status).toBe(401);
+  });
+});
+
 describe("attendance routes", () => {
   it("rejects unauthenticated attendance access", async () => {
     const [schedule, records, summary] = await Promise.all([
