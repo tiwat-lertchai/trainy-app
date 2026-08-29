@@ -113,7 +113,17 @@ beforeAll(async () => {
   });
 });
 
-afterAll(async () => closeDatabase());
+afterAll(async () => {
+  const schema = await import("../../db/schema");
+  await database.delete(schema.placement);
+  await database.delete(schema.internshipApplication);
+  await database.delete(schema.internship);
+  await database.delete(schema.onboardingRequest);
+  await database.delete(schema.organizationMembership);
+  await database.delete(schema.organization);
+  await database.delete(schema.user);
+  await closeDatabase();
+});
 
 describe("DrizzlePlacementRepository", () => {
   test("creates one placement and scopes organization listing", async () => {
