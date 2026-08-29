@@ -132,14 +132,14 @@ function StudentRequests({ organizationId }: { organizationId?: string }) {
 					</select>
 				</Field>
 				<Field label="คณะ">
-				<select
-					required
-					className={controlClass}
-					value={facultyId}
-					onChange={(event) => {
-						setFacultyId(event.target.value);
-						setMajorId("");
-					}}
+					<select
+						required
+						className={controlClass}
+						value={facultyId}
+						onChange={(event) => {
+							setFacultyId(event.target.value);
+							setMajorId("");
+						}}
 					>
 						<option value="">เลือกคณะ</option>
 						{faculties.data?.data.map((faculty) => (
