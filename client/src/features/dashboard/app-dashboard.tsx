@@ -39,6 +39,7 @@ import {
 	dashboardFromWorkflow,
 	type DashboardSnapshot,
 } from "./dashboard-data";
+import { dashboardNavigationLinks } from "./dashboard-navigation";
 
 const WORKSPACE_KEY = "trainy-workspace-id";
 const adminRoles: OrganizationRole[] = ["university_admin", "company_admin"];
@@ -67,19 +68,6 @@ const roleLabels: Record<OrganizationRole, MessageKey> = {
 	company_admin: "role.company_admin",
 	supervisor: "role.supervisor",
 };
-const links = {
-	internships: "/app/internships",
-	applications: "/app/applications",
-	placements: "/app/placements",
-	attendance: "/app/attendance",
-	academic: "/app/academic",
-	progress: "/app/progress",
-	documents: "/app/documents",
-	evaluations: "/app/evaluations",
-	invites: "/app/invites",
-	members: "/app/members",
-	reports: "/app/reports",
-} as const;
 
 async function loadOrganizations() {
 	const response = await apiClient.api.v1.organizations.$get();
@@ -164,10 +152,10 @@ export function AppDashboard() {
 			const { label, icon: Icon } = navigationDetails[key];
 			const active = pathname === "/app" ? index === 0 : pathname.includes(key);
 			const className = `flex w-full items-center gap-3 rounded-xl px-3 py-3 text-sm font-medium transition ${active ? "bg-white/12 text-white" : "text-slate-300 hover:bg-white/7 hover:text-white"}`;
-			return key in links ? (
+			return key in dashboardNavigationLinks ? (
 				<Link
 					key={key}
-					to={links[key as keyof typeof links]}
+					to={dashboardNavigationLinks[key as keyof typeof dashboardNavigationLinks]}
 					className={className}
 					onClick={onNavigate}
 				>
