@@ -26,7 +26,19 @@ export function AcademicAdminPage() {
 		) ?? organizations.data?.data[0];
 	const organizationId = context?.organization.id;
 	const role = context?.membership.role;
-	const canManage = role === "university_admin";
+	const canManageStructure = role === "university_admin";
+	const canManageRecords = role === "university_admin" || role === "coordinator";
+	const members = useQuery({
+		queryKey: ["organizations", organizationId, "members"],
+		queryFn: async () => {
+			const r = await apiClient.api.v1.organizations[":organizationId"].members.$get({
+				param: { organizationId: organizationId! },
+			});
+			if (!r.ok) throw new Error();
+			return r.json();
+		},
+		enabled: Boolean(organizationId && canManageRecords),
+	});
 
 	const faculties = useQuery({
 		queryKey: ["academic", "faculties", organizationId],
@@ -75,6 +87,40 @@ export function AcademicAdminPage() {
 		onSuccess: () =>
 			queryClient.invalidateQueries({ queryKey: ["academic", "majors", openFacultyId] }),
 	});
+	const setProgramChair = useMutation({
+		mutationFn: async ({ majorId, userId }: { majorId: string; userId: string }) => {
+			const r = await apiClient.api.v1.academic.majors[":majorId"]["program-chair"].$patch({
+				param: { majorId },
+				json: { userId },
+			});
+			if (!r.ok) throw new Error(`PROGRAM_CHAIR_${r.status}`);
+			return r.json();
+		},
+		onSuccess: () =>
+			queryClient.invalidateQueries({ queryKey: ["academic", "majors", openFacultyId] }),
+	});
+	const setAcademicRecord = useMutation({
+		mutationFn: async ({
+			studentUserId,
+			cumulativeGpa,
+			lastTermGpa,
+			meetsPrerequisite,
+		}: {
+			studentUserId: string;
+			cumulativeGpa?: number;
+			lastTermGpa?: number;
+			meetsPrerequisite: boolean;
+		}) => {
+			const r = await apiClient.api.v1.academic[":organizationId"].students[
+				":studentUserId"
+			].record.$put({
+				param: { organizationId: organizationId!, studentUserId },
+				json: { cumulativeGpa, lastTermGpa, meetsPrerequisite },
+			});
+			if (!r.ok) throw new Error(`ACADEMIC_RECORD_${r.status}`);
+			return r.json();
+		},
+	});
 
 	function submitFaculty(event: FormEvent<HTMLFormElement>) {
 		event.preventDefault();
@@ -96,7 +142,7 @@ export function AcademicAdminPage() {
 				{t("academic.loading")}
 			</div>
 		);
-	if (!canManage)
+	if (!canManageRecords)
 		return (
 			<div className="mx-auto max-w-xl rounded-3xl border bg-white p-8 text-center text-muted-foreground">
 				{t("academic.forbidden")}
@@ -111,17 +157,19 @@ export function AcademicAdminPage() {
 				{t("academic.description", { organization: context?.organization.name ?? "" })}
 			</p>
 
-			<form className="mt-6 flex max-w-md gap-2" onSubmit={submitFaculty}>
-				<input
-					name="name"
-					placeholder={t("academic.facultyPlaceholder")}
-					required
-					minLength={2}
-					maxLength={200}
-					className="h-11 flex-1 rounded-xl border bg-background px-3 outline-none focus:border-primary focus:ring-3 focus:ring-primary/10"
-				/>
-				<Button disabled={addFaculty.isPending}>{t("academic.addFaculty")}</Button>
-			</form>
+			{canManageStructure && (
+				<form className="mt-6 flex max-w-md gap-2" onSubmit={submitFaculty}>
+					<input
+						name="name"
+						placeholder={t("academic.facultyPlaceholder")}
+						required
+						minLength={2}
+						maxLength={200}
+						className="h-11 flex-1 rounded-xl border bg-background px-3 outline-none focus:border-primary focus:ring-3 focus:ring-primary/10"
+					/>
+					<Button disabled={addFaculty.isPending}>{t("academic.addFaculty")}</Button>
+				</form>
+			)}
 			{addFaculty.isError && (
 				<p role="alert" className="mt-2 text-sm text-destructive">
 					{t("academic.addFacultyError")}
@@ -152,22 +200,24 @@ export function AcademicAdminPage() {
 							</button>
 							{open && (
 								<div className="mt-5 border-t pt-5">
-									<form
-										className="flex max-w-md gap-2"
-										onSubmit={(event) => submitMajor(event, faculty.id)}
-									>
-										<input
-											name="name"
-											placeholder={t("academic.majorPlaceholder")}
-											required
-											minLength={2}
-											maxLength={200}
-											className="h-10 flex-1 rounded-lg border bg-background px-3 text-sm outline-none focus:border-primary focus:ring-3 focus:ring-primary/10"
-										/>
-										<Button size="sm" disabled={addMajor.isPending}>
-											{t("academic.addMajor")}
-										</Button>
-									</form>
+									{canManageStructure && (
+										<form
+											className="flex max-w-md gap-2"
+											onSubmit={(event) => submitMajor(event, faculty.id)}
+										>
+											<input
+												name="name"
+												placeholder={t("academic.majorPlaceholder")}
+												required
+												minLength={2}
+												maxLength={200}
+												className="h-10 flex-1 rounded-lg border bg-background px-3 text-sm outline-none focus:border-primary focus:ring-3 focus:ring-primary/10"
+											/>
+											<Button size="sm" disabled={addMajor.isPending}>
+												{t("academic.addMajor")}
+											</Button>
+										</form>
+									)}
 									{addMajor.isError && (
 										<p role="alert" className="mt-2 text-sm text-destructive">
 											{t("academic.addMajorError")}
@@ -175,8 +225,37 @@ export function AcademicAdminPage() {
 									)}
 									<ul className="mt-4 flex flex-wrap gap-2">
 										{majors.data?.data.map((major) => (
-											<li key={major.id} className="rounded-full bg-slate-100 px-3 py-1 text-sm">
-												{major.name}
+											<li
+												key={major.id}
+												className="flex flex-wrap items-center gap-2 rounded-xl bg-slate-50 p-3 text-sm"
+											>
+												<span className="font-semibold">{major.name}</span>
+												<select
+													aria-label={`หัวหน้าหลักสูตร ${major.name}`}
+													className="h-9 rounded-lg border bg-white px-2"
+													value={major.programChairUserId ?? ""}
+													disabled={!canManageStructure || setProgramChair.isPending}
+													onChange={(event) =>
+														setProgramChair.mutate({
+															majorId: major.id,
+															userId: event.target.value,
+														})
+													}
+												>
+													<option value="">เลือกหัวหน้าหลักสูตร</option>
+													{members.data?.data
+														.filter(
+															(member) => member.role === "advisor" && member.status === "active",
+														)
+														.map((member) => {
+															const view = member as typeof member & { user?: { name: string } };
+															return (
+																<option key={member.id} value={member.userId}>
+																	{view.user?.name ?? member.userId}
+																</option>
+															);
+														})}
+												</select>
 											</li>
 										))}
 										{majors.data?.data.length === 0 && (
@@ -189,6 +268,103 @@ export function AcademicAdminPage() {
 					);
 				})}
 			</div>
+
+			<section className="mt-10 border-t pt-8">
+				<h2 className="text-xl font-black">ข้อมูลผลการเรียนนักศึกษา</h2>
+				<p className="mt-1 text-sm text-muted-foreground">
+					ข้อมูลนี้ใช้ประกอบการพิจารณาคำร้องและไม่ปิดกั้นคำร้องโดยอัตโนมัติ
+				</p>
+				<div className="mt-5 grid gap-3">
+					{members.data?.data
+						.filter((member) => member.role === "student" && member.status === "active")
+						.map((member) => {
+							const view = member as typeof member & { user?: { name: string; email: string } };
+							return (
+								<AcademicRecordForm
+									key={member.id}
+									userId={member.userId}
+									name={view.user?.name ?? member.userId}
+									pending={setAcademicRecord.isPending}
+									onSave={(values) =>
+										setAcademicRecord.mutate({ studentUserId: member.userId, ...values })
+									}
+								/>
+							);
+						})}
+				</div>
+				{setAcademicRecord.isError && (
+					<p role="alert" className="mt-3 text-sm text-destructive">
+						บันทึกข้อมูลผลการเรียนไม่สำเร็จ
+					</p>
+				)}
+			</section>
 		</div>
+	);
+}
+
+function AcademicRecordForm({
+	userId,
+	name,
+	pending,
+	onSave,
+}: {
+	userId: string;
+	name: string;
+	pending: boolean;
+	onSave: (values: {
+		cumulativeGpa?: number;
+		lastTermGpa?: number;
+		meetsPrerequisite: boolean;
+	}) => void;
+}) {
+	function submit(event: FormEvent<HTMLFormElement>) {
+		event.preventDefault();
+		const data = new FormData(event.currentTarget);
+		const cumulative = String(data.get("cumulativeGpa") ?? "");
+		const lastTerm = String(data.get("lastTermGpa") ?? "");
+		onSave({
+			cumulativeGpa: cumulative ? Number(cumulative) : undefined,
+			lastTermGpa: lastTerm ? Number(lastTerm) : undefined,
+			meetsPrerequisite: data.get("meetsPrerequisite") === "on",
+		});
+	}
+	return (
+		<form
+			className="grid gap-3 rounded-2xl border bg-white p-4 sm:grid-cols-[1fr_120px_120px_auto_auto] sm:items-end"
+			onSubmit={submit}
+		>
+			<div>
+				<p className="font-bold">{name}</p>
+				<p className="text-xs text-muted-foreground">{userId}</p>
+			</div>
+			<label className="grid gap-1 text-xs font-semibold">
+				GPA สะสม
+				<input
+					name="cumulativeGpa"
+					type="number"
+					min="0"
+					max="4"
+					step="0.01"
+					className="h-10 rounded-lg border px-2 text-sm"
+				/>
+			</label>
+			<label className="grid gap-1 text-xs font-semibold">
+				GPA ล่าสุด
+				<input
+					name="lastTermGpa"
+					type="number"
+					min="0"
+					max="4"
+					step="0.01"
+					className="h-10 rounded-lg border px-2 text-sm"
+				/>
+			</label>
+			<label className="flex h-10 items-center gap-2 text-sm">
+				<input name="meetsPrerequisite" type="checkbox" /> ผ่านเงื่อนไข
+			</label>
+			<Button size="sm" disabled={pending}>
+				บันทึก
+			</Button>
+		</form>
 	);
 }

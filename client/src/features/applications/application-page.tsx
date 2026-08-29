@@ -13,6 +13,7 @@ import {
 	canWithdrawApplication,
 	type ApplicationStatus,
 } from "./application-rules";
+import { InternshipRequestPanel } from "./internship-request-panel";
 
 const WORKSPACE_KEY = "trainy-workspace-id";
 
@@ -238,6 +239,7 @@ export function ApplicationPage() {
 				onCancel={() => setConfirmation(null)}
 				onConfirm={() => confirmation && mutation.mutate(confirmation)}
 			/>
+			<InternshipRequestPanel organizationId={organizationId} role={role} />
 		</div>
 	);
 }
