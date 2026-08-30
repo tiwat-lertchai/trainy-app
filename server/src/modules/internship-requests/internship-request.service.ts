@@ -138,12 +138,19 @@ export class InternshipRequestService {
   async resubmit(
     actorUserId: string,
     requestId: string,
-    updates?: Parameters<InternshipRequestRepository["resubmit"]>[1],
+    updates: NonNullable<Parameters<InternshipRequestRepository["resubmit"]>[1]>,
   ) {
     const request = await this.repository.findById(requestId);
     if (!request) throw notFound();
     if (request.studentUserId !== actorUserId)
       throw new AppError("Only the requesting student can resubmit", 403, "STUDENT_ONLY");
+    if (request.status !== "revision_requested")
+      throw new AppError("Request is not awaiting resubmission", 409, "REQUEST_NOT_REVISABLE");
+    if (updates.companyOrganizationId) {
+      const company = await this.repository.findOrganization(updates.companyOrganizationId);
+      if (!company || company.status !== "active" || company.type !== "company")
+        throw new AppError("Company was not found", 404, "COMPANY_NOT_FOUND");
+    }
     try {
       return await this.repository.resubmit(requestId, updates);
     } catch {

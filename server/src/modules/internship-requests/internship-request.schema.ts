@@ -6,47 +6,61 @@ export type InternshipRequestStep = (typeof internshipRequestSteps)[number];
 
 const requiredText = z.string().trim().min(2).max(200);
 
+const editableRequestFields = {
+  positionTitle: requiredText,
+  description: z.string().trim().min(10).max(5000),
+  proposedStartDate: z.coerce.date(),
+  proposedEndDate: z.coerce.date(),
+  companyOrganizationId: z.string().uuid().optional(),
+  companyNameProposed: requiredText.optional(),
+  companyContactName: requiredText.optional(),
+  companyContactEmail: z.string().trim().email().max(320).optional(),
+  companyContactPhone: z.string().trim().min(8).max(30).optional(),
+};
+
+const editableInternshipRequestSchema = z.object(editableRequestFields);
+
+function validateEditableRequest(
+  value: z.infer<typeof editableInternshipRequestSchema>,
+  context: z.RefinementCtx,
+) {
+  if (value.proposedEndDate <= value.proposedStartDate) {
+    context.addIssue({
+      code: "custom",
+      path: ["proposedEndDate"],
+      message: "End date must be after start date",
+    });
+  }
+  const hasCompanyOrg = value.companyOrganizationId !== undefined;
+  const hasProposed = value.companyNameProposed !== undefined;
+  if (hasCompanyOrg === hasProposed) {
+    context.addIssue({
+      code: "custom",
+      message: "Provide exactly one of companyOrganizationId or companyNameProposed",
+    });
+  }
+  if (!hasCompanyOrg) {
+    if (!value.companyContactName || !value.companyContactEmail || !value.companyContactPhone) {
+      context.addIssue({
+        code: "custom",
+        message: "Contact name, email, and phone are required when proposing a new company",
+      });
+    }
+  }
+}
+
 export const createInternshipRequestSchema = z
   .object({
     universityOrganizationId: z.string().uuid(),
     academicMajorId: z.string().uuid(),
     type: z.enum(internshipRequestTypes),
-    positionTitle: requiredText,
-    description: z.string().trim().min(10).max(5000),
-    proposedStartDate: z.coerce.date(),
-    proposedEndDate: z.coerce.date(),
     advisorUserId: z.string().trim().min(1),
-    companyOrganizationId: z.string().uuid().optional(),
-    companyNameProposed: requiredText.optional(),
-    companyContactName: requiredText.optional(),
-    companyContactEmail: z.string().trim().email().max(320).optional(),
-    companyContactPhone: z.string().trim().min(8).max(30).optional(),
+    ...editableRequestFields,
   })
-  .superRefine((value, context) => {
-    if (value.proposedEndDate <= value.proposedStartDate) {
-      context.addIssue({
-        code: "custom",
-        path: ["proposedEndDate"],
-        message: "End date must be after start date",
-      });
-    }
-    const hasCompanyOrg = value.companyOrganizationId !== undefined;
-    const hasProposed = value.companyNameProposed !== undefined;
-    if (hasCompanyOrg === hasProposed) {
-      context.addIssue({
-        code: "custom",
-        message: "Provide exactly one of companyOrganizationId or companyNameProposed",
-      });
-    }
-    if (!hasCompanyOrg) {
-      if (!value.companyContactName || !value.companyContactEmail || !value.companyContactPhone) {
-        context.addIssue({
-          code: "custom",
-          message: "Contact name, email, and phone are required when proposing a new company",
-        });
-      }
-    }
-  });
+  .superRefine(validateEditableRequest);
+
+export const resubmitInternshipRequestSchema =
+  editableInternshipRequestSchema.superRefine(validateEditableRequest);
 
 export const reviewStepSchema = z
   .object({

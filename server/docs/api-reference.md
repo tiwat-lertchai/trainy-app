@@ -240,6 +240,32 @@ Application list responses include the related internship and university.
 Company and university staff views also include the student's basic account
 name and email after role and tenant access checks succeed.
 
+### Self-sourced internship requests
+
+Base path: `/api/v1/internship-requests`
+
+| Method | Path                             | Access                                     |
+| ------ | -------------------------------- | ------------------------------------------ |
+| POST   | `/`                              | Student                                    |
+| GET    | `/me`                            | Current student                            |
+| GET    | `/reviews`                       | Assigned/eligible reviewer                 |
+| POST   | `/:requestId/steps/:step/review` | Reviewer for the currently active step     |
+| POST   | `/:requestId/resubmit`           | Request owner; `revision_requested` only   |
+| POST   | `/:requestId/cancel`             | Request owner; open or revision state only |
+
+Resubmission requires the complete set of editable values. The academic major,
+internship type, advisor, program chair, and approval assignments cannot be
+changed through this endpoint. The body accepts `positionTitle`, `description`,
+`proposedStartDate`, `proposedEndDate`, and exactly one company source:
+
+- `companyOrganizationId` for an active company already in Trainy; or
+- `companyNameProposed`, `companyContactName`, `companyContactEmail`, and
+  `companyContactPhone` for a proposed company.
+
+The end date must be after the start date. A successful resubmission updates the
+editable values and resets all approval decisions atomically while retaining the
+same request and assigned advisor/program chair.
+
 ## Placements and assignments
 
 Base path: `/api/v1/placements`

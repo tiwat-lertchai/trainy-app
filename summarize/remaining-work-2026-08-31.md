@@ -23,15 +23,10 @@ passes. It records only gaps that are still current at commit `e523d1e`.
 
 ## Product gaps - priority order
 
-### 1. Editable internship-request resubmission
+Editable internship-request resubmission is complete; see
+`summarize/editable-internship-request-resubmission.md`.
 
-The request service can reopen a revision-requested request, but the HTTP/UI
-contract currently resubmits its existing values. Add a validated update body,
-allow the student to edit permitted fields, preserve reviewer assignments, reset
-the approval state atomically, and cover authorization and invalid date/company
-combinations.
-
-### 2. Official request-document generation
+### 1. Official request-document generation
 
 Approved self-sourced requests create cooperation-request and referral-letter
 metadata rows without file bytes. Implementation is blocked on official
@@ -47,14 +42,14 @@ After those decisions, generate deterministic PDFs, store them through durable
 document storage, expose authenticated downloads, and visually verify representative
 Thai documents.
 
-### 3. Proposed-company handoff
+### 2. Proposed-company handoff
 
 Connect an approved request for a company that is not registered to the existing
 invite flow. Redemption must associate the resulting company organization with
 the request before `placements/from-request` can succeed. Add idempotency,
 expiration/revocation behavior, notifications, and end-to-end tests.
 
-### 4. Complete authenticated i18n
+### 3. Complete authenticated i18n
 
 The shell and several management surfaces are bilingual, but detailed feature
 pages still contain Thai literals. Migrate applications/internship requests,
@@ -62,7 +57,7 @@ attendance, documents, evaluations, internships, onboarding, placements,
 progress, and invite management into typed Thai/English message keys. Preserve
 locale-aware dates and interpolation word order.
 
-### 5. Real authenticated E2E verification
+### 4. Real authenticated E2E verification
 
 Automated unit, integration, IDOR, state-abuse, and black-box anonymous checks
 pass. A production release still needs representative LINE-authenticated role

@@ -18,7 +18,7 @@
     "dev": "bun --watch src/index.ts",
     "type-check": "tsc --noEmit --declaration false",
     "test": "bun test src",
-    "test:integration": "bun test ./src/modules/organizations/organization.repository.integration.ts && bun test ./src/modules/onboarding/onboarding.repository.integration.ts && bun test ./src/modules/internships/internship.repository.integration.ts && bun test ./src/modules/placements/placement.repository.integration.ts && bun test ./src/security.authenticated-idor.integration.ts && bun test ./src/security.state-abuse.integration.ts",
+    "test:integration": "bun test ./src/modules/organizations/organization.repository.integration.ts && bun test ./src/modules/onboarding/onboarding.repository.integration.ts && bun test ./src/modules/internships/internship.repository.integration.ts && bun test ./src/modules/internship-requests/internship-request.repository.integration.ts && bun test ./src/modules/placements/placement.repository.integration.ts && bun test ./src/security.authenticated-idor.integration.ts && bun test ./src/security.state-abuse.integration.ts",
     "db:check": "drizzle-kit check",
     "db:generate": "drizzle-kit generate",
     "db:migrate": "drizzle-kit migrate",

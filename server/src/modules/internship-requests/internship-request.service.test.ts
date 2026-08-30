@@ -7,7 +7,11 @@ import type {
   RequestWithApprovals,
 } from "./internship-request.repository";
 import { InternshipRequestService } from "./internship-request.service";
-import { internshipRequestSteps, type InternshipRequestStep } from "./internship-request.schema";
+import {
+  internshipRequestSteps,
+  resubmitInternshipRequestSchema,
+  type InternshipRequestStep,
+} from "./internship-request.schema";
 
 type Membership = { role: string; status: "active" | "suspended" };
 type MajorContext = { id: string; organizationId: string; programChairUserId: string | null };
@@ -142,7 +146,10 @@ class FakeRepository implements InternshipRequestRepository {
     }
     return record;
   }
-  async resubmit(requestId: string, updates?: Partial<RequestInsert>) {
+  async resubmit(
+    requestId: string,
+    updates: Parameters<InternshipRequestRepository["resubmit"]>[1],
+  ) {
     const record = this.requests.find((item) => item.id === requestId);
     if (!record || record.status !== "revision_requested") throw new Error("Not revisable");
     Object.assign(record, updates);
@@ -185,6 +192,36 @@ const baseCreateInput = {
   advisorUserId: "advisor-1",
   companyOrganizationId: "company",
 };
+
+const resubmitUpdates = {
+  positionTitle: "Frontend Engineering Intern",
+  description: "Build accessible frontend features for the summer.",
+  proposedStartDate: new Date("2026-10-15"),
+  proposedEndDate: new Date("2027-02-15"),
+  companyOrganizationId: "company",
+};
+
+describe("resubmitInternshipRequestSchema", () => {
+  test("accepts a complete editable request without immutable workflow fields", () => {
+    expect(
+      resubmitInternshipRequestSchema.safeParse({
+        ...resubmitUpdates,
+        companyOrganizationId: "00000000-0000-4000-8000-000000000001",
+      }).success,
+    ).toBe(true);
+  });
+
+  test("rejects invalid dates and ambiguous company choices", () => {
+    expect(
+      resubmitInternshipRequestSchema.safeParse({
+        ...resubmitUpdates,
+        proposedEndDate: resubmitUpdates.proposedStartDate,
+        companyOrganizationId: "00000000-0000-4000-8000-000000000001",
+        companyNameProposed: "Another Company",
+      }).success,
+    ).toBe(false);
+  });
+});
 
 describe("InternshipRequestService.createRequest", () => {
   test("creates a request with all three approval steps resolved up front", async () => {
@@ -330,8 +367,9 @@ describe("InternshipRequestService.resubmit / cancelRequest", () => {
       decision: "revision_requested",
       note: "Fix the dates",
     });
-    const record = await svc.resubmit("student-1", created.id);
+    const record = await svc.resubmit("student-1", created.id, resubmitUpdates);
     expect(record.status).toBe("submitted");
+    expect(record.positionTitle).toBe("Frontend Engineering Intern");
     expect(record.approvals.every((a) => a.decision === "pending")).toBe(true);
   });
 
@@ -345,9 +383,33 @@ describe("InternshipRequestService.resubmit / cancelRequest", () => {
       decision: "revision_requested",
       note: "Fix the dates",
     });
-    await expect(svc.resubmit("someone-else", created.id)).rejects.toMatchObject({
+    await expect(svc.resubmit("someone-else", created.id, resubmitUpdates)).rejects.toMatchObject({
       code: "STUDENT_ONLY",
     });
+  });
+
+  test("rejects changing to an organization that is not an active company", async () => {
+    const { repository, service: svc } = service();
+    const created = await svc.createRequest(baseCreateInput);
+    await svc.reviewStep({
+      actorUserId: "advisor-1",
+      requestId: created.id,
+      step: "advisor",
+      decision: "revision_requested",
+      note: "Confirm the company",
+    });
+    repository.organizations.set("inactive-company", {
+      id: "inactive-company",
+      type: "company",
+      status: "inactive",
+    });
+
+    await expect(
+      svc.resubmit("student-1", created.id, {
+        ...resubmitUpdates,
+        companyOrganizationId: "inactive-company",
+      }),
+    ).rejects.toMatchObject({ code: "COMPANY_NOT_FOUND" });
   });
 
   test("lets the student cancel their own pending request", async () => {

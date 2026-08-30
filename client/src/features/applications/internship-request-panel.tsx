@@ -29,6 +29,7 @@ function StudentRequests({ organizationId }: { organizationId?: string }) {
 	const queryClient = useQueryClient();
 	const [facultyId, setFacultyId] = useState("");
 	const [majorId, setMajorId] = useState("");
+	const [editingRequestId, setEditingRequestId] = useState<string>();
 	const faculties = useQuery({
 		queryKey: ["academic", "faculties", organizationId],
 		queryFn: async () => {
@@ -96,17 +97,44 @@ function StudentRequests({ organizationId }: { organizationId?: string }) {
 			await queryClient.invalidateQueries({ queryKey: ["internship-requests", "me"] });
 		},
 	});
-	const action = useMutation({
-		mutationFn: async ({ id, kind }: { id: string; kind: "cancel" | "resubmit" }) => {
-			const endpoint = apiClient.api.v1["internship-requests"][":requestId"];
-			const response =
-				kind === "cancel"
-					? await endpoint.cancel.$post({ param: { requestId: id } })
-					: await endpoint.resubmit.$post({ param: { requestId: id } });
+	const cancel = useMutation({
+		mutationFn: async (id: string) => {
+			const response = await apiClient.api.v1["internship-requests"][":requestId"].cancel.$post({
+				param: { requestId: id },
+			});
 			if (!response.ok) throw new Error(`REQUEST_${response.status}`);
 			return response.json();
 		},
 		onSuccess: () => queryClient.invalidateQueries({ queryKey: ["internship-requests", "me"] }),
+	});
+	const resubmit = useMutation({
+		mutationFn: async ({ request, form }: { request: EditableRequest; form: HTMLFormElement }) => {
+			const data = new FormData(form);
+			const company = request.companyOrganizationId
+				? { companyOrganizationId: request.companyOrganizationId }
+				: {
+						companyNameProposed: String(data.get("companyNameProposed")),
+						companyContactName: String(data.get("companyContactName")),
+						companyContactEmail: String(data.get("companyContactEmail")),
+						companyContactPhone: String(data.get("companyContactPhone")),
+					};
+			const response = await apiClient.api.v1["internship-requests"][":requestId"].resubmit.$post({
+				param: { requestId: request.id },
+				json: {
+					positionTitle: String(data.get("positionTitle")),
+					description: String(data.get("description")),
+					proposedStartDate: String(data.get("proposedStartDate")),
+					proposedEndDate: String(data.get("proposedEndDate")),
+					...company,
+				},
+			});
+			if (!response.ok) throw new Error(`REQUEST_${response.status}`);
+			return response.json();
+		},
+		onSuccess: async () => {
+			setEditingRequestId(undefined);
+			await queryClient.invalidateQueries({ queryKey: ["internship-requests", "me"] });
+		},
 	});
 
 	function submit(event: FormEvent<HTMLFormElement>) {
@@ -242,36 +270,177 @@ function StudentRequests({ organizationId }: { organizationId?: string }) {
 			<div className="mt-6 grid gap-4">
 				{requests.data?.data.map((request) => {
 					const status = request.status as InternshipRequestStatus;
+					const isEditing = editingRequestId === request.id;
 					return (
 						<RequestCard
 							key={request.id}
 							request={request}
 							actions={
-								<div className="flex gap-2">
-									{canResubmitRequest(status) && (
-										<Button
-											size="sm"
-											onClick={() => action.mutate({ id: request.id, kind: "resubmit" })}
-										>
-											ส่งตรวจอีกครั้ง
-										</Button>
-									)}
-									{canCancelRequest(status) && (
-										<Button
-											size="sm"
-											variant="outline"
-											onClick={() => action.mutate({ id: request.id, kind: "cancel" })}
-										>
-											ยกเลิกคำร้อง
-										</Button>
-									)}
-								</div>
+								isEditing ? (
+									<RevisionForm
+										request={request}
+										isPending={resubmit.isPending}
+										isError={resubmit.isError}
+										onCancel={() => setEditingRequestId(undefined)}
+										onSubmit={(form) => resubmit.mutate({ request, form })}
+									/>
+								) : (
+									<div className="flex gap-2">
+										{canResubmitRequest(status) && (
+											<Button size="sm" onClick={() => setEditingRequestId(request.id)}>
+												แก้ไขและส่งตรวจอีกครั้ง
+											</Button>
+										)}
+										{canCancelRequest(status) && (
+											<Button
+												size="sm"
+												variant="outline"
+												disabled={cancel.isPending}
+												onClick={() => cancel.mutate(request.id)}
+											>
+												ยกเลิกคำร้อง
+											</Button>
+										)}
+									</div>
+								)
 							}
 						/>
 					);
 				})}
 			</div>
 		</section>
+	);
+}
+
+type EditableRequest = {
+	id: string;
+	positionTitle: string;
+	description: string;
+	proposedStartDate: string | Date;
+	proposedEndDate: string | Date;
+	companyOrganizationId: string | null;
+	companyNameProposed: string | null;
+	companyContactName: string | null;
+	companyContactEmail: string | null;
+	companyContactPhone: string | null;
+};
+
+function RevisionForm({
+	request,
+	isPending,
+	isError,
+	onCancel,
+	onSubmit,
+}: {
+	request: EditableRequest;
+	isPending: boolean;
+	isError: boolean;
+	onCancel: () => void;
+	onSubmit: (form: HTMLFormElement) => void;
+}) {
+	return (
+		<form
+			className="grid gap-4 rounded-xl border bg-slate-50 p-4 md:grid-cols-2"
+			onSubmit={(event) => {
+				event.preventDefault();
+				onSubmit(event.currentTarget);
+			}}
+		>
+			<Field label="ตำแหน่งที่ขอฝึก">
+				<input
+					name="positionTitle"
+					defaultValue={request.positionTitle}
+					minLength={2}
+					maxLength={200}
+					required
+					className={controlClass}
+				/>
+			</Field>
+			{!request.companyOrganizationId && (
+				<>
+					<Field label="ชื่อสถานประกอบการ">
+						<input
+							name="companyNameProposed"
+							defaultValue={request.companyNameProposed ?? ""}
+							minLength={2}
+							maxLength={200}
+							required
+							className={controlClass}
+						/>
+					</Field>
+					<Field label="ชื่อผู้ติดต่อ">
+						<input
+							name="companyContactName"
+							defaultValue={request.companyContactName ?? ""}
+							minLength={2}
+							maxLength={200}
+							required
+							className={controlClass}
+						/>
+					</Field>
+					<Field label="อีเมลผู้ติดต่อ">
+						<input
+							name="companyContactEmail"
+							type="email"
+							defaultValue={request.companyContactEmail ?? ""}
+							required
+							className={controlClass}
+						/>
+					</Field>
+					<Field label="โทรศัพท์ผู้ติดต่อ">
+						<input
+							name="companyContactPhone"
+							defaultValue={request.companyContactPhone ?? ""}
+							minLength={8}
+							maxLength={30}
+							required
+							className={controlClass}
+						/>
+					</Field>
+				</>
+			)}
+			<Field label="วันเริ่มฝึก">
+				<input
+					name="proposedStartDate"
+					type="date"
+					defaultValue={toDateInputValue(request.proposedStartDate)}
+					required
+					className={controlClass}
+				/>
+			</Field>
+			<Field label="วันสิ้นสุด">
+				<input
+					name="proposedEndDate"
+					type="date"
+					defaultValue={toDateInputValue(request.proposedEndDate)}
+					required
+					className={controlClass}
+				/>
+			</Field>
+			<Field label="รายละเอียดงาน" wide>
+				<textarea
+					name="description"
+					defaultValue={request.description}
+					minLength={10}
+					maxLength={5000}
+					required
+					className={`${controlClass} min-h-28 py-3`}
+				/>
+			</Field>
+			<div className="flex flex-wrap gap-2 md:col-span-2">
+				<Button disabled={isPending}>
+					{isPending ? "กำลังส่ง..." : "บันทึกและส่งตรวจอีกครั้ง"}
+				</Button>
+				<Button type="button" variant="outline" disabled={isPending} onClick={onCancel}>
+					ยกเลิกการแก้ไข
+				</Button>
+			</div>
+			{isError && (
+				<p role="alert" className="text-sm text-destructive md:col-span-2">
+					ส่งคำร้องไม่สำเร็จ โปรดตรวจสอบข้อมูลและช่วงวันที่
+				</p>
+			)}
+		</form>
 	);
 }
 
@@ -478,3 +647,4 @@ const controlClass =
 	"h-11 w-full rounded-xl border bg-background px-3 text-sm outline-none focus:border-primary focus:ring-3 focus:ring-primary/10";
 const formatDate = (value: string | Date) =>
 	new Intl.DateTimeFormat("th-TH", { dateStyle: "medium" }).format(new Date(value));
+const toDateInputValue = (value: string | Date) => new Date(value).toISOString().slice(0, 10);

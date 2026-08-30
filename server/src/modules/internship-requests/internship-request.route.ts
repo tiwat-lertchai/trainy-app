@@ -8,6 +8,7 @@ import {
   createInternshipRequestSchema,
   requestIdParamSchema,
   requestStepParamSchema,
+  resubmitInternshipRequestSchema,
   reviewStepSchema,
 } from "./internship-request.schema";
 import { InternshipRequestService } from "./internship-request.service";
@@ -55,10 +56,18 @@ export const internshipRequestRoute = new Hono<{ Variables: AuthVariables }>()
       });
     },
   )
-  .post("/:requestId/resubmit", zValidator("param", requestIdParamSchema), async (c) =>
-    c.json({
-      data: await service.resubmit(c.get("authUser").id, c.req.valid("param").requestId),
-    }),
+  .post(
+    "/:requestId/resubmit",
+    zValidator("param", requestIdParamSchema),
+    zValidator("json", resubmitInternshipRequestSchema),
+    async (c) =>
+      c.json({
+        data: await service.resubmit(
+          c.get("authUser").id,
+          c.req.valid("param").requestId,
+          c.req.valid("json"),
+        ),
+      }),
   )
   .post("/:requestId/cancel", zValidator("param", requestIdParamSchema), async (c) =>
     c.json({

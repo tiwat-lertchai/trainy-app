@@ -45,19 +45,17 @@ export interface InternshipRequestRepository {
   }): Promise<RequestWithApprovals>;
   resubmit(
     requestId: string,
-    updates?: Partial<
-      Pick<
-        RequestInsert,
-        | "positionTitle"
-        | "description"
-        | "proposedStartDate"
-        | "proposedEndDate"
-        | "companyOrganizationId"
-        | "companyNameProposed"
-        | "companyContactName"
-        | "companyContactEmail"
-        | "companyContactPhone"
-      >
+    updates: Pick<
+      RequestInsert,
+      | "positionTitle"
+      | "description"
+      | "proposedStartDate"
+      | "proposedEndDate"
+      | "companyOrganizationId"
+      | "companyNameProposed"
+      | "companyContactName"
+      | "companyContactEmail"
+      | "companyContactPhone"
     >,
   ): Promise<RequestWithApprovals>;
   cancel(requestId: string): Promise<RequestRecord>;
@@ -205,12 +203,21 @@ export class DrizzleInternshipRequestRepository implements InternshipRequestRepo
 
   async resubmit(
     requestId: string,
-    updates?: Parameters<InternshipRequestRepository["resubmit"]>[1],
+    updates: Parameters<InternshipRequestRepository["resubmit"]>[1],
   ) {
     return this.database.transaction(async (transaction) => {
       const [record] = await transaction
         .update(internshipRequest)
-        .set({ ...updates, status: "submitted", revisionNote: null })
+        .set({
+          ...updates,
+          companyOrganizationId: updates.companyOrganizationId ?? null,
+          companyNameProposed: updates.companyNameProposed ?? null,
+          companyContactName: updates.companyContactName ?? null,
+          companyContactEmail: updates.companyContactEmail ?? null,
+          companyContactPhone: updates.companyContactPhone ?? null,
+          status: "submitted",
+          revisionNote: null,
+        })
         .where(
           and(
             eq(internshipRequest.id, requestId),
