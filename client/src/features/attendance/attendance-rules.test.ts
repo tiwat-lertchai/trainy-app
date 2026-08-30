@@ -1,7 +1,7 @@
 import { expect, test } from "bun:test";
 import {
-	adjustmentStatusLabel,
-	attendanceStatusLabel,
+	adjustmentStatusKeys,
+	attendanceStatusKeys,
 	canCheckInOut,
 	canManageSchedule,
 	canReviewAdjustments,
@@ -32,12 +32,11 @@ test("only university staff view the university summary", () => {
 });
 
 test("formats net minutes into hours and minutes", () => {
-	expect(formatNetMinutes(125)).toBe("2 ชม. 5 นาที");
+	expect(formatNetMinutes(125, "hr", "min")).toBe("2 hr 5 min");
 	expect(formatNetMinutes(null)).toBe("-");
 });
 
 test("labels known attendance and adjustment statuses", () => {
-	expect(attendanceStatusLabel("late_and_left_early")).toBe("มาสายและออกก่อนเวลา");
-	expect(attendanceStatusLabel("unknown_status")).toBe("unknown_status");
-	expect(adjustmentStatusLabel("approved")).toBe("อนุมัติแล้ว");
+	expect(attendanceStatusKeys.late_and_left_early).toBe("attendance.status.lateAndLeftEarly");
+	expect(adjustmentStatusKeys.approved).toBe("attendance.adjustment.approved");
 });

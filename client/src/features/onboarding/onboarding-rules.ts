@@ -1,28 +1,40 @@
 export type OnboardingRole =
 	"student" | "advisor" | "coordinator" | "university_admin" | "company_admin" | "supervisor";
 
-export const roleOptions: Array<{ value: OnboardingRole; label: string; description: string }> = [
-	{ value: "student", label: "นักศึกษา", description: "ค้นหาและสมัครฝึกงานได้ทันทีหลังกรอกข้อมูล" },
-	{ value: "advisor", label: "อาจารย์ที่ปรึกษา", description: "รอผู้ดูแลมหาวิทยาลัยตรวจสอบ" },
+export const roleOptions: Array<{
+	value: OnboardingRole;
+	labelKey: MessageKey;
+	descriptionKey: MessageKey;
+}> = [
+	{
+		value: "student",
+		labelKey: "onboarding.role.student",
+		descriptionKey: "onboarding.role.studentDetail",
+	},
+	{
+		value: "advisor",
+		labelKey: "onboarding.role.advisor",
+		descriptionKey: "onboarding.role.universityReview",
+	},
 	{
 		value: "coordinator",
-		label: "เจ้าหน้าที่/ผู้ประสานงาน",
-		description: "รอผู้ดูแลมหาวิทยาลัยตรวจสอบ",
+		labelKey: "onboarding.role.coordinator",
+		descriptionKey: "onboarding.role.universityReview",
 	},
 	{
 		value: "university_admin",
-		label: "ผู้ดูแลมหาวิทยาลัย",
-		description: "รอเจ้าหน้าที่ CWIE ตรวจสอบ",
+		labelKey: "onboarding.role.universityAdmin",
+		descriptionKey: "onboarding.role.cwieReview",
 	},
 	{
 		value: "company_admin",
-		label: "ผู้แทนสถานประกอบการ",
-		description: "รอเจ้าหน้าที่ CWIE ตรวจเอกสารบริษัท",
+		labelKey: "onboarding.role.companyAdmin",
+		descriptionKey: "onboarding.role.companyReview",
 	},
 	{
 		value: "supervisor",
-		label: "พี่เลี้ยง/ผู้ควบคุมการฝึกงาน",
-		description: "รอผู้ดูแลสถานประกอบการตรวจสอบ",
+		labelKey: "onboarding.role.supervisor",
+		descriptionKey: "onboarding.role.companyAdminReview",
 	},
 ];
 
@@ -31,8 +43,10 @@ export function organizationTypeForRole(role: OnboardingRole) {
 	return role === "supervisor" ? "company" : "university";
 }
 
-export function organizationFieldLabel(type: "university" | "company" | null) {
-	return type === "company" ? "องค์กร/บริษัท" : "องค์กร/มหาวิทยาลัย";
+export function organizationFieldKey(type: "university" | "company" | null): MessageKey {
+	return type === "company"
+		? "onboarding.companyOrganization"
+		: "onboarding.universityOrganization";
 }
 
 export function facultiesEnabledForRole(role: OnboardingRole) {
@@ -42,3 +56,4 @@ export function facultiesEnabledForRole(role: OnboardingRole) {
 export function isImmediatelyApproved(role: OnboardingRole) {
 	return role === "student";
 }
+import type { MessageKey } from "@/i18n/messages";

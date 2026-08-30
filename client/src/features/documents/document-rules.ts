@@ -6,26 +6,25 @@ export function canReviewDocument(status: DocumentStatus, assignedReviewer: bool
 	return assignedReviewer && status === "submitted";
 }
 
-export function documentStatusLabel(status: DocumentStatus) {
-	return { submitted: "รอตรวจ", approved: "อนุมัติแล้ว", rejected: "ไม่ผ่านการตรวจ" }[status];
-}
+export const documentStatusKeys = {
+	submitted: "documents.status.submitted",
+	approved: "documents.status.approved",
+	rejected: "documents.status.rejected",
+} satisfies Record<DocumentStatus, MessageKey>;
 
-export function documentTypeLabel(type: string) {
-	return (
-		{
-			resume: "ประวัติย่อ",
-			consent: "หนังสือยินยอม",
-			progress_evidence: "หลักฐานความก้าวหน้า",
-			final_report: "รายงานฉบับสมบูรณ์",
-			other: "เอกสารอื่น",
-		}[type] ?? type
-	);
-}
+export const documentTypeKeys = {
+	resume: "documents.type.resume",
+	consent: "documents.type.consent",
+	progress_evidence: "documents.type.progressEvidence",
+	final_report: "documents.type.finalReport",
+	other: "documents.type.other",
+} satisfies Record<string, MessageKey>;
 
 export function validateDocumentFile(file: Pick<File, "size" | "type">) {
-	if (file.size < 1) return "ไฟล์ต้องไม่ว่างเปล่า";
-	if (file.size > MAX_DOCUMENT_BYTES) return "ไฟล์ต้องมีขนาดไม่เกิน 20 MB";
+	if (file.size < 1) return "documents.validation.empty" as const;
+	if (file.size > MAX_DOCUMENT_BYTES) return "documents.validation.tooLarge" as const;
 	if (!ALLOWED_DOCUMENT_TYPES.includes(file.type as (typeof ALLOWED_DOCUMENT_TYPES)[number]))
-		return "รองรับเฉพาะไฟล์ PDF, JPEG และ PNG";
+		return "documents.validation.type" as const;
 	return null;
 }
+import type { MessageKey } from "@/i18n/messages";

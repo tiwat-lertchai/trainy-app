@@ -2,6 +2,7 @@ import { useState, type FormEvent } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { BookOpen, CalendarDays, Clock3, Pencil } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { useLanguage } from "@/i18n/config";
 import { apiClient } from "@/lib/api-client";
 import { canEditReport, canReviewReport } from "./progress-rules";
 
@@ -14,6 +15,7 @@ type FormDataValue = {
 };
 
 export function ProgressPage() {
+	const { locale, t } = useLanguage();
 	const queryClient = useQueryClient();
 	const [selectedPlacement, setSelectedPlacement] = useState("");
 	const [editingId, setEditingId] = useState<string | null>(null);
@@ -104,13 +106,11 @@ export function ProgressPage() {
 
 	return (
 		<div>
-			<p className="text-sm font-semibold text-primary">PROGRESS REPORTS</p>
-			<h1 className="mt-2 text-3xl font-black">บันทึกการฝึกงาน</h1>
-			<p className="mt-2 text-muted-foreground">
-				บันทึกกิจกรรม ชั่วโมงทำงาน และส่งให้อาจารย์หรือพี่เลี้ยงตรวจ
-			</p>
+			<p className="text-sm font-semibold text-primary">{t("progress.eyebrow")}</p>
+			<h1 className="mt-2 text-3xl font-black">{t("progress.title")}</h1>
+			<p className="mt-2 text-muted-foreground">{t("progress.description")}</p>
 			<label className="mt-6 grid max-w-xl gap-2 text-sm font-semibold">
-				การฝึกงาน
+				{t("progress.placement")}
 				<select
 					className="h-11 rounded-xl border bg-white px-3"
 					value={placementId}
@@ -143,8 +143,8 @@ export function ProgressPage() {
 				/>
 			)}
 			{reports.isLoading && <div className="mt-8 h-36 animate-pulse rounded-2xl bg-muted" />}
-			{reports.isError && <Notice message="โหลดบันทึกการฝึกงานไม่สำเร็จ" error />}
-			{reports.data?.data.length === 0 && <Notice message="ยังไม่มีบันทึกสำหรับการฝึกงานนี้" />}
+			{reports.isError && <Notice message={t("progress.loadError")} error />}
+			{reports.data?.data.length === 0 && <Notice message={t("progress.empty")} />}
 			<div className="mt-8 grid gap-4">
 				{reports.data?.data.map((report) => (
 					<article key={report.id} className="rounded-2xl border bg-white p-6">
@@ -157,17 +157,17 @@ export function ProgressPage() {
 						<div className="mt-5 flex flex-wrap gap-5 text-sm text-muted-foreground">
 							<span className="flex gap-2">
 								<CalendarDays className="size-4" />
-								{formatDate(report.periodStart)} – {formatDate(report.periodEnd)}
+								{formatDate(report.periodStart, locale)} – {formatDate(report.periodEnd, locale)}
 							</span>
 							<span className="flex gap-2">
 								<Clock3 className="size-4" />
-								{report.hoursWorked} ชั่วโมง
+								{t("progress.hours", { count: report.hoursWorked })}
 							</span>
 						</div>
 						<p className="mt-4 whitespace-pre-wrap leading-7">{report.summary}</p>
 						{report.feedback && (
 							<p className="mt-4 rounded-xl bg-amber-50 p-4 text-sm">
-								ข้อเสนอแนะ: {report.feedback}
+								{t("progress.feedback", { feedback: report.feedback })}
 							</p>
 						)}
 						<div className="mt-5 flex flex-wrap gap-2">
@@ -175,13 +175,17 @@ export function ProgressPage() {
 								<>
 									<Button variant="outline" onClick={() => setEditingId(report.id)}>
 										<Pencil />
-										แก้ไข
+										{t("progress.edit")}
 									</Button>
 									<Button
 										disabled={action.isPending}
 										onClick={() => action.mutate({ kind: "submit", id: report.id })}
 									>
-										{report.status === "revision_requested" ? "ส่งใหม่" : "ส่งตรวจ"}
+										{t(
+											report.status === "revision_requested"
+												? "progress.resubmit"
+												: "progress.submit",
+										)}
 									</Button>
 								</>
 							)}
@@ -193,13 +197,13 @@ export function ProgressPage() {
 											action.mutate({ kind: "review", id: report.id, decision: "approved" })
 										}
 									>
-										อนุมัติ
+										{t("progress.approve")}
 									</Button>
 									<Button
 										variant="outline"
 										onClick={() => setRevisionId(revisionId === report.id ? null : report.id)}
 									>
-										ขอแก้ไข
+										{t("progress.requestRevision")}
 									</Button>
 								</>
 							)}
@@ -218,7 +222,7 @@ export function ProgressPage() {
 								}}
 							>
 								<label className="text-sm font-semibold">
-									สิ่งที่ต้องแก้ไข
+									{t("progress.revisionDetails")}
 									<textarea
 										value={feedback}
 										onChange={(event) => setFeedback(event.target.value)}
@@ -229,16 +233,14 @@ export function ProgressPage() {
 									/>
 								</label>
 								<Button disabled={action.isPending || feedback.trim().length < 3}>
-									ส่งคำขอแก้ไข
+									{t("progress.sendRevision")}
 								</Button>
 							</form>
 						)}
 					</article>
 				))}
 			</div>
-			{action.isError && (
-				<Notice message="ดำเนินการไม่สำเร็จ กรุณาตรวจสอบข้อมูล สิทธิ์ และสถานะล่าสุด" error />
-			)}
+			{action.isError && <Notice message={t("progress.actionError")} error />}
 		</div>
 	);
 }
@@ -259,6 +261,7 @@ function ReportForm({
 	onCancel: () => void;
 	onSubmit: (data: FormDataValue) => void;
 }) {
+	const { t } = useLanguage();
 	function submit(event: FormEvent<HTMLFormElement>) {
 		event.preventDefault();
 		const values = new FormData(event.currentTarget);
@@ -276,19 +279,24 @@ function ReportForm({
 		>
 			<Field
 				name="start"
-				label="เริ่มช่วงรายงาน"
+				label={t("progress.periodStart")}
 				type="date"
 				defaultValue={toDateInput(report?.periodStart)}
 			/>
 			<Field
 				name="end"
-				label="สิ้นสุดช่วงรายงาน"
+				label={t("progress.periodEnd")}
 				type="date"
 				defaultValue={toDateInput(report?.periodEnd)}
 			/>
-			<Field name="hours" label="ชั่วโมงทำงาน" type="number" defaultValue={report?.hoursWorked} />
+			<Field
+				name="hours"
+				label={t("progress.hoursWorked")}
+				type="number"
+				defaultValue={report?.hoursWorked}
+			/>
 			<label className="grid gap-2 text-sm font-semibold sm:col-span-3">
-				กิจกรรมและสิ่งที่เรียนรู้
+				{t("progress.summary")}
 				<textarea
 					name="summary"
 					minLength={20}
@@ -301,11 +309,11 @@ function ReportForm({
 			<div className="flex gap-2 sm:col-span-3">
 				{report && (
 					<Button type="button" variant="outline" onClick={onCancel}>
-						ยกเลิก
+						{t("common.cancel")}
 					</Button>
 				)}
 				<Button className="flex-1" disabled={pending}>
-					{pending ? "กำลังบันทึก..." : report ? "บันทึกการแก้ไข" : "บันทึกร่าง"}
+					{t(pending ? "progress.saving" : report ? "progress.saveChanges" : "progress.saveDraft")}
 				</Button>
 			</div>
 		</form>
@@ -337,15 +345,16 @@ function Field({
 	);
 }
 function Badge({ status }: { status: string }) {
-	const labels: Record<string, string> = {
-		draft: "ฉบับร่าง",
-		submitted: "รอตรวจ",
-		approved: "อนุมัติแล้ว",
-		revision_requested: "ขอแก้ไข",
-	};
+	const { t } = useLanguage();
+	const keys = {
+		draft: "progress.status.draft",
+		submitted: "progress.status.submitted",
+		approved: "progress.status.approved",
+		revision_requested: "progress.status.revisionRequested",
+	} as const;
 	return (
 		<span className="h-fit rounded-full bg-slate-100 px-3 py-1 text-xs font-semibold">
-			{labels[status] ?? status}
+			{status in keys ? t(keys[status as keyof typeof keys]) : status}
 		</span>
 	);
 }
@@ -359,8 +368,8 @@ function Notice({ message, error = false }: { message: string; error?: boolean }
 		</div>
 	);
 }
-function formatDate(value: string | Date) {
-	return new Intl.DateTimeFormat("th-TH", { dateStyle: "medium" }).format(new Date(value));
+function formatDate(value: string | Date, locale: string) {
+	return new Intl.DateTimeFormat(locale, { dateStyle: "medium" }).format(new Date(value));
 }
 function toDateInput(value?: string | Date) {
 	return value ? new Date(value).toISOString().slice(0, 10) : undefined;

@@ -1,5 +1,5 @@
 import { describe, expect, test } from "bun:test";
-import { canEditEvaluation, evaluatorLabel, visibleEvaluations } from "./evaluation-rules";
+import { canEditEvaluation, evaluatorKeys, visibleEvaluations } from "./evaluation-rules";
 
 const records = [
 	{ id: "advisor", evaluatorType: "advisor" as const, status: "draft" as const },
@@ -22,6 +22,6 @@ describe("evaluation presentation rules", () => {
 			"supervisor",
 		]);
 	});
-	test("labels evaluator roles in Thai", () =>
-		expect(evaluatorLabel("advisor")).toBe("อาจารย์ที่ปรึกษา"));
+	test("maps evaluator roles to typed translation keys", () =>
+		expect(evaluatorKeys.advisor).toBe("evaluations.evaluator.advisor"));
 });

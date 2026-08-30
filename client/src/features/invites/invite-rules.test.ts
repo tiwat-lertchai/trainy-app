@@ -1,10 +1,5 @@
 import { describe, expect, it } from "bun:test";
-import {
-	buildInviteUrl,
-	canManageInvites,
-	getInviteStatus,
-	inviteErrorMessage,
-} from "./invite-rules";
+import { buildInviteUrl, canManageInvites, getInviteStatus, inviteErrorKey } from "./invite-rules";
 
 const future = "2026-09-10T00:00:00.000Z";
 const now = new Date("2026-09-01T00:00:00.000Z");
@@ -40,9 +35,7 @@ describe("invite rules", () => {
 		expect(canManageInvites("company_admin")).toBe(false);
 	});
 	it("maps known codes and safely falls back", () => {
-		expect(inviteErrorMessage("MEMBERSHIP_CONFLICT")).toContain("สมาชิก");
-		expect(inviteErrorMessage("UNKNOWN")).toContain("ลองใหม่");
-		expect(inviteErrorMessage("MEMBERSHIP_CONFLICT", "en")).toContain("already a member");
-		expect(inviteErrorMessage("UNKNOWN", "en")).toContain("try again");
+		expect(inviteErrorKey("MEMBERSHIP_CONFLICT")).toBe("invites.error.membershipConflict");
+		expect(inviteErrorKey("UNKNOWN")).toBe("invites.error.unknown");
 	});
 });

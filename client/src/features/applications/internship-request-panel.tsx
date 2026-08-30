@@ -2,13 +2,14 @@ import { useState, type FormEvent } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { Building2, CheckCircle2, Clock3 } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { useLanguage } from "@/i18n/config";
 import { apiClient } from "@/lib/api-client";
 import type { OrganizationRole } from "@/features/organizations/role-navigation";
 import {
 	canCancelRequest,
 	canResubmitRequest,
-	requestStatusLabels,
-	requestStepLabels,
+	requestStatusKeys,
+	requestStepKeys,
 	type InternshipRequestStatus,
 	type InternshipRequestStep,
 } from "./internship-request-rules";
@@ -26,6 +27,7 @@ export function InternshipRequestPanel({ organizationId, role }: Props) {
 }
 
 function StudentRequests({ organizationId }: { organizationId?: string }) {
+	const { t } = useLanguage();
 	const queryClient = useQueryClient();
 	const [facultyId, setFacultyId] = useState("");
 	const [majorId, setMajorId] = useState("");
@@ -145,21 +147,19 @@ function StudentRequests({ organizationId }: { organizationId?: string }) {
 
 	return (
 		<section className="mt-12 border-t pt-10">
-			<h2 className="text-2xl font-black">คำร้องฝึกงานที่หาสถานประกอบการเอง</h2>
-			<p className="mt-2 text-muted-foreground">
-				ส่งคำร้องให้อาจารย์ที่ปรึกษา หัวหน้าหลักสูตร และศูนย์สหกิจศึกษาตรวจตามลำดับ
-			</p>
+			<h2 className="text-2xl font-black">{t("internshipRequests.title")}</h2>
+			<p className="mt-2 text-muted-foreground">{t("internshipRequests.description")}</p>
 			<form
 				className="mt-6 grid gap-4 rounded-2xl border bg-white p-6 md:grid-cols-2"
 				onSubmit={submit}
 			>
-				<Field label="ประเภทการฝึกงาน">
+				<Field label={t("internshipRequests.type")}>
 					<select name="type" required className={controlClass}>
-						<option value="regular">ฝึกงานปกติ</option>
-						<option value="cooperative">สหกิจศึกษา</option>
+						<option value="regular">{t("internshipRequests.type.regular")}</option>
+						<option value="cooperative">{t("internshipRequests.type.cooperative")}</option>
 					</select>
 				</Field>
-				<Field label="คณะ">
+				<Field label={t("internshipRequests.faculty")}>
 					<select
 						required
 						className={controlClass}
@@ -169,7 +169,7 @@ function StudentRequests({ organizationId }: { organizationId?: string }) {
 							setMajorId("");
 						}}
 					>
-						<option value="">เลือกคณะ</option>
+						<option value="">{t("internshipRequests.selectFaculty")}</option>
 						{faculties.data?.data.map((faculty) => (
 							<option key={faculty.id} value={faculty.id}>
 								{faculty.name}
@@ -177,14 +177,14 @@ function StudentRequests({ organizationId }: { organizationId?: string }) {
 						))}
 					</select>
 				</Field>
-				<Field label="สาขาวิชา">
+				<Field label={t("internshipRequests.major")}>
 					<select
 						required
 						className={controlClass}
 						value={majorId}
 						onChange={(e) => setMajorId(e.target.value)}
 					>
-						<option value="">เลือกสาขาวิชา</option>
+						<option value="">{t("internshipRequests.selectMajor")}</option>
 						{majors.data?.data.map((major) => (
 							<option key={major.id} value={major.id}>
 								{major.name}
@@ -192,9 +192,9 @@ function StudentRequests({ organizationId }: { organizationId?: string }) {
 						))}
 					</select>
 				</Field>
-				<Field label="อาจารย์ที่ปรึกษา">
+				<Field label={t("internshipRequests.advisor")}>
 					<select name="advisorUserId" required className={controlClass}>
-						<option value="">เลือกอาจารย์</option>
+						<option value="">{t("internshipRequests.selectAdvisor")}</option>
 						{advisors.data?.data.map((advisor) => (
 							<option key={advisor.userId} value={advisor.userId}>
 								{advisor.name}
@@ -202,7 +202,7 @@ function StudentRequests({ organizationId }: { organizationId?: string }) {
 						))}
 					</select>
 				</Field>
-				<Field label="ตำแหน่งที่ขอฝึก">
+				<Field label={t("internshipRequests.position")}>
 					<input
 						name="positionTitle"
 						minLength={2}
@@ -211,7 +211,7 @@ function StudentRequests({ organizationId }: { organizationId?: string }) {
 						className={controlClass}
 					/>
 				</Field>
-				<Field label="ชื่อสถานประกอบการ">
+				<Field label={t("internshipRequests.companyName")}>
 					<input
 						name="companyNameProposed"
 						minLength={2}
@@ -220,13 +220,13 @@ function StudentRequests({ organizationId }: { organizationId?: string }) {
 						className={controlClass}
 					/>
 				</Field>
-				<Field label="วันเริ่มฝึก">
+				<Field label={t("internshipRequests.startDate")}>
 					<input name="proposedStartDate" type="date" required className={controlClass} />
 				</Field>
-				<Field label="วันสิ้นสุด">
+				<Field label={t("internshipRequests.endDate")}>
 					<input name="proposedEndDate" type="date" required className={controlClass} />
 				</Field>
-				<Field label="ชื่อผู้ติดต่อ">
+				<Field label={t("internshipRequests.contactName")}>
 					<input
 						name="companyContactName"
 						minLength={2}
@@ -235,10 +235,10 @@ function StudentRequests({ organizationId }: { organizationId?: string }) {
 						className={controlClass}
 					/>
 				</Field>
-				<Field label="อีเมลผู้ติดต่อ">
+				<Field label={t("internshipRequests.contactEmail")}>
 					<input name="companyContactEmail" type="email" required className={controlClass} />
 				</Field>
-				<Field label="โทรศัพท์ผู้ติดต่อ">
+				<Field label={t("internshipRequests.contactPhone")}>
 					<input
 						name="companyContactPhone"
 						minLength={8}
@@ -247,7 +247,7 @@ function StudentRequests({ organizationId }: { organizationId?: string }) {
 						className={controlClass}
 					/>
 				</Field>
-				<Field label="รายละเอียดงาน" wide>
+				<Field label={t("internshipRequests.details")} wide>
 					<textarea
 						name="description"
 						minLength={10}
@@ -259,11 +259,11 @@ function StudentRequests({ organizationId }: { organizationId?: string }) {
 				<div className="md:col-span-2">
 					{create.isError && (
 						<p role="alert" className="mb-3 text-sm text-destructive">
-							ส่งคำร้องไม่สำเร็จ โปรดตรวจว่าสาขามีหัวหน้าหลักสูตรและข้อมูลครบถ้วน
+							{t("internshipRequests.createError")}
 						</p>
 					)}
 					<Button disabled={create.isPending || !majorId}>
-						{create.isPending ? "กำลังส่ง..." : "ส่งคำร้อง"}
+						{t(create.isPending ? "internshipRequests.sending" : "internshipRequests.send")}
 					</Button>
 				</div>
 			</form>
@@ -288,7 +288,7 @@ function StudentRequests({ organizationId }: { organizationId?: string }) {
 									<div className="flex gap-2">
 										{canResubmitRequest(status) && (
 											<Button size="sm" onClick={() => setEditingRequestId(request.id)}>
-												แก้ไขและส่งตรวจอีกครั้ง
+												{t("internshipRequests.editResubmit")}
 											</Button>
 										)}
 										{canCancelRequest(status) && (
@@ -298,7 +298,7 @@ function StudentRequests({ organizationId }: { organizationId?: string }) {
 												disabled={cancel.isPending}
 												onClick={() => cancel.mutate(request.id)}
 											>
-												ยกเลิกคำร้อง
+												{t("internshipRequests.cancel")}
 											</Button>
 										)}
 									</div>
@@ -338,6 +338,7 @@ function RevisionForm({
 	onCancel: () => void;
 	onSubmit: (form: HTMLFormElement) => void;
 }) {
+	const { t } = useLanguage();
 	return (
 		<form
 			className="grid gap-4 rounded-xl border bg-slate-50 p-4 md:grid-cols-2"
@@ -346,7 +347,7 @@ function RevisionForm({
 				onSubmit(event.currentTarget);
 			}}
 		>
-			<Field label="ตำแหน่งที่ขอฝึก">
+			<Field label={t("internshipRequests.position")}>
 				<input
 					name="positionTitle"
 					defaultValue={request.positionTitle}
@@ -358,7 +359,7 @@ function RevisionForm({
 			</Field>
 			{!request.companyOrganizationId && (
 				<>
-					<Field label="ชื่อสถานประกอบการ">
+					<Field label={t("internshipRequests.companyName")}>
 						<input
 							name="companyNameProposed"
 							defaultValue={request.companyNameProposed ?? ""}
@@ -368,7 +369,7 @@ function RevisionForm({
 							className={controlClass}
 						/>
 					</Field>
-					<Field label="ชื่อผู้ติดต่อ">
+					<Field label={t("internshipRequests.contactName")}>
 						<input
 							name="companyContactName"
 							defaultValue={request.companyContactName ?? ""}
@@ -378,7 +379,7 @@ function RevisionForm({
 							className={controlClass}
 						/>
 					</Field>
-					<Field label="อีเมลผู้ติดต่อ">
+					<Field label={t("internshipRequests.contactEmail")}>
 						<input
 							name="companyContactEmail"
 							type="email"
@@ -387,7 +388,7 @@ function RevisionForm({
 							className={controlClass}
 						/>
 					</Field>
-					<Field label="โทรศัพท์ผู้ติดต่อ">
+					<Field label={t("internshipRequests.contactPhone")}>
 						<input
 							name="companyContactPhone"
 							defaultValue={request.companyContactPhone ?? ""}
@@ -399,7 +400,7 @@ function RevisionForm({
 					</Field>
 				</>
 			)}
-			<Field label="วันเริ่มฝึก">
+			<Field label={t("internshipRequests.startDate")}>
 				<input
 					name="proposedStartDate"
 					type="date"
@@ -408,7 +409,7 @@ function RevisionForm({
 					className={controlClass}
 				/>
 			</Field>
-			<Field label="วันสิ้นสุด">
+			<Field label={t("internshipRequests.endDate")}>
 				<input
 					name="proposedEndDate"
 					type="date"
@@ -417,7 +418,7 @@ function RevisionForm({
 					className={controlClass}
 				/>
 			</Field>
-			<Field label="รายละเอียดงาน" wide>
+			<Field label={t("internshipRequests.details")} wide>
 				<textarea
 					name="description"
 					defaultValue={request.description}
@@ -429,15 +430,15 @@ function RevisionForm({
 			</Field>
 			<div className="flex flex-wrap gap-2 md:col-span-2">
 				<Button disabled={isPending}>
-					{isPending ? "กำลังส่ง..." : "บันทึกและส่งตรวจอีกครั้ง"}
+					{t(isPending ? "internshipRequests.sending" : "internshipRequests.saveResubmit")}
 				</Button>
 				<Button type="button" variant="outline" disabled={isPending} onClick={onCancel}>
-					ยกเลิกการแก้ไข
+					{t("internshipRequests.cancelEdit")}
 				</Button>
 			</div>
 			{isError && (
 				<p role="alert" className="text-sm text-destructive md:col-span-2">
-					ส่งคำร้องไม่สำเร็จ โปรดตรวจสอบข้อมูลและช่วงวันที่
+					{t("internshipRequests.resubmitError")}
 				</p>
 			)}
 		</form>
@@ -445,6 +446,7 @@ function RevisionForm({
 }
 
 function RequestReviews() {
+	const { t } = useLanguage();
 	const queryClient = useQueryClient();
 	const [notes, setNotes] = useState<Record<string, string>>({});
 	const reviews = useQuery({
@@ -479,10 +481,10 @@ function RequestReviews() {
 	});
 	return (
 		<section className="mt-10">
-			<h2 className="text-2xl font-black">คำร้องที่รอตรวจสอบ</h2>
+			<h2 className="text-2xl font-black">{t("internshipRequests.pendingTitle")}</h2>
 			{reviews.data?.data.length === 0 && (
 				<p className="mt-5 rounded-2xl border bg-white p-8 text-center text-muted-foreground">
-					ไม่มีคำร้องที่รอตรวจสอบ
+					{t("internshipRequests.pendingEmpty")}
 				</p>
 			)}
 			<div className="mt-6 grid gap-4">
@@ -497,7 +499,7 @@ function RequestReviews() {
 								<div className="grid gap-3">
 									<textarea
 										className={`${controlClass} min-h-20 py-2`}
-										placeholder="หมายเหตุ (จำเป็นเมื่อไม่อนุมัติหรือขอแก้ไข)"
+										placeholder={t("internshipRequests.notePlaceholder")}
 										value={notes[request.id] ?? ""}
 										onChange={(event) =>
 											setNotes((current) => ({ ...current, [request.id]: event.target.value }))
@@ -515,7 +517,7 @@ function RequestReviews() {
 												})
 											}
 										>
-											อนุมัติ
+											{t("internshipRequests.approve")}
 										</Button>
 										<Button
 											size="sm"
@@ -529,7 +531,7 @@ function RequestReviews() {
 												})
 											}
 										>
-											ขอแก้ไข
+											{t("internshipRequests.requestRevision")}
 										</Button>
 										<Button
 											size="sm"
@@ -543,12 +545,12 @@ function RequestReviews() {
 												})
 											}
 										>
-											ไม่อนุมัติ
+											{t("internshipRequests.reject")}
 										</Button>
 									</div>
 									{review.isError && (
 										<p role="alert" className="text-sm text-destructive">
-											ดำเนินการไม่สำเร็จ คำร้องอาจถูกตรวจไปแล้ว
+											{t("internshipRequests.reviewError")}
 										</p>
 									)}
 								</div>
@@ -577,6 +579,7 @@ function RequestCard({
 	};
 	actions?: React.ReactNode;
 }) {
+	const { locale, t } = useLanguage();
 	const status = request.status as InternshipRequestStatus;
 	return (
 		<article className="rounded-2xl border bg-white p-6">
@@ -588,16 +591,17 @@ function RequestCard({
 					<div>
 						<h3 className="font-bold">{request.positionTitle}</h3>
 						<p className="text-sm text-muted-foreground">
-							{request.companyNameProposed ?? "สถานประกอบการในระบบ"}
+							{request.companyNameProposed ?? t("internshipRequests.systemCompany")}
 						</p>
 					</div>
 				</div>
 				<span className="h-fit rounded-full bg-amber-50 px-3 py-1 text-xs font-semibold text-amber-700">
-					{requestStatusLabels[status]}
+					{t(requestStatusKeys[status])}
 				</span>
 			</div>
 			<p className="mt-4 text-sm text-muted-foreground">
-				{formatDate(request.proposedStartDate)} – {formatDate(request.proposedEndDate)}
+				{formatDate(request.proposedStartDate, locale)} –{" "}
+				{formatDate(request.proposedEndDate, locale)}
 			</p>
 			<div className="mt-4 flex flex-wrap gap-2">
 				{request.approvals.map((approval) => (
@@ -612,13 +616,13 @@ function RequestCard({
 								<Clock3 className="size-3" />
 							)}
 						</span>
-						{requestStepLabels[approval.step as InternshipRequestStep]}
+						{t(requestStepKeys[approval.step as InternshipRequestStep])}
 					</span>
 				))}
 			</div>
 			{request.revisionNote && (
 				<p className="mt-4 rounded-xl bg-amber-50 p-3 text-sm text-amber-800">
-					เหตุผลที่ขอแก้ไข: {request.revisionNote}
+					{t("internshipRequests.revisionReason", { reason: request.revisionNote })}
 				</p>
 			)}
 			{actions && <div className="mt-5">{actions}</div>}
@@ -645,6 +649,6 @@ function Field({
 
 const controlClass =
 	"h-11 w-full rounded-xl border bg-background px-3 text-sm outline-none focus:border-primary focus:ring-3 focus:ring-primary/10";
-const formatDate = (value: string | Date) =>
-	new Intl.DateTimeFormat("th-TH", { dateStyle: "medium" }).format(new Date(value));
+const formatDate = (value: string | Date, locale: string) =>
+	new Intl.DateTimeFormat(locale, { dateStyle: "medium" }).format(new Date(value));
 const toDateInputValue = (value: string | Date) => new Date(value).toISOString().slice(0, 10);

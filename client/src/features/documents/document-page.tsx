@@ -7,8 +7,8 @@ import { useLanguage } from "@/i18n/config";
 import { apiClient } from "@/lib/api-client";
 import {
 	canReviewDocument,
-	documentStatusLabel,
-	documentTypeLabel,
+	documentStatusKeys,
+	documentTypeKeys,
 	validateDocumentFile,
 	type DocumentStatus,
 } from "./document-rules";
@@ -16,7 +16,7 @@ import {
 const WORKSPACE_KEY = "trainy-workspace-id";
 
 export function DocumentPage() {
-	const { t } = useLanguage();
+	const { locale, t } = useLanguage();
 	const queryClient = useQueryClient();
 	const [selectedPlacement, setSelectedPlacement] = useState("");
 	const [rejectingId, setRejectingId] = useState<string | null>(null);
@@ -101,12 +101,12 @@ export function DocumentPage() {
 		const form = new FormData(formElement);
 		const file = form.get("file");
 		if (!(file instanceof File)) {
-			setUploadError("กรุณาเลือกไฟล์");
+			setUploadError(t("documents.selectFile"));
 			return;
 		}
 		const validationError = validateDocumentFile(file);
 		if (validationError) {
-			setUploadError(validationError);
+			setUploadError(t(validationError));
 			return;
 		}
 		setUploadError(null);
@@ -135,7 +135,7 @@ export function DocumentPage() {
 			link.click();
 			URL.revokeObjectURL(url);
 		} catch {
-			setDownloadError("ดาวน์โหลดไม่สำเร็จ กรุณาตรวจสอบสิทธิ์หรือไฟล์บน Server");
+			setDownloadError(t("documents.downloadError"));
 		} finally {
 			setDownloadingId(null);
 		}
@@ -143,13 +143,11 @@ export function DocumentPage() {
 
 	return (
 		<div>
-			<p className="text-sm font-semibold text-primary">DOCUMENTS</p>
-			<h1 className="mt-2 text-3xl font-black">เอกสารการฝึกงาน</h1>
-			<p className="mt-2 text-muted-foreground">
-				ติดตามเอกสารประกอบการฝึกงานและผลการตรวจจากผู้รับผิดชอบ
-			</p>
+			<p className="text-sm font-semibold text-primary">{t("documents.eyebrow")}</p>
+			<h1 className="mt-2 text-3xl font-black">{t("documents.title")}</h1>
+			<p className="mt-2 text-muted-foreground">{t("documents.description")}</p>
 			<label className="mt-6 grid max-w-xl gap-2 text-sm font-semibold">
-				การฝึกงาน
+				{t("documents.placement")}
 				<select
 					className="h-11 rounded-xl border bg-white px-3"
 					value={placementId}
@@ -159,7 +157,7 @@ export function DocumentPage() {
 					}}
 				>
 					<option value="" disabled>
-						เลือกการฝึกงาน
+						{t("documents.selectPlacement")}
 					</option>
 					{placements.data?.data.map((placement) => (
 						<option key={placement.id} value={placement.id}>
@@ -175,17 +173,17 @@ export function DocumentPage() {
 					onSubmit={submitFile}
 				>
 					<label className="grid gap-2 text-sm font-semibold">
-						ประเภทเอกสาร
+						{t("documents.typeLabel")}
 						<select name="type" className="h-11 rounded-xl border bg-white px-3 font-normal">
-							<option value="resume">ประวัติย่อ</option>
-							<option value="consent">หนังสือยินยอม</option>
-							<option value="progress_evidence">หลักฐานความก้าวหน้า</option>
-							<option value="final_report">รายงานฉบับสมบูรณ์</option>
-							<option value="other">เอกสารอื่น</option>
+							{Object.entries(documentTypeKeys).map(([value, key]) => (
+								<option key={value} value={value}>
+									{t(key)}
+								</option>
+							))}
 						</select>
 					</label>
 					<label className="grid gap-2 text-sm font-semibold">
-						เลือกไฟล์ PDF, JPEG หรือ PNG (สูงสุด 20 MB)
+						{t("documents.fileLabel")}
 						<input
 							name="file"
 							type="file"
@@ -196,7 +194,7 @@ export function DocumentPage() {
 					</label>
 					<Button disabled={upload.isPending}>
 						<HardDriveUpload />
-						{upload.isPending ? "กำลังอัปโหลด..." : "อัปโหลด"}
+						{t(upload.isPending ? "documents.uploading" : "documents.upload")}
 					</Button>
 					{uploadError && (
 						<p role="alert" className="text-sm text-destructive sm:col-span-3">
@@ -205,14 +203,14 @@ export function DocumentPage() {
 					)}
 					{upload.isError && (
 						<p role="alert" className="text-sm text-destructive sm:col-span-3">
-							อัปโหลดไม่สำเร็จ กรุณาตรวจสอบไฟล์ สิทธิ์ และพื้นที่จัดเก็บของ Server
+							{t("documents.uploadError")}
 						</p>
 					)}
 				</form>
 			)}
 			{documents.isLoading && <div className="mt-8 h-36 animate-pulse rounded-2xl bg-muted" />}
-			{documents.isError && <Notice message="โหลดรายการเอกสารไม่สำเร็จ" error />}
-			{documents.data?.data.length === 0 && <Notice message="ยังไม่มีเอกสารสำหรับการฝึกงานนี้" />}
+			{documents.isError && <Notice message={t("documents.loadError")} error />}
+			{documents.data?.data.length === 0 && <Notice message={t("documents.empty")} />}
 			<div className="mt-8 grid gap-4">
 				{documents.data?.data.map((document) => (
 					<article key={document.id} className="rounded-2xl border bg-white p-6">
@@ -220,18 +218,20 @@ export function DocumentPage() {
 							<span className="grid size-11 place-items-center rounded-xl bg-[#edf3ff] text-primary">
 								<FileText />
 							</span>
-							<Badge status={document.status as DocumentStatus} />
+							<Badge label={t(documentStatusKeys[document.status as DocumentStatus])} />
 						</div>
 						<h2 className="mt-5 break-all font-bold">{document.fileName}</h2>
 						<div className="mt-2 flex flex-wrap gap-x-5 gap-y-1 text-sm text-muted-foreground">
-							<span>{documentTypeLabel(document.type)}</span>
+							<span>{t(documentTypeKeys[document.type] ?? "documents.type.other")}</span>
 							<span>{formatSize(document.sizeBytes)}</span>
 							<span>{document.mimeType}</span>
-							<span>ส่งเมื่อ {formatDate(document.createdAt)}</span>
+							<span>
+								{t("documents.submittedAt", { date: formatDate(document.createdAt, locale) })}
+							</span>
 						</div>
 						{document.feedback && (
 							<p className="mt-4 rounded-xl bg-amber-50 p-4 text-sm leading-6">
-								ข้อเสนอแนะ: {document.feedback}
+								{t("documents.feedback", { feedback: document.feedback })}
 							</p>
 						)}
 						<div className="mt-5 flex flex-wrap gap-2">
@@ -241,20 +241,20 @@ export function DocumentPage() {
 								onClick={() => downloadDocument(document.id, document.fileName)}
 							>
 								<Download />
-								{downloadingId === document.id ? "กำลังดาวน์โหลด..." : "ดาวน์โหลด"}
+								{t(downloadingId === document.id ? "documents.downloading" : "documents.download")}
 							</Button>
 							{canReviewDocument(document.status as DocumentStatus, isReviewer) && (
 								<>
 									<Button disabled={review.isPending} onClick={() => setApprovingId(document.id)}>
 										<FileCheck2 />
-										อนุมัติ
+										{t("documents.approve")}
 									</Button>
 									<Button
 										variant="outline"
 										disabled={review.isPending}
 										onClick={() => setRejectingId(rejectingId === document.id ? null : document.id)}
 									>
-										ไม่ผ่านการตรวจ
+										{t("documents.reject")}
 									</Button>
 								</>
 							)}
@@ -268,7 +268,7 @@ export function DocumentPage() {
 								}}
 							>
 								<label className="text-sm font-semibold">
-									เหตุผลและสิ่งที่ต้องแก้ไข
+									{t("documents.rejectionFeedback")}
 									<textarea
 										value={feedback}
 										onChange={(event) => setFeedback(event.target.value)}
@@ -279,7 +279,7 @@ export function DocumentPage() {
 									/>
 								</label>
 								<Button disabled={review.isPending || feedback.trim().length < 3}>
-									ยืนยันผลการตรวจ
+									{t("documents.confirmReview")}
 								</Button>
 							</form>
 						)}
@@ -297,9 +297,7 @@ export function DocumentPage() {
 				onConfirm={() => approvingId && review.mutate({ id: approvingId, decision: "approved" })}
 			/>
 			{downloadError && <Notice message={downloadError} error />}
-			{review.isError && (
-				<Notice message="บันทึกผลการตรวจไม่สำเร็จ กรุณาตรวจสอบสิทธิ์และสถานะล่าสุด" error />
-			)}
+			{review.isError && <Notice message={t("documents.reviewError")} error />}
 		</div>
 	);
 }
@@ -309,11 +307,9 @@ async function loadOrganizations() {
 	if (!response.ok) throw new Error("ORGANIZATIONS_FAILED");
 	return response.json();
 }
-function Badge({ status }: { status: DocumentStatus }) {
+function Badge({ label }: { label: string }) {
 	return (
-		<span className="h-fit rounded-full bg-slate-100 px-3 py-1 text-xs font-semibold">
-			{documentStatusLabel(status)}
-		</span>
+		<span className="h-fit rounded-full bg-slate-100 px-3 py-1 text-xs font-semibold">{label}</span>
 	);
 }
 function Notice({ message, error = false }: { message: string; error?: boolean }) {
@@ -326,8 +322,8 @@ function Notice({ message, error = false }: { message: string; error?: boolean }
 		</div>
 	);
 }
-function formatDate(value: string | Date) {
-	return new Intl.DateTimeFormat("th-TH", { dateStyle: "medium" }).format(new Date(value));
+function formatDate(value: string | Date, locale: string) {
+	return new Intl.DateTimeFormat(locale, { dateStyle: "medium" }).format(new Date(value));
 }
 function formatSize(bytes: number) {
 	return bytes < 1024 * 1024

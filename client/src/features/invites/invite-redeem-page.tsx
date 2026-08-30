@@ -5,10 +5,10 @@ import { Button } from "@/components/ui/button";
 import { useLanguage } from "@/i18n/config";
 import { apiClient } from "@/lib/api-client";
 import { InviteApiError, throwInviteError } from "./invite-api";
-import { inviteErrorMessage } from "./invite-rules";
+import { inviteErrorKey } from "./invite-rules";
 
 export function InviteRedeemPage() {
-	const { locale, t } = useLanguage();
+	const { t } = useLanguage();
 	const { token } = useParams({ from: "/app/invites/$token" });
 	const redeem = useMutation({
 		mutationFn: async () => {
@@ -39,7 +39,7 @@ export function InviteRedeemPage() {
 					<p className="mt-2 text-muted-foreground">{t("invites.redeem.detail")}</p>
 					{redeem.isError && (
 						<p role="alert" className="mt-5 rounded-xl bg-red-50 p-4 text-sm text-destructive">
-							{inviteErrorMessage((redeem.error as InviteApiError).code, locale)}
+							{t(inviteErrorKey((redeem.error as InviteApiError).code))}
 						</p>
 					)}
 					<Button className="mt-6" disabled={redeem.isPending} onClick={() => redeem.mutate()}>

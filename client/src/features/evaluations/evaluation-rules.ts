@@ -16,6 +16,8 @@ export function visibleEvaluations<
 	return [];
 }
 
-export function evaluatorLabel(type: EvaluatorType) {
-	return type === "advisor" ? "อาจารย์ที่ปรึกษา" : "พี่เลี้ยงสถานประกอบการ";
-}
+export const evaluatorKeys = {
+	advisor: "evaluations.evaluator.advisor",
+	supervisor: "evaluations.evaluator.supervisor",
+} satisfies Record<EvaluatorType, MessageKey>;
+import type { MessageKey } from "@/i18n/messages";

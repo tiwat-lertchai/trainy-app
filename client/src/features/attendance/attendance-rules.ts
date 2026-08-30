@@ -1,4 +1,5 @@
 import type { OrganizationRole } from "@/features/organizations/role-navigation";
+import type { MessageKey } from "@/i18n/messages";
 
 export function canManageSchedule(role?: OrganizationRole) {
 	return role === "company_admin";
@@ -16,32 +17,23 @@ export function canViewUniversitySummary(role?: OrganizationRole) {
 	return role === "university_admin" || role === "coordinator" || role === "advisor";
 }
 
-export function formatNetMinutes(minutes: number | null | undefined) {
+export function formatNetMinutes(minutes: number | null | undefined, hour = "hr", minute = "min") {
 	if (minutes == null) return "-";
 	const hours = Math.floor(minutes / 60);
 	const remainder = minutes % 60;
-	return `${hours} ชม. ${remainder} นาที`;
+	return `${hours} ${hour} ${remainder} ${minute}`;
 }
 
-const statusLabels: Record<string, string> = {
-	checked_in: "กำลังปฏิบัติงาน",
-	complete: "ครบชั่วโมง",
-	late: "มาสาย",
-	left_early: "ออกก่อนเวลา",
-	late_and_left_early: "มาสายและออกก่อนเวลา",
-	incomplete: "ไม่ครบชั่วโมง",
+export const attendanceStatusKeys: Record<string, MessageKey> = {
+	checked_in: "attendance.status.checkedIn",
+	complete: "attendance.status.complete",
+	late: "attendance.status.late",
+	left_early: "attendance.status.leftEarly",
+	late_and_left_early: "attendance.status.lateAndLeftEarly",
+	incomplete: "attendance.status.incomplete",
 };
-
-export function attendanceStatusLabel(status: string) {
-	return statusLabels[status] ?? status;
-}
-
-const adjustmentStatusLabels: Record<string, string> = {
-	pending: "รอตรวจสอบ",
-	approved: "อนุมัติแล้ว",
-	rejected: "ปฏิเสธ",
+export const adjustmentStatusKeys: Record<string, MessageKey> = {
+	pending: "attendance.adjustment.pending",
+	approved: "attendance.adjustment.approved",
+	rejected: "attendance.adjustment.rejected",
 };
-
-export function adjustmentStatusLabel(status: string) {
-	return adjustmentStatusLabels[status] ?? status;
-}

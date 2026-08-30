@@ -231,7 +231,7 @@ export function AcademicAdminPage() {
 											>
 												<span className="font-semibold">{major.name}</span>
 												<select
-													aria-label={`หัวหน้าหลักสูตร ${major.name}`}
+													aria-label={t("academic.programChairAria", { major: major.name })}
 													className="h-9 rounded-lg border bg-white px-2"
 													value={major.programChairUserId ?? ""}
 													disabled={!canManageStructure || setProgramChair.isPending}
@@ -242,7 +242,7 @@ export function AcademicAdminPage() {
 														})
 													}
 												>
-													<option value="">เลือกหัวหน้าหลักสูตร</option>
+													<option value="">{t("academic.selectProgramChair")}</option>
 													{members.data?.data
 														.filter(
 															(member) => member.role === "advisor" && member.status === "active",
@@ -270,10 +270,8 @@ export function AcademicAdminPage() {
 			</div>
 
 			<section className="mt-10 border-t pt-8">
-				<h2 className="text-xl font-black">ข้อมูลผลการเรียนนักศึกษา</h2>
-				<p className="mt-1 text-sm text-muted-foreground">
-					ข้อมูลนี้ใช้ประกอบการพิจารณาคำร้องและไม่ปิดกั้นคำร้องโดยอัตโนมัติ
-				</p>
+				<h2 className="text-xl font-black">{t("academic.studentRecords")}</h2>
+				<p className="mt-1 text-sm text-muted-foreground">{t("academic.studentRecordsDetail")}</p>
 				<div className="mt-5 grid gap-3">
 					{members.data?.data
 						.filter((member) => member.role === "student" && member.status === "active")
@@ -294,7 +292,7 @@ export function AcademicAdminPage() {
 				</div>
 				{setAcademicRecord.isError && (
 					<p role="alert" className="mt-3 text-sm text-destructive">
-						บันทึกข้อมูลผลการเรียนไม่สำเร็จ
+						{t("academic.studentRecordsError")}
 					</p>
 				)}
 			</section>
@@ -317,6 +315,7 @@ function AcademicRecordForm({
 		meetsPrerequisite: boolean;
 	}) => void;
 }) {
+	const { t } = useLanguage();
 	function submit(event: FormEvent<HTMLFormElement>) {
 		event.preventDefault();
 		const data = new FormData(event.currentTarget);
@@ -338,7 +337,7 @@ function AcademicRecordForm({
 				<p className="text-xs text-muted-foreground">{userId}</p>
 			</div>
 			<label className="grid gap-1 text-xs font-semibold">
-				GPA สะสม
+				{t("academic.cumulativeGpa")}
 				<input
 					name="cumulativeGpa"
 					type="number"
@@ -349,7 +348,7 @@ function AcademicRecordForm({
 				/>
 			</label>
 			<label className="grid gap-1 text-xs font-semibold">
-				GPA ล่าสุด
+				{t("academic.latestGpa")}
 				<input
 					name="lastTermGpa"
 					type="number"
@@ -360,10 +359,10 @@ function AcademicRecordForm({
 				/>
 			</label>
 			<label className="flex h-10 items-center gap-2 text-sm">
-				<input name="meetsPrerequisite" type="checkbox" /> ผ่านเงื่อนไข
+				<input name="meetsPrerequisite" type="checkbox" /> {t("academic.meetsPrerequisite")}
 			</label>
 			<Button size="sm" disabled={pending}>
-				บันทึก
+				{t("academic.save")}
 			</Button>
 		</form>
 	);

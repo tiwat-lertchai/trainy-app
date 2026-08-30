@@ -12,7 +12,7 @@ const WORKSPACE_KEY = "trainy-workspace-id";
 const universityManagers = ["university_admin", "coordinator"];
 
 export function PlacementPage() {
-	const { t } = useLanguage();
+	const { locale, t } = useLanguage();
 	const queryClient = useQueryClient();
 	const [confirmation, setConfirmation] = useState<{
 		placementId: string;
@@ -123,15 +123,13 @@ export function PlacementPage() {
 	return (
 		<div>
 			<div>
-				<p className="text-sm font-semibold text-primary">PLACEMENTS</p>
-				<h1 className="mt-2 text-3xl font-black">การฝึกงาน</h1>
-				<p className="mt-2 text-muted-foreground">
-					มอบหมายผู้ดูแล กำหนดช่วงเวลา และติดตามสถานะการฝึกงาน
-				</p>
+				<p className="text-sm font-semibold text-primary">{t("placements.eyebrow")}</p>
+				<h1 className="mt-2 text-3xl font-black">{t("placements.title")}</h1>
+				<p className="mt-2 text-muted-foreground">{t("placements.description")}</p>
 			</div>
 			{universityManagers.includes(role ?? "") && acceptedItems.length > 0 && (
 				<section className="mt-8 rounded-2xl border bg-white p-6">
-					<h2 className="font-bold">สร้างการฝึกงานจากใบสมัครที่ผ่าน</h2>
+					<h2 className="font-bold">{t("placements.createHeading")}</h2>
 					<div className="mt-4 grid gap-3">
 						{acceptedItems.map((application) => (
 							<form
@@ -159,12 +157,12 @@ export function PlacementPage() {
 									</p>
 									<p className="text-sm text-muted-foreground">
 										{(application as typeof application & { student?: { name: string } }).student
-											?.name ?? "นักศึกษา"}
+											?.name ?? t("placements.student")}
 									</p>
 								</div>
-								<DateField name="startDate" label="เริ่มฝึกงาน" />
-								<DateField name="endDate" label="สิ้นสุด" />
-								<Button disabled={mutate.isPending}>สร้าง Placement</Button>
+								<DateField name="startDate" label={t("placements.startDate")} />
+								<DateField name="endDate" label={t("placements.endDate")} />
+								<Button disabled={mutate.isPending}>{t("placements.create")}</Button>
 							</form>
 						))}
 					</div>
@@ -176,12 +174,12 @@ export function PlacementPage() {
 					role="alert"
 					className="mt-8 rounded-2xl border border-destructive/20 bg-white p-6 text-destructive"
 				>
-					โหลดข้อมูลการฝึกงานไม่สำเร็จ
+					{t("placements.loadError")}
 				</div>
 			)}
 			{placements.data?.data.length === 0 && (
 				<div className="mt-8 rounded-2xl border bg-white p-10 text-center text-muted-foreground">
-					ยังไม่มีการฝึกงาน
+					{t("placements.empty")}
 				</div>
 			)}
 			<div className="mt-8 grid gap-5">
@@ -202,10 +200,12 @@ export function PlacementPage() {
 										<BriefcaseBusiness />
 									</span>
 									<div>
-										<h2 className="font-bold">{view.internship?.title ?? "การฝึกงาน"}</h2>
+										<h2 className="font-bold">
+											{view.internship?.title ?? t("placements.fallbackTitle")}
+										</h2>
 										<p className="mt-1 text-sm text-muted-foreground">
 											{view.student?.name ??
-												(isStudent ? "การฝึกงานของฉัน" : placement.studentUserId)}
+												(isStudent ? t("placements.mine") : placement.studentUserId)}
 										</p>
 									</div>
 								</div>
@@ -214,29 +214,29 @@ export function PlacementPage() {
 							<div className="mt-5 grid gap-3 text-sm sm:grid-cols-3">
 								<Info
 									icon={CalendarDays}
-									label="ระยะเวลา"
-									value={`${formatDate(placement.startDate)} – ${formatDate(placement.endDate)}`}
+									label={t("placements.duration")}
+									value={`${formatDate(placement.startDate, locale)} – ${formatDate(placement.endDate, locale)}`}
 								/>
 								<Info
 									icon={UserRound}
-									label="อาจารย์ที่ปรึกษา"
-									value={view.advisor?.name ?? "ยังไม่มอบหมาย"}
+									label={t("placements.advisor")}
+									value={view.advisor?.name ?? t("placements.unassigned")}
 								/>
 								<Info
 									icon={UserRound}
-									label="พี่เลี้ยง"
-									value={view.supervisor?.name ?? "ยังไม่มอบหมาย"}
+									label={t("placements.supervisor")}
+									value={view.supervisor?.name ?? t("placements.unassigned")}
 								/>
 							</div>
 							{(status === "pending" && role === "university_admin") ||
 							(status === "pending" && role === "coordinator") ? (
 								<Assignment
 									placementId={placement.id}
-									kind="advisor"
 									members={memberItems.filter(
 										(item) => item.role === "advisor" && item.status === "active",
 									)}
 									pending={mutate.isPending}
+									label={t("placements.selectAdvisor")}
 									onAssign={(userId) =>
 										mutate.mutate({ kind: "advisor", placementId: placement.id, userId })
 									}
@@ -245,11 +245,11 @@ export function PlacementPage() {
 							{status === "pending" && role === "company_admin" && (
 								<Assignment
 									placementId={placement.id}
-									kind="supervisor"
 									members={memberItems.filter(
 										(item) => item.role === "supervisor" && item.status === "active",
 									)}
 									pending={mutate.isPending}
+									label={t("placements.selectSupervisor")}
 									onAssign={(userId) =>
 										mutate.mutate({ kind: "supervisor", placementId: placement.id, userId })
 									}
@@ -272,16 +272,16 @@ export function PlacementPage() {
 										}
 									>
 										{next === "active"
-											? "เริ่มฝึกงาน"
+											? t("placements.start")
 											: next === "completed"
-												? "จบการฝึกงาน"
-												: "ยกเลิก"}
+												? t("placements.complete")
+												: t("placements.cancel")}
 									</Button>
 								))}
 							</div>
 							{mutate.isError && (
 								<p role="alert" className="mt-3 text-sm text-destructive">
-									ดำเนินการไม่สำเร็จ กรุณาตรวจสอบสิทธิ์และสถานะล่าสุด
+									{t("placements.actionError")}
 								</p>
 							)}
 						</article>
@@ -304,15 +304,15 @@ export function PlacementPage() {
 }
 
 function Assignment({
-	kind,
 	members,
 	pending,
+	label,
 	onAssign,
 }: {
 	placementId: string;
-	kind: "advisor" | "supervisor";
 	members: Array<{ userId: string; user?: { name: string } }>;
 	pending: boolean;
+	label: string;
 	onAssign: (id: string) => void;
 }) {
 	return (
@@ -323,7 +323,7 @@ function Assignment({
 				onChange={(event) => event.target.value && onAssign(event.target.value)}
 				disabled={pending}
 			>
-				<option value="">เลือก{kind === "advisor" ? "อาจารย์ที่ปรึกษา" : "พี่เลี้ยง"}</option>
+				<option value="">{label}</option>
 				{members.map((member) => (
 					<option key={member.userId} value={member.userId}>
 						{member.user?.name ?? member.userId}
@@ -366,20 +366,15 @@ function Info({
 	);
 }
 function Badge({ status }: { status: PlacementStatus }) {
-	const labels = {
-		pending: "รอมอบหมาย",
-		active: "กำลังฝึกงาน",
-		completed: "เสร็จสิ้น",
-		cancelled: "ยกเลิก",
-	};
+	const { t } = useLanguage();
 	return (
 		<span
 			className={`h-fit w-fit rounded-full px-3 py-1 text-xs font-semibold ${status === "active" ? "bg-emerald-50 text-emerald-700" : "bg-slate-100 text-slate-600"}`}
 		>
-			{labels[status]}
+			{t(`status.${status}`)}
 		</span>
 	);
 }
-function formatDate(value: string | Date) {
-	return new Intl.DateTimeFormat("th-TH", { dateStyle: "medium" }).format(new Date(value));
+function formatDate(value: string | Date, locale: string) {
+	return new Intl.DateTimeFormat(locale, { dateStyle: "medium" }).format(new Date(value));
 }

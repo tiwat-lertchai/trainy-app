@@ -2,12 +2,14 @@ import { useState, type FormEvent } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { CalendarClock, Clock3, MapPin } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { useLanguage } from "@/i18n/config";
+import type { MessageKey } from "@/i18n/messages";
 import { apiClient } from "@/lib/api-client";
 import type { OrganizationRole } from "@/features/organizations/role-navigation";
 import { requestLocation } from "./attendance-location";
 import {
-	adjustmentStatusLabel,
-	attendanceStatusLabel,
+	adjustmentStatusKeys,
+	attendanceStatusKeys,
 	canCheckInOut,
 	canManageSchedule,
 	canReviewAdjustments,
@@ -16,25 +18,32 @@ import {
 } from "./attendance-rules";
 
 const WORKSPACE_KEY = "trainy-workspace-id";
-const weekdayLabels = ["อาทิตย์", "จันทร์", "อังคาร", "พุธ", "พฤหัสบดี", "ศุกร์", "เสาร์"];
+const weekdayKeys: MessageKey[] = [
+	"attendance.weekday.sun",
+	"attendance.weekday.mon",
+	"attendance.weekday.tue",
+	"attendance.weekday.wed",
+	"attendance.weekday.thu",
+	"attendance.weekday.fri",
+	"attendance.weekday.sat",
+];
 
 type LocationInput = {
 	location?: { latitude: number; longitude: number; accuracyMeters: number };
 	locationExceptionReason?: string;
 };
 
-async function captureEvidence(): Promise<LocationInput> {
+async function captureEvidence(locationPrompt: string): Promise<LocationInput> {
 	try {
 		return { location: await requestLocation() };
 	} catch {
-		const reason = window.prompt(
-			"ไม่สามารถเข้าถึงตำแหน่งได้ กรุณาระบุเหตุผล (อย่างน้อย 5 ตัวอักษร)",
-		);
+		const reason = window.prompt(locationPrompt);
 		return reason ? { locationExceptionReason: reason } : {};
 	}
 }
 
 export function AttendancePage() {
+	const { locale, t } = useLanguage();
 	const queryClient = useQueryClient();
 	const [selectedPlacement, setSelectedPlacement] = useState("");
 	const [summaryRange, setSummaryRange] = useState({ from: "", to: "" });
@@ -166,7 +175,7 @@ export function AttendancePage() {
 				| { kind: "review"; adjustmentId: string; decision: "approved" | "rejected"; note: string },
 		) => {
 			if (input.kind === "check-in") {
-				const evidence = await captureEvidence();
+				const evidence = await captureEvidence(t("attendance.locationPrompt"));
 				const r = await apiClient.api.v1.attendance[":placementId"]["check-in"].$post({
 					param: { placementId },
 					json: evidence,
@@ -175,7 +184,7 @@ export function AttendancePage() {
 				return r.json();
 			}
 			if (input.kind === "check-out") {
-				const evidence = await captureEvidence();
+				const evidence = await captureEvidence(t("attendance.locationPrompt"));
 				const r = await apiClient.api.v1.attendance[":attendanceId"]["check-out"].$post({
 					param: { attendanceId: input.attendanceId },
 					json: evidence,
@@ -230,24 +239,26 @@ export function AttendancePage() {
 	}
 
 	function requestAdjustment(attendanceId: string) {
-		const reason = window.prompt("เหตุผลที่ขอแก้ไขเวลา (อย่างน้อย 10 ตัวอักษร)");
+		const reason = window.prompt(t("attendance.adjustmentPrompt"));
 		if (reason) attendanceAction.mutate({ kind: "adjustment", attendanceId, reason });
 	}
 
 	function reviewAdjustment(adjustmentId: string, decision: "approved" | "rejected") {
-		const note = window.prompt(decision === "approved" ? "หมายเหตุการอนุมัติ" : "เหตุผลที่ปฏิเสธ");
+		const note = window.prompt(
+			t(decision === "approved" ? "attendance.approvalNote" : "attendance.rejectionReason"),
+		);
 		if (note) attendanceAction.mutate({ kind: "review", adjustmentId, decision, note });
 	}
 
 	return (
 		<div>
-			<p className="text-sm font-semibold text-primary">ATTENDANCE</p>
-			<h1 className="mt-2 text-3xl font-black">การเข้างานและตำแหน่งที่ตั้ง</h1>
-			<p className="mt-2 text-muted-foreground">เช็คอิน เช็คเอาท์ และติดตามชั่วโมงการฝึกงาน</p>
+			<p className="text-sm font-semibold text-primary">{t("attendance.eyebrow")}</p>
+			<h1 className="mt-2 text-3xl font-black">{t("attendance.title")}</h1>
+			<p className="mt-2 text-muted-foreground">{t("attendance.description")}</p>
 
 			{placements.data && placements.data.data.length > 1 && (
 				<label className="mt-6 grid max-w-xl gap-2 text-sm font-semibold">
-					การฝึกงาน
+					{t("attendance.placement")}
 					<select
 						className="h-11 rounded-xl border bg-white px-3"
 						value={placementId}
@@ -265,45 +276,53 @@ export function AttendancePage() {
 
 			{canManageSchedule(role) && placementId && (
 				<section className="mt-8 rounded-2xl border bg-white p-6">
-					<h2 className="font-bold">กำหนดตารางเวลาทำงาน</h2>
+					<h2 className="font-bold">{t("attendance.schedule")}</h2>
 					<form className="mt-4 grid gap-4" onSubmit={submitSchedule}>
 						<div className="flex flex-wrap gap-4">
 							{[1, 2, 3, 4, 5].map((day) => (
 								<label key={day} className="flex items-center gap-2 text-sm font-medium">
 									<input type="checkbox" name={`day-${day}`} defaultChecked className="size-4" />
-									{weekdayLabels[day]}
+									{t(weekdayKeys[day])}
 								</label>
 							))}
 						</div>
 						<div className="grid gap-4 sm:grid-cols-4">
-							<TimeField name="start" label="เวลาเริ่ม" defaultValue="08:00" />
-							<TimeField name="end" label="เวลาเลิก" defaultValue="17:00" />
-							<NumberField name="breakMinutes" label="พักเที่ยง (นาที)" defaultValue={60} />
-							<NumberField name="graceMinutes" label="ผ่อนผันสาย (นาที)" defaultValue={10} />
+							<TimeField name="start" label={t("attendance.startTime")} defaultValue="08:00" />
+							<TimeField name="end" label={t("attendance.endTime")} defaultValue="17:00" />
+							<NumberField
+								name="breakMinutes"
+								label={t("attendance.breakMinutes")}
+								defaultValue={60}
+							/>
+							<NumberField
+								name="graceMinutes"
+								label={t("attendance.graceMinutes")}
+								defaultValue={10}
+							/>
 						</div>
 						<label className="grid gap-2 text-sm font-semibold sm:max-w-xs">
-							นโยบายตำแหน่งที่ตั้ง
+							{t("attendance.locationPolicy")}
 							<select
 								name="locationPolicy"
 								className="h-11 rounded-xl border bg-white px-3 font-normal"
 								defaultValue="optional"
 							>
-								<option value="disabled">ไม่ตรวจสอบตำแหน่ง</option>
-								<option value="optional">ตรวจสอบแบบไม่บังคับ</option>
-								<option value="required_onsite">ต้องอยู่ในพื้นที่ที่กำหนด</option>
+								<option value="disabled">{t("attendance.location.disabled")}</option>
+								<option value="optional">{t("attendance.location.optional")}</option>
+								<option value="required_onsite">{t("attendance.location.required")}</option>
 							</select>
 						</label>
 						<div className="grid gap-4 sm:grid-cols-3">
-							<NumberField name="latitude" label="ละติจูดสถานที่ทำงาน" step="any" />
-							<NumberField name="longitude" label="ลองจิจูดสถานที่ทำงาน" step="any" />
-							<NumberField name="radiusMeters" label="รัศมี (เมตร)" defaultValue={200} />
+							<NumberField name="latitude" label={t("attendance.latitude")} step="any" />
+							<NumberField name="longitude" label={t("attendance.longitude")} step="any" />
+							<NumberField name="radiusMeters" label={t("attendance.radius")} defaultValue={200} />
 						</div>
 						<Button className="w-fit" disabled={scheduleAction.isPending}>
-							บันทึกตารางเวลา
+							{t("attendance.saveSchedule")}
 						</Button>
 						{scheduleAction.isError && (
 							<p role="alert" className="text-sm text-destructive">
-								บันทึกตารางเวลาไม่สำเร็จ
+								{t("attendance.scheduleError")}
 							</p>
 						)}
 					</form>
@@ -312,11 +331,11 @@ export function AttendancePage() {
 
 			{canCheckInOut(role) && placementId && (
 				<section className="mt-8 rounded-2xl border bg-white p-6">
-					<h2 className="font-bold">เช็คอิน / เช็คเอาท์วันนี้</h2>
+					<h2 className="font-bold">{t("attendance.today")}</h2>
 					{activePolicy === "required_onsite" && (
 						<p className="mt-2 flex items-center gap-2 text-sm text-muted-foreground">
 							<MapPin className="size-4" />
-							ตำแหน่งของคุณต้องอยู่ในพื้นที่ที่กำหนด
+							{t("attendance.onsiteRequired")}
 						</p>
 					)}
 					<div className="mt-4 flex gap-3">
@@ -325,7 +344,7 @@ export function AttendancePage() {
 								disabled={attendanceAction.isPending}
 								onClick={() => attendanceAction.mutate({ kind: "check-in" })}
 							>
-								เช็คอิน
+								{t("attendance.checkIn")}
 							</Button>
 						)}
 						{todayRecord && (
@@ -335,24 +354,24 @@ export function AttendancePage() {
 									attendanceAction.mutate({ kind: "check-out", attendanceId: todayRecord.id })
 								}
 							>
-								เช็คเอาท์
+								{t("attendance.checkOut")}
 							</Button>
 						)}
 					</div>
 					{attendanceAction.isError && (
 						<p role="alert" className="mt-3 text-sm text-destructive">
-							ดำเนินการไม่สำเร็จ กรุณาตรวจสอบสิทธิ์และตำแหน่งที่ตั้ง
+							{t("attendance.actionError")}
 						</p>
 					)}
 				</section>
 			)}
 
 			<section className="mt-8">
-				<h2 className="font-bold">ประวัติการเข้างาน</h2>
+				<h2 className="font-bold">{t("attendance.history")}</h2>
 				{attendance.isLoading && <div className="mt-4 h-32 animate-pulse rounded-2xl bg-muted" />}
 				{attendance.data?.data.length === 0 && (
 					<div className="mt-4 rounded-2xl border bg-white p-10 text-center text-muted-foreground">
-						ยังไม่มีประวัติการเข้างาน
+						{t("attendance.empty")}
 					</div>
 				)}
 				<div className="mt-4 grid gap-4">
@@ -364,16 +383,28 @@ export function AttendancePage() {
 									{record.workDate}
 								</span>
 								<span className="rounded-full bg-slate-100 px-3 py-1 text-xs font-semibold">
-									{attendanceStatusLabel(record.status)}
+									{attendanceStatusKeys[record.status]
+										? t(attendanceStatusKeys[record.status])
+										: record.status}
 								</span>
 							</div>
 							<div className="mt-4 flex flex-wrap gap-5 text-sm text-muted-foreground">
 								<span className="flex items-center gap-2">
 									<Clock3 className="size-4" />
-									เข้า {formatTime(record.checkedInAt)}
-									{record.checkedOutAt ? ` – ออก ${formatTime(record.checkedOutAt)}` : ""}
+									{t("attendance.inAt", { time: formatTime(record.checkedInAt, locale) })}
+									{record.checkedOutAt
+										? ` – ${t("attendance.outAt", { time: formatTime(record.checkedOutAt, locale) })}`
+										: ""}
 								</span>
-								<span>สุทธิ {formatNetMinutes(record.netMinutes)}</span>
+								<span>
+									{t("attendance.net", {
+										duration: formatNetMinutes(
+											record.netMinutes,
+											t("attendance.hourShort"),
+											t("attendance.minuteShort"),
+										),
+									})}
+								</span>
 							</div>
 							{student && (
 								<Button
@@ -382,7 +413,7 @@ export function AttendancePage() {
 									disabled={attendanceAction.isPending}
 									onClick={() => requestAdjustment(record.id)}
 								>
-									ขอแก้ไขเวลา
+									{t("attendance.requestAdjustment")}
 								</Button>
 							)}
 						</article>
@@ -392,18 +423,24 @@ export function AttendancePage() {
 
 			{canReviewAdjustments(role) && placementId && (
 				<section className="mt-8">
-					<h2 className="font-bold">คำขอแก้ไขเวลาที่รอตรวจสอบ</h2>
+					<h2 className="font-bold">{t("attendance.pendingAdjustments")}</h2>
 					{adjustments.data?.data.length === 0 && (
-						<p className="mt-3 text-sm text-muted-foreground">ไม่มีคำขอที่รอตรวจสอบ</p>
+						<p className="mt-3 text-sm text-muted-foreground">{t("attendance.noAdjustments")}</p>
 					)}
 					<div className="mt-4 grid gap-4">
 						{adjustments.data?.data.map((item) => (
 							<article key={item.id} className="rounded-2xl border bg-white p-6">
-								<p className="font-semibold">{adjustmentStatusLabel(item.status)}</p>
+								<p className="font-semibold">
+									{adjustmentStatusKeys[item.status]
+										? t(adjustmentStatusKeys[item.status])
+										: item.status}
+								</p>
 								<p className="mt-2 text-sm text-muted-foreground">{item.reason}</p>
 								{item.proposedCheckOutAt && (
 									<p className="mt-2 text-sm">
-										เวลาออกที่เสนอ: {formatTime(item.proposedCheckOutAt)}
+										{t("attendance.proposedCheckout", {
+											time: formatTime(item.proposedCheckOutAt, locale),
+										})}
 									</p>
 								)}
 								<div className="mt-4 flex gap-2">
@@ -411,14 +448,14 @@ export function AttendancePage() {
 										disabled={attendanceAction.isPending}
 										onClick={() => reviewAdjustment(item.id, "approved")}
 									>
-										อนุมัติ
+										{t("attendance.approve")}
 									</Button>
 									<Button
 										variant="outline"
 										disabled={attendanceAction.isPending}
 										onClick={() => reviewAdjustment(item.id, "rejected")}
 									>
-										ปฏิเสธ
+										{t("attendance.reject")}
 									</Button>
 								</div>
 							</article>
@@ -429,10 +466,10 @@ export function AttendancePage() {
 
 			{canViewUniversitySummary(role) && organizationId && (
 				<section className="mt-8 rounded-2xl border bg-white p-6">
-					<h2 className="font-bold">สรุปภาพรวมมหาวิทยาลัย</h2>
+					<h2 className="font-bold">{t("attendance.universitySummary")}</h2>
 					<div className="mt-4 flex flex-wrap items-end gap-4">
 						<label className="grid gap-2 text-sm font-semibold">
-							จากวันที่
+							{t("attendance.fromDate")}
 							<input
 								type="date"
 								className="h-11 rounded-xl border px-3 font-normal"
@@ -443,7 +480,7 @@ export function AttendancePage() {
 							/>
 						</label>
 						<label className="grid gap-2 text-sm font-semibold">
-							ถึงวันที่
+							{t("attendance.toDate")}
 							<input
 								type="date"
 								className="h-11 rounded-xl border px-3 font-normal"
@@ -456,10 +493,19 @@ export function AttendancePage() {
 					</div>
 					{summary.data && (
 						<div className="mt-5 grid gap-4 sm:grid-cols-4">
-							<Stat label="บันทึกทั้งหมด" value={summary.data.data.totalRecords} />
-							<Stat label="ครบชั่วโมง" value={summary.data.data.completedRecords} />
-							<Stat label="ไม่ครบชั่วโมง" value={summary.data.data.incompleteRecords} />
-							<Stat label="รวมนาทีสุทธิ" value={summary.data.data.totalNetMinutes} />
+							<Stat label={t("attendance.totalRecords")} value={summary.data.data.totalRecords} />
+							<Stat
+								label={t("attendance.completedRecords")}
+								value={summary.data.data.completedRecords}
+							/>
+							<Stat
+								label={t("attendance.incompleteRecords")}
+								value={summary.data.data.incompleteRecords}
+							/>
+							<Stat
+								label={t("attendance.totalNetMinutes")}
+								value={summary.data.data.totalNetMinutes}
+							/>
 						</div>
 					)}
 				</section>
@@ -522,8 +568,8 @@ function Stat({ label, value }: { label: string; value: number }) {
 		</div>
 	);
 }
-function formatTime(value: string | Date) {
-	return new Intl.DateTimeFormat("th-TH", { timeStyle: "short", timeZone: "Asia/Bangkok" }).format(
+function formatTime(value: string | Date, locale: string) {
+	return new Intl.DateTimeFormat(locale, { timeStyle: "short", timeZone: "Asia/Bangkok" }).format(
 		new Date(value),
 	);
 }

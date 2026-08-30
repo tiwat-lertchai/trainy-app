@@ -1,10 +1,10 @@
 import { describe, expect, it } from "bun:test";
-import { availableInternshipActions, canApply, formatWorkMode } from "./internship-format";
+import { availableInternshipActions, canApply, workModeKeys } from "./internship-format";
 
 describe("internship presentation rules", () => {
-	it("localizes work modes", () => {
-		expect(formatWorkMode("hybrid", "th")).toBe("ไฮบริด");
-		expect(formatWorkMode("remote", "en")).toBe("Remote");
+	it("maps work modes to typed translation keys", () => {
+		expect(workModeKeys.hybrid).toBe("internships.workMode.hybrid");
+		expect(workModeKeys.remote).toBe("internships.workMode.remote");
 	});
 
 	it("allows applications only before the deadline", () => {

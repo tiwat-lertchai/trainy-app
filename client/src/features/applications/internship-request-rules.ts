@@ -3,18 +3,18 @@ export type InternshipRequestStatus =
 
 export type InternshipRequestStep = "advisor" | "program_chair" | "center";
 
-export const requestStatusLabels: Record<InternshipRequestStatus, string> = {
-	submitted: "รอตรวจสอบ",
-	revision_requested: "รอแก้ไข",
-	approved: "อนุมัติแล้ว",
-	rejected: "ไม่อนุมัติ",
-	cancelled: "ยกเลิกแล้ว",
+export const requestStatusKeys: Record<InternshipRequestStatus, MessageKey> = {
+	submitted: "internshipRequests.status.submitted",
+	revision_requested: "internshipRequests.status.revisionRequested",
+	approved: "internshipRequests.status.approved",
+	rejected: "internshipRequests.status.rejected",
+	cancelled: "internshipRequests.status.cancelled",
 };
 
-export const requestStepLabels: Record<InternshipRequestStep, string> = {
-	advisor: "อาจารย์ที่ปรึกษา",
-	program_chair: "หัวหน้าหลักสูตร",
-	center: "ศูนย์สหกิจศึกษา",
+export const requestStepKeys: Record<InternshipRequestStep, MessageKey> = {
+	advisor: "internshipRequests.step.advisor",
+	program_chair: "internshipRequests.step.programChair",
+	center: "internshipRequests.step.center",
 };
 
 export function canCancelRequest(status: InternshipRequestStatus) {
@@ -24,3 +24,4 @@ export function canCancelRequest(status: InternshipRequestStatus) {
 export function canResubmitRequest(status: InternshipRequestStatus) {
 	return status === "revision_requested";
 }
+import type { MessageKey } from "@/i18n/messages";

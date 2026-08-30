@@ -2,7 +2,7 @@ import { describe, expect, it } from "bun:test";
 import {
 	facultiesEnabledForRole,
 	isImmediatelyApproved,
-	organizationFieldLabel,
+	organizationFieldKey,
 	organizationTypeForRole,
 } from "./onboarding-rules";
 
@@ -20,8 +20,8 @@ describe("onboarding presentation rules", () => {
 	});
 
 	it("labels the organization field so it is not mistaken for a generic org", () => {
-		expect(organizationFieldLabel("university")).toBe("องค์กร/มหาวิทยาลัย");
-		expect(organizationFieldLabel("company")).toBe("องค์กร/บริษัท");
+		expect(organizationFieldKey("university")).toBe("onboarding.universityOrganization");
+		expect(organizationFieldKey("company")).toBe("onboarding.companyOrganization");
 	});
 
 	it("shows faculty selection only for student and advisor requests", () => {

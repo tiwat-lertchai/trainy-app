@@ -5,7 +5,7 @@ import { Button } from "@/components/ui/button";
 import { ConfirmationDialog } from "@/components/ui/confirmation-dialog";
 import { useLanguage } from "@/i18n/config";
 import { apiClient } from "@/lib/api-client";
-import { availableInternshipActions, formatWorkMode } from "./internship-format";
+import { availableInternshipActions, workModeKeys } from "./internship-format";
 
 export function CompanyInternshipPage({
 	organizationId,
@@ -14,7 +14,7 @@ export function CompanyInternshipPage({
 	organizationId: string;
 	canManage: boolean;
 }) {
-	const { t } = useLanguage();
+	const { locale, t } = useLanguage();
 	const queryClient = useQueryClient();
 	const [showForm, setShowForm] = useState(false);
 	const [closingId, setClosingId] = useState<string | null>(null);
@@ -78,16 +78,14 @@ export function CompanyInternshipPage({
 		<div>
 			<div className="flex flex-col justify-between gap-4 sm:flex-row sm:items-end">
 				<div>
-					<p className="text-sm font-semibold text-primary">COMPANY INTERNSHIPS</p>
-					<h1 className="mt-2 text-3xl font-black">ตำแหน่งฝึกงานของบริษัท</h1>
-					<p className="mt-2 text-muted-foreground">
-						สร้างตำแหน่งเป็นฉบับร่าง ตรวจสอบ แล้วจึงเปิดรับสมัคร
-					</p>
+					<p className="text-sm font-semibold text-primary">{t("companyInternships.eyebrow")}</p>
+					<h1 className="mt-2 text-3xl font-black">{t("companyInternships.title")}</h1>
+					<p className="mt-2 text-muted-foreground">{t("companyInternships.description")}</p>
 				</div>
 				{canManage && (
 					<Button onClick={() => setShowForm((value) => !value)}>
 						<Plus />
-						{showForm ? "ปิดแบบฟอร์ม" : "สร้างตำแหน่ง"}
+						{t(showForm ? "companyInternships.closeForm" : "companyInternships.create")}
 					</Button>
 				)}
 			</div>
@@ -96,23 +94,27 @@ export function CompanyInternshipPage({
 					onSubmit={handleCreate}
 					className="mt-8 grid gap-5 rounded-2xl border bg-white p-6 sm:grid-cols-2"
 				>
-					<Field name="title" label="ชื่อตำแหน่ง" />
-					<Field name="location" label="สถานที่ทำงาน" />
+					<Field name="title" label={t("companyInternships.titleField")} />
+					<Field name="location" label={t("companyInternships.location")} />
 					<label className="grid gap-2 text-sm font-semibold">
-						รูปแบบการทำงาน
+						{t("companyInternships.workMode")}
 						<select
 							name="workMode"
 							className="h-11 rounded-xl border bg-background px-3 font-normal"
 						>
-							<option value="onsite">ที่สถานประกอบการ</option>
-							<option value="hybrid">ไฮบริด</option>
-							<option value="remote">ทางไกล</option>
+							<option value="onsite">{t("internships.workMode.onsite")}</option>
+							<option value="hybrid">{t("internships.workMode.hybrid")}</option>
+							<option value="remote">{t("internships.workMode.remote")}</option>
 						</select>
 					</label>
-					<Field name="capacity" label="จำนวนที่รับ" type="number" min="1" />
-					<Field name="applicationDeadline" label="วันปิดรับสมัคร" type="datetime-local" />
+					<Field name="capacity" label={t("companyInternships.capacity")} type="number" min="1" />
+					<Field
+						name="applicationDeadline"
+						label={t("companyInternships.deadline")}
+						type="datetime-local"
+					/>
 					<label className="grid gap-2 text-sm font-semibold sm:col-span-2">
-						รายละเอียด
+						{t("companyInternships.details")}
 						<textarea
 							name="description"
 							required
@@ -123,11 +125,11 @@ export function CompanyInternshipPage({
 					</label>
 					{create.isError && (
 						<p role="alert" className="text-sm text-destructive sm:col-span-2">
-							สร้างตำแหน่งไม่สำเร็จ โปรดตรวจสอบวันปิดรับสมัครและข้อมูล
+							{t("companyInternships.createError")}
 						</p>
 					)}
 					<Button className="sm:col-span-2" disabled={create.isPending}>
-						{create.isPending ? "กำลังบันทึก..." : "บันทึกเป็นฉบับร่าง"}
+						{t(create.isPending ? "companyInternships.saving" : "companyInternships.saveDraft")}
 					</Button>
 				</form>
 			)}
@@ -137,12 +139,12 @@ export function CompanyInternshipPage({
 					role="alert"
 					className="mt-8 rounded-2xl border border-destructive/20 bg-white p-6 text-destructive"
 				>
-					ไม่สามารถโหลดตำแหน่งของบริษัทได้
+					{t("companyInternships.loadError")}
 				</div>
 			)}
 			{internships.data?.data.length === 0 && (
 				<div className="mt-8 rounded-2xl border bg-white p-10 text-center text-muted-foreground">
-					ยังไม่มีตำแหน่งฝึกงาน
+					{t("companyInternships.empty")}
 				</div>
 			)}
 			<div className="mt-8 grid gap-5 md:grid-cols-2">
@@ -152,7 +154,10 @@ export function CompanyInternshipPage({
 							<span className="grid size-11 place-items-center rounded-xl bg-[#edf3ff] text-primary">
 								<BriefcaseBusiness />
 							</span>
-							<Status status={internship.status} />
+							<Status
+								status={internship.status}
+								label={t(`companyInternships.status.${internship.status}`)}
+							/>
 						</div>
 						<h2 className="mt-5 text-xl font-bold">{internship.title}</h2>
 						<p className="mt-2 line-clamp-3 leading-7 text-muted-foreground">
@@ -165,15 +170,15 @@ export function CompanyInternshipPage({
 							</span>
 							<span className="flex items-center gap-2">
 								<BriefcaseBusiness className="size-4" />
-								{formatWorkMode(internship.workMode)}
+								{t(workModeKeys[internship.workMode])}
 							</span>
 							<span className="flex items-center gap-2">
 								<Users className="size-4" />
-								รับ {internship.capacity} คน
+								{t("internships.capacity", { count: internship.capacity })}
 							</span>
 							<span className="flex items-center gap-2">
 								<CalendarDays className="size-4" />
-								{new Intl.DateTimeFormat("th-TH", { dateStyle: "medium" }).format(
+								{new Intl.DateTimeFormat(locale, { dateStyle: "medium" }).format(
 									new Date(internship.applicationDeadline),
 								)}
 							</span>
@@ -190,13 +195,17 @@ export function CompanyInternshipPage({
 											: changeStatus.mutate({ id: internship.id, status })
 									}
 								>
-									{status === "published" ? "เปิดรับสมัคร" : "ปิดตำแหน่ง"}
+									{t(
+										status === "published"
+											? "companyInternships.publish"
+											: "companyInternships.close",
+									)}
 								</Button>
 							))}
 						</div>
 						{changeStatus.isError && changeStatus.variables?.id === internship.id && (
 							<p role="alert" className="mt-3 text-sm text-destructive">
-								เปลี่ยนสถานะไม่สำเร็จ กรุณาลองใหม่
+								{t("companyInternships.statusError")}
 							</p>
 						)}
 					</article>
@@ -241,13 +250,12 @@ function Field({
 		</label>
 	);
 }
-function Status({ status }: { status: "draft" | "published" | "closed" }) {
-	const labels = { draft: "ฉบับร่าง", published: "เปิดรับสมัคร", closed: "ปิดแล้ว" };
+function Status({ status, label }: { status: "draft" | "published" | "closed"; label: string }) {
 	return (
 		<span
 			className={`rounded-full px-3 py-1 text-xs font-semibold ${status === "published" ? "bg-emerald-50 text-emerald-700" : "bg-slate-100 text-slate-600"}`}
 		>
-			{labels[status]}
+			{label}
 		</span>
 	);
 }

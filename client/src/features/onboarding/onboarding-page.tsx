@@ -9,10 +9,11 @@ import {
 	UserRoundCheck,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { useLanguage } from "@/i18n/config";
 import { apiClient } from "@/lib/api-client";
 import {
 	facultiesEnabledForRole,
-	organizationFieldLabel,
+	organizationFieldKey,
 	organizationTypeForRole,
 	roleOptions,
 	type OnboardingRole,
@@ -47,6 +48,7 @@ async function loadMajors(facultyId: string) {
 }
 
 export function OnboardingPage() {
+	const { t } = useLanguage();
 	const queryClient = useQueryClient();
 	const [role, setRole] = useState<OnboardingRole | null>(null);
 	const [organizationId, setOrganizationId] = useState("");
@@ -180,27 +182,25 @@ export function OnboardingPage() {
 					className="text-sm font-medium text-primary"
 					onClick={() => setRole(null)}
 				>
-					← เปลี่ยนประเภทผู้ใช้งาน
+					{t("onboarding.changeRole")}
 				</button>
 			)}
 			<div className="mt-5 rounded-3xl border bg-white p-6 shadow-sm sm:p-8">
-				<p className="text-sm font-semibold text-primary">FIRST-TIME SETUP</p>
-				<h1 className="mt-2 text-3xl font-black">กรอกข้อมูลเพื่อเข้าใช้งาน</h1>
-				<p className="mt-2 text-muted-foreground">
-					ข้อมูลนี้ใช้ตรวจสอบบทบาทและเชื่อมคุณกับองค์กรที่ถูกต้อง
-				</p>
+				<p className="text-sm font-semibold text-primary">{t("onboarding.eyebrow")}</p>
+				<h1 className="mt-2 text-3xl font-black">{t("onboarding.title")}</h1>
+				<p className="mt-2 text-muted-foreground">{t("onboarding.description")}</p>
 				<form className="mt-8 grid gap-5 sm:grid-cols-2" onSubmit={handleSubmit}>
 					{revisionRequest?.reviewNote && (
 						<div className="rounded-xl bg-amber-50 p-4 text-sm text-amber-900 sm:col-span-2">
-							สิ่งที่ต้องแก้ไข: {revisionRequest.reviewNote}
+							{t("onboarding.revision", { note: revisionRequest.reviewNote })}
 						</div>
 					)}
-					<Field name="fullName" label="ชื่อ–นามสกุล" />
-					<Field name="email" label="อีเมลติดต่อ" type="email" />
-					<Field name="phone" label="เบอร์โทรศัพท์" />
+					<Field name="fullName" label={t("onboarding.fullName")} />
+					<Field name="email" label={t("onboarding.email")} type="email" />
+					<Field name="phone" label={t("onboarding.phone")} />
 					{targetType && (
 						<label className="grid gap-2 text-sm font-semibold sm:col-span-2">
-							{organizationFieldLabel(targetType)}
+							{t(organizationFieldKey(targetType))}
 							<select
 								name="organizationId"
 								required
@@ -211,7 +211,11 @@ export function OnboardingPage() {
 								}}
 								className="h-11 rounded-xl border bg-background px-3 font-normal"
 							>
-								<option value="">เลือก{organizationFieldLabel(targetType)}</option>
+								<option value="">
+									{t("onboarding.selectOrganization", {
+										organization: t(organizationFieldKey(targetType)),
+									})}
+								</option>
 								{available.map((item) => (
 									<option key={item.id} value={item.id}>
 										{item.name}
@@ -231,17 +235,19 @@ export function OnboardingPage() {
 					<div className="sm:col-span-2">
 						{submit.isError && (
 							<p role="alert" className="mb-3 text-sm text-destructive">
-								ส่งข้อมูลไม่สำเร็จ กรุณาตรวจสอบข้อมูลหรือติดต่อผู้ดูแล
+								{t("onboarding.submitError")}
 							</p>
 						)}
 						<Button className="w-full" size="lg" disabled={submit.isPending}>
-							{submit.isPending
-								? "กำลังส่งข้อมูล..."
-								: selectedRole === "student"
-									? "ยืนยันและเริ่มใช้งาน"
-									: revisionRequest
-										? "ส่งข้อมูลที่แก้ไขอีกครั้ง"
-										: "ส่งคำขอเพื่อตรวจสอบ"}
+							{t(
+								submit.isPending
+									? "onboarding.submitting"
+									: selectedRole === "student"
+										? "onboarding.confirmStart"
+										: revisionRequest
+											? "onboarding.resubmit"
+											: "onboarding.submitReview",
+							)}
 						</Button>
 					</div>
 				</form>
@@ -251,16 +257,15 @@ export function OnboardingPage() {
 }
 
 function RoleSelection({ onSelect }: { onSelect: (role: OnboardingRole) => void }) {
+	const { t } = useLanguage();
 	return (
 		<div className="mx-auto max-w-5xl">
 			<div className="text-center">
 				<span className="mx-auto grid size-14 place-items-center rounded-2xl bg-[#edf3ff] text-primary">
 					<UserRoundCheck />
 				</span>
-				<h1 className="mt-5 text-3xl font-black">คุณเข้าใช้งาน Trainy ในบทบาทใด?</h1>
-				<p className="mt-3 text-muted-foreground">
-					เลือกบทบาทที่ตรงกับหน้าที่จริง ระบบจะขอข้อมูลและการยืนยันที่เหมาะสม
-				</p>
+				<h1 className="mt-5 text-3xl font-black">{t("onboarding.roleTitle")}</h1>
+				<p className="mt-3 text-muted-foreground">{t("onboarding.roleDescription")}</p>
 			</div>
 			<div className="mt-8 grid gap-4 md:grid-cols-2 lg:grid-cols-3">
 				{roleOptions.map((option) => (
@@ -279,9 +284,9 @@ function RoleSelection({ onSelect }: { onSelect: (role: OnboardingRole) => void 
 								<ShieldCheck />
 							)}
 						</span>
-						<span className="mt-4 block font-bold">{option.label}</span>
+						<span className="mt-4 block font-bold">{t(option.labelKey)}</span>
 						<span className="mt-2 block text-sm leading-6 text-muted-foreground">
-							{option.description}
+							{t(option.descriptionKey)}
 						</span>
 					</button>
 				))}
@@ -307,9 +312,10 @@ function RoleFields({
 	faculties: FacultyOption[];
 	majors: FacultyOption[];
 }) {
+	const { t } = useLanguage();
 	const facultySelect = (
 		<label className="grid gap-2 text-sm font-semibold">
-			คณะ
+			{t("onboarding.faculty")}
 			<select
 				name="facultyId"
 				required
@@ -318,7 +324,9 @@ function RoleFields({
 				disabled={!organizationId}
 				className="h-11 rounded-xl border bg-background px-3 font-normal disabled:opacity-50"
 			>
-				<option value="">{organizationId ? "เลือกคณะ" : "เลือกองค์กร/มหาวิทยาลัยก่อน"}</option>
+				<option value="">
+					{t(organizationId ? "onboarding.selectFaculty" : "onboarding.selectUniversityFirst")}
+				</option>
 				{faculties.map((item) => (
 					<option key={item.id} value={item.id}>
 						{item.name}
@@ -330,9 +338,9 @@ function RoleFields({
 	if (role === "student")
 		return (
 			<>
-				<Field name="studentId" label="รหัสนักศึกษา" />
+				<Field name="studentId" label={t("onboarding.studentId")} />
 				<label className="grid gap-2 text-sm font-semibold">
-					ชั้นปี
+					{t("onboarding.yearLevel")}
 					<select
 						name="yearLevel"
 						required
@@ -340,25 +348,27 @@ function RoleFields({
 						className="h-11 rounded-xl border bg-background px-3 font-normal"
 					>
 						<option value="" disabled>
-							เลือกชั้นปี
+							{t("onboarding.selectYear")}
 						</option>
 						{["1", "2", "3", "4", "5", "6"].map((year) => (
 							<option key={year} value={year}>
-								ปี {year}
+								{t("onboarding.year", { year })}
 							</option>
 						))}
 					</select>
 				</label>
 				{facultySelect}
 				<label className="grid gap-2 text-sm font-semibold">
-					สาขา
+					{t("onboarding.major")}
 					<select
 						name="majorId"
 						required
 						disabled={!facultyId}
 						className="h-11 rounded-xl border bg-background px-3 font-normal disabled:opacity-50"
 					>
-						<option value="">{facultyId ? "เลือกสาขา" : "เลือกคณะก่อน"}</option>
+						<option value="">
+							{t(facultyId ? "onboarding.selectMajor" : "onboarding.selectFacultyFirst")}
+						</option>
 						{majors.map((item) => (
 							<option key={item.id} value={item.id}>
 								{item.name}
@@ -372,26 +382,30 @@ function RoleFields({
 		return (
 			<>
 				{facultySelect}
-				<Field name="department" label="ภาควิชา/สาขา" />
-				<Field name="academicTitle" label="ตำแหน่งทางวิชาการ (ถ้ามี)" required={false} />
-				<Field name="employeeId" label="รหัสบุคลากร (ถ้ามี)" required={false} />
+				<Field name="department" label={t("onboarding.academicDepartment")} />
+				<Field name="academicTitle" label={t("onboarding.academicTitle")} required={false} />
+				<Field name="employeeId" label={t("onboarding.employeeIdOptional")} required={false} />
 			</>
 		);
 	if (role === "company_admin")
 		return (
 			<>
-				<Field name="department" label="แผนกของผู้สมัคร" />
-				<Field name="jobTitle" label="ตำแหน่งของผู้สมัคร" />
-				<Field name="companyName" label="ชื่อบริษัท" />
-				<Field name="companySlug" label="รหัสบริษัทภาษาอังกฤษ" pattern="[a-z0-9]+(?:-[a-z0-9]+)*" />
-				<Field name="registrationNumber" label="เลขทะเบียนนิติบุคคล" />
-				<Field name="businessType" label="ประเภทธุรกิจ" />
-				<Field name="companyEmail" label="อีเมลบริษัท" type="email" />
-				<Field name="companyPhone" label="เบอร์โทรบริษัท" />
-				<Field name="website" label="เว็บไซต์ (ถ้ามี)" type="url" required={false} />
-				<Field name="evidenceReference" label="เลขอ้างอิงเอกสารที่ส่งให้ CWIE" />
+				<Field name="department" label={t("onboarding.applicantDepartment")} />
+				<Field name="jobTitle" label={t("onboarding.applicantJobTitle")} />
+				<Field name="companyName" label={t("onboarding.companyName")} />
+				<Field
+					name="companySlug"
+					label={t("onboarding.companySlug")}
+					pattern="[a-z0-9]+(?:-[a-z0-9]+)*"
+				/>
+				<Field name="registrationNumber" label={t("onboarding.registrationNumber")} />
+				<Field name="businessType" label={t("onboarding.businessType")} />
+				<Field name="companyEmail" label={t("onboarding.companyEmail")} type="email" />
+				<Field name="companyPhone" label={t("onboarding.companyPhone")} />
+				<Field name="website" label={t("onboarding.websiteOptional")} type="url" required={false} />
+				<Field name="evidenceReference" label={t("onboarding.evidenceReference")} />
 				<label className="grid gap-2 text-sm font-semibold sm:col-span-2">
-					ที่อยู่บริษัท
+					{t("onboarding.companyAddress")}
 					<textarea
 						name="address"
 						required
@@ -403,13 +417,13 @@ function RoleFields({
 		);
 	return (
 		<>
-			<Field name="department" label="หน่วยงาน/แผนก" />
-			<Field name="jobTitle" label="ตำแหน่ง" />
+			<Field name="department" label={t("onboarding.department")} />
+			<Field name="jobTitle" label={t("onboarding.jobTitle")} />
 			{role !== "supervisor" && (
-				<Field name="employeeId" label="รหัสบุคลากร (ถ้ามี)" required={false} />
+				<Field name="employeeId" label={t("onboarding.employeeIdOptional")} required={false} />
 			)}
 			{role === "supervisor" && (
-				<Field name="expertise" label="ความเชี่ยวชาญ (ถ้ามี)" required={false} />
+				<Field name="expertise" label={t("onboarding.expertiseOptional")} required={false} />
 			)}
 		</>
 	);
@@ -441,9 +455,10 @@ function Field({
 	);
 }
 function Loading() {
+	const { t } = useLanguage();
 	return (
 		<div className="grid min-h-80 place-items-center text-muted-foreground">
-			กำลังตรวจสอบข้อมูลการเข้าใช้งาน...
+			{t("onboarding.loading")}
 		</div>
 	);
 }
@@ -452,6 +467,7 @@ function RequestStatus({
 }: {
 	request: { status: string; requestedRole: string; reviewNote?: string | null };
 }) {
+	const { t } = useLanguage();
 	const approved = request.status === "approved";
 	return (
 		<div className="mx-auto max-w-xl rounded-3xl border bg-white p-8 text-center">
@@ -461,18 +477,27 @@ function RequestStatus({
 				{approved ? <CheckCircle2 /> : <Clock3 />}
 			</span>
 			<h1 className="mt-5 text-2xl font-black">
-				{approved
-					? "ยืนยันข้อมูลเรียบร้อย"
-					: request.status === "revision_requested"
-						? "กรุณาแก้ไขข้อมูล"
-						: request.status === "rejected"
-							? "คำขอไม่ผ่านการอนุมัติ"
-							: "กำลังรอการตรวจสอบ"}
+				{t(
+					approved
+						? "onboarding.status.approved"
+						: request.status === "revision_requested"
+							? "onboarding.status.revision"
+							: request.status === "rejected"
+								? "onboarding.status.rejected"
+								: "onboarding.status.pending",
+				)}
 			</h1>
-			<p className="mt-3 text-muted-foreground">บทบาทที่ขอ: {request.requestedRole}</p>
+			<p className="mt-3 text-muted-foreground">
+				{t("onboarding.requestedRole", {
+					role: t(
+						roleOptions.find((item) => item.value === request.requestedRole)?.labelKey ??
+							"onboarding.role.student",
+					),
+				})}
+			</p>
 			{request.reviewNote && (
 				<div className="mt-5 rounded-xl bg-muted p-4 text-left text-sm">
-					หมายเหตุ: {request.reviewNote}
+					{t("onboarding.note", { note: request.reviewNote })}
 				</div>
 			)}
 		</div>

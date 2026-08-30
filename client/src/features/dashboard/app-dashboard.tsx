@@ -236,7 +236,7 @@ export function AppDashboard() {
 							onClick={() => setLocale(locale === "th" ? "en" : "th")}
 						>
 							<Languages />
-							<span className="hidden sm:inline">{locale === "th" ? "EN" : "ไทย"}</span>
+							<span className="hidden sm:inline">{locale === "th" ? "EN" : t("common.thai")}</span>
 						</Button>
 						<Button variant="ghost" size="sm" asChild>
 							<Link to="/app/reviews">

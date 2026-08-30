@@ -4,6 +4,8 @@ import { Copy, MailPlus, QrCode, RotateCcw } from "lucide-react";
 import { QRCodeSVG } from "qrcode.react";
 import { Button } from "@/components/ui/button";
 import { ConfirmationDialog } from "@/components/ui/confirmation-dialog";
+import { useLanguage } from "@/i18n/config";
+import type { MessageKey } from "@/i18n/messages";
 import type { OrganizationRole } from "@/features/organizations/role-navigation";
 import { apiClient } from "@/lib/api-client";
 import {
@@ -16,16 +18,16 @@ import {
 	buildInviteUrl,
 	canManageInvites,
 	getInviteStatus,
-	inviteErrorMessage,
+	inviteErrorKey,
 	type InviteStatus,
 } from "./invite-rules";
 
 const WORKSPACE_KEY = "trainy-workspace-id";
-const statusLabels: Record<InviteStatus, string> = {
-	pending: "รอรับคำเชิญ",
-	redeemed: "รับแล้ว",
-	revoked: "ยกเลิกแล้ว",
-	expired: "หมดอายุ",
+const statusKeys: Record<InviteStatus, MessageKey> = {
+	pending: "invites.status.pending",
+	redeemed: "invites.status.redeemed",
+	revoked: "invites.status.revoked",
+	expired: "invites.status.expired",
 };
 const statusStyles: Record<InviteStatus, string> = {
 	pending: "bg-amber-50 text-amber-800",
@@ -33,12 +35,13 @@ const statusStyles: Record<InviteStatus, string> = {
 	revoked: "bg-red-50 text-red-700",
 	expired: "bg-slate-100 text-slate-600",
 };
-const roleLabels = {
-	company_admin: "ผู้ดูแลสถานประกอบการ",
-	supervisor: "ผู้ควบคุมการฝึกงาน",
+const roleKeys = {
+	company_admin: "role.company_admin",
+	supervisor: "role.supervisor",
 } as const;
 
 export function InviteManagementPage() {
+	const { locale, t } = useLanguage();
 	const queryClient = useQueryClient();
 	const [targetMode, setTargetMode] = useState<"existing" | "new">("existing");
 	const [revokeId, setRevokeId] = useState<string | null>(null);
@@ -111,44 +114,43 @@ export function InviteManagementPage() {
 		createInvite.mutate(input, { onSuccess: () => form.reset() });
 	}
 
-	if (organizations.isLoading) return <PageMessage message="กำลังโหลดข้อมูล..." />;
-	if (!allowed)
-		return <PageMessage message="หน้านี้สำหรับผู้ดูแลมหาวิทยาลัยและผู้ประสานงานเท่านั้น" />;
+	if (organizations.isLoading) return <PageMessage message={t("invites.loading")} />;
+	if (!allowed) return <PageMessage message={t("invites.forbidden")} />;
 
 	return (
 		<div>
-			<p className="text-sm font-semibold text-primary">INVITES</p>
-			<h1 className="mt-2 text-3xl font-black">คำเชิญสถานประกอบการ</h1>
+			<p className="text-sm font-semibold text-primary">{t("invites.eyebrow")}</p>
+			<h1 className="mt-2 text-3xl font-black">{t("invites.title")}</h1>
 			<p className="mt-2 text-muted-foreground">
-				สร้างลิงก์หรือ QR Code เพื่อเชิญผู้ดูแลของสถานประกอบการเข้า {context.organization.name}
+				{t("invites.description", { organization: context.organization.name })}
 			</p>
 			<form className="mt-6 rounded-2xl border bg-white p-6" onSubmit={submit}>
-				<div className="flex flex-wrap gap-2" role="group" aria-label="ประเภทสถานประกอบการ">
+				<div className="flex flex-wrap gap-2" role="group" aria-label={t("invites.companyType")}>
 					<Button
 						type="button"
 						variant={targetMode === "existing" ? "default" : "outline"}
 						onClick={() => setTargetMode("existing")}
 					>
-						สถานประกอบการที่มีอยู่
+						{t("invites.existingCompany")}
 					</Button>
 					<Button
 						type="button"
 						variant={targetMode === "new" ? "default" : "outline"}
 						onClick={() => setTargetMode("new")}
 					>
-						สร้างสถานประกอบการใหม่
+						{t("invites.newCompany")}
 					</Button>
 				</div>
 				<div className="mt-5 grid gap-4 sm:grid-cols-[1fr_260px_auto] sm:items-end">
 					{targetMode === "existing" ? (
 						<label className="grid gap-2 text-sm font-semibold">
-							สถานประกอบการ
+							{t("invites.company")}
 							<select
 								name="targetOrganizationId"
 								required
 								className="h-11 rounded-xl border bg-background px-3 font-normal"
 							>
-								<option value="">เลือกสถานประกอบการ</option>
+								<option value="">{t("invites.selectCompany")}</option>
 								{companies.data?.map((company) => (
 									<option key={company.id} value={company.id}>
 										{company.name}
@@ -158,32 +160,32 @@ export function InviteManagementPage() {
 						</label>
 					) : (
 						<label className="grid gap-2 text-sm font-semibold">
-							ชื่อสถานประกอบการใหม่
+							{t("invites.newCompanyName")}
 							<input
 								name="proposedOrganizationName"
 								required
 								minLength={2}
 								maxLength={160}
 								className="h-11 rounded-xl border bg-background px-3 font-normal"
-								placeholder="ชื่อบริษัทหรือหน่วยงาน"
+								placeholder={t("invites.companyPlaceholder")}
 							/>
 						</label>
 					)}
 					<label className="grid gap-2 text-sm font-semibold">
-						บทบาท
+						{t("invites.role")}
 						<select name="role" className="h-11 rounded-xl border bg-background px-3 font-normal">
-							<option value="company_admin">{roleLabels.company_admin}</option>
-							<option value="supervisor">{roleLabels.supervisor}</option>
+							<option value="company_admin">{t(roleKeys.company_admin)}</option>
+							<option value="supervisor">{t(roleKeys.supervisor)}</option>
 						</select>
 					</label>
 					<Button disabled={createInvite.isPending}>
 						<MailPlus />
-						{createInvite.isPending ? "กำลังสร้าง..." : "สร้างคำเชิญ"}
+						{t(createInvite.isPending ? "invites.creating" : "invites.create")}
 					</Button>
 				</div>
 				{createInvite.isError && (
 					<p role="alert" className="mt-4 text-sm text-destructive">
-						{inviteErrorMessage((createInvite.error as InviteApiError).code)}
+						{t(inviteErrorKey((createInvite.error as InviteApiError).code))}
 					</p>
 				)}
 			</form>
@@ -193,15 +195,16 @@ export function InviteManagementPage() {
 				error={invites.error}
 				companies={companies.data ?? []}
 				copiedId={copiedId}
+				locale={locale}
 				onCopy={setCopiedId}
 				onRevoke={setRevokeId}
 			/>
 			<ConfirmationDialog
 				open={Boolean(revokeId)}
-				title="ยกเลิกคำเชิญนี้?"
-				description="ลิงก์และ QR Code นี้จะใช้รับคำเชิญไม่ได้อีก"
-				confirmLabel="ยืนยันการยกเลิก"
-				cancelLabel="กลับ"
+				title={t("invites.revokeTitle")}
+				description={t("invites.revokeDescription")}
+				confirmLabel={t("invites.revokeConfirm")}
+				cancelLabel={t("invites.back")}
 				destructive
 				pending={revokeInvite.isPending}
 				onCancel={() => setRevokeId(null)}
@@ -217,13 +220,14 @@ function InviteList({
 	error,
 	companies,
 	copiedId,
+	locale,
 	onCopy,
 	onRevoke,
 }: {
 	data: Array<{
 		id: string;
 		token: string;
-		role: keyof typeof roleLabels;
+		role: keyof typeof roleKeys;
 		targetOrganizationId: string | null;
 		proposedOrganizationName: string | null;
 		expiresAt: string;
@@ -234,16 +238,18 @@ function InviteList({
 	error: Error | null;
 	companies: Array<{ id: string; name: string }>;
 	copiedId: string | null;
+	locale: string;
 	onCopy: (id: string) => void;
 	onRevoke: (id: string) => void;
 }) {
+	const { t } = useLanguage();
 	return (
 		<section className="mt-8">
-			<h2 className="text-xl font-bold">คำเชิญทั้งหมด</h2>
-			{loading && <p className="mt-4 text-muted-foreground">กำลังโหลดคำเชิญ...</p>}
+			<h2 className="text-xl font-bold">{t("invites.all")}</h2>
+			{loading && <p className="mt-4 text-muted-foreground">{t("invites.loadingList")}</p>}
 			{error && (
 				<p role="alert" className="mt-4 text-destructive">
-					{inviteErrorMessage((error as InviteApiError).code)}
+					{t(inviteErrorKey((error as InviteApiError).code))}
 				</p>
 			)}
 			<div className="mt-4 grid gap-4">
@@ -259,22 +265,24 @@ function InviteList({
 							<div>
 								<div className="flex flex-wrap items-center gap-2">
 									<h3 className="font-bold">
-										{invite.proposedOrganizationName ?? company?.name ?? "สถานประกอบการ"}
+										{invite.proposedOrganizationName ?? company?.name ?? t("invites.company")}
 									</h3>
 									<span
 										className={`rounded-full px-2.5 py-1 text-xs font-semibold ${statusStyles[status]}`}
 									>
-										{statusLabels[status]}
+										{t(statusKeys[status])}
 									</span>
 								</div>
 								<p className="mt-2 text-sm text-muted-foreground">
-									{roleLabels[invite.role]} · หมดอายุ{" "}
-									{new Date(invite.expiresAt).toLocaleString("th-TH")}
+									{t("invites.expires", {
+										role: t(roleKeys[invite.role]),
+										date: new Date(invite.expiresAt).toLocaleString(locale),
+									})}
 								</p>
 							</div>
 							{status === "pending" && (
 								<div className="mt-5 flex flex-wrap items-center gap-3 sm:mt-0">
-									<div className="rounded-xl border bg-white p-2" aria-label="QR Code คำเชิญ">
+									<div className="rounded-xl border bg-white p-2" aria-label={t("invites.qrLabel")}>
 										<QRCodeSVG value={url} size={96} level="M" />
 									</div>
 									<div className="grid gap-2">
@@ -286,11 +294,11 @@ function InviteList({
 											}}
 										>
 											<Copy />
-											{copiedId === invite.id ? "คัดลอกแล้ว" : "คัดลอกลิงก์"}
+											{t(copiedId === invite.id ? "invites.copied" : "invites.copy")}
 										</Button>
 										<Button variant="destructive" onClick={() => onRevoke(invite.id)}>
 											<RotateCcw />
-											ยกเลิกคำเชิญ
+											{t("invites.revoke")}
 										</Button>
 									</div>
 								</div>
@@ -302,7 +310,7 @@ function InviteList({
 			{data.length === 0 && !loading && !error && (
 				<div className="mt-4 rounded-2xl border bg-white p-8 text-center text-muted-foreground">
 					<QrCode className="mx-auto mb-3" />
-					ยังไม่มีคำเชิญ
+					{t("invites.empty")}
 				</div>
 			)}
 		</section>

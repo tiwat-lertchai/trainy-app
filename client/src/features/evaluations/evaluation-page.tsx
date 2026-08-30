@@ -2,10 +2,11 @@ import { useState, type FormEvent } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { ClipboardCheck, Send, Star } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { useLanguage } from "@/i18n/config";
 import { apiClient } from "@/lib/api-client";
 import {
 	canEditEvaluation,
-	evaluatorLabel,
+	evaluatorKeys,
 	visibleEvaluations,
 	type EvaluationStatus,
 	type EvaluatorType,
@@ -20,6 +21,7 @@ type Scores = {
 };
 
 export function EvaluationPage() {
+	const { locale, t } = useLanguage();
 	const queryClient = useQueryClient();
 	const [selectedPlacement, setSelectedPlacement] = useState("");
 	const [confirmingId, setConfirmingId] = useState<string | null>(null);
@@ -85,13 +87,11 @@ export function EvaluationPage() {
 
 	return (
 		<div>
-			<p className="text-sm font-semibold text-primary">EVALUATIONS</p>
-			<h1 className="mt-2 text-3xl font-black">การประเมินผลการฝึกงาน</h1>
-			<p className="mt-2 text-muted-foreground">
-				อาจารย์และพี่เลี้ยงประเมินผลงาน นักศึกษาจะเห็นผลหลังผู้ประเมินยืนยันส่งแล้ว
-			</p>
+			<p className="text-sm font-semibold text-primary">{t("evaluations.eyebrow")}</p>
+			<h1 className="mt-2 text-3xl font-black">{t("evaluations.title")}</h1>
+			<p className="mt-2 text-muted-foreground">{t("evaluations.description")}</p>
 			<label className="mt-6 grid max-w-xl gap-2 text-sm font-semibold">
-				การฝึกงาน
+				{t("evaluations.placement")}
 				<select
 					className="h-11 rounded-xl border bg-white px-3"
 					value={placementId}
@@ -101,7 +101,7 @@ export function EvaluationPage() {
 					}}
 				>
 					<option value="" disabled>
-						เลือกการฝึกงาน
+						{t("evaluations.selectPlacement")}
 					</option>
 					{placements.data?.data.map((placement) => (
 						<option key={placement.id} value={placement.id}>
@@ -122,10 +122,8 @@ export function EvaluationPage() {
 				)}
 			{ownEvaluation?.status === "draft" && (
 				<div className="mt-4 rounded-2xl border border-amber-200 bg-amber-50 p-5">
-					<h2 className="font-bold">ฉบับร่างยังไม่แสดงให้นักศึกษาเห็น</h2>
-					<p className="mt-1 text-sm text-muted-foreground">
-						ตรวจคะแนนและความคิดเห็นให้เรียบร้อย การส่งผลประเมินแล้วไม่สามารถแก้ไขได้
-					</p>
+					<h2 className="font-bold">{t("evaluations.draftNotice")}</h2>
+					<p className="mt-1 text-sm text-muted-foreground">{t("evaluations.draftDetail")}</p>
 					{confirmingId === ownEvaluation.id ? (
 						<div className="mt-4 flex flex-wrap gap-2">
 							<Button
@@ -133,10 +131,10 @@ export function EvaluationPage() {
 								onClick={() => action.mutate({ kind: "submit", id: ownEvaluation.id })}
 							>
 								<Send />
-								ยืนยันส่งผลประเมิน
+								{t("evaluations.confirmSubmit")}
 							</Button>
 							<Button variant="outline" onClick={() => setConfirmingId(null)}>
-								ยกเลิก
+								{t("evaluations.cancel")}
 							</Button>
 						</div>
 					) : (
@@ -145,19 +143,15 @@ export function EvaluationPage() {
 							variant="outline"
 							onClick={() => setConfirmingId(ownEvaluation.id)}
 						>
-							ส่งผลประเมิน
+							{t("evaluations.submit")}
 						</Button>
 					)}
 				</div>
 			)}
 			{evaluations.isLoading && <div className="mt-8 h-40 animate-pulse rounded-2xl bg-muted" />}
-			{evaluations.isError && <Notice message="โหลดผลการประเมินไม่สำเร็จ" error />}
+			{evaluations.isError && <Notice message={t("evaluations.loadError")} error />}
 			{!evaluations.isLoading && records.length === 0 && (
-				<Notice
-					message={
-						isStudent ? "ยังไม่มีผลการประเมินที่ส่งแล้ว" : "ยังไม่มีผลการประเมินสำหรับการฝึกงานนี้"
-					}
-				/>
+				<Notice message={isStudent ? t("evaluations.emptyStudent") : t("evaluations.empty")} />
 			)}
 			<div className="mt-8 grid gap-4 md:grid-cols-2">
 				{records.map((record) => (
@@ -167,34 +161,33 @@ export function EvaluationPage() {
 								<ClipboardCheck />
 							</span>
 							<span className="rounded-full bg-slate-100 px-3 py-1 text-xs font-semibold">
-								{record.status === "submitted" ? "ส่งแล้ว" : "ฉบับร่าง"}
+								{t(
+									record.status === "submitted"
+										? "evaluations.status.submitted"
+										: "evaluations.status.draft",
+								)}
 							</span>
 						</div>
 						<h2 className="mt-5 font-bold">
-							{evaluatorLabel(record.evaluatorType as EvaluatorType)}
+							{t(evaluatorKeys[record.evaluatorType as EvaluatorType])}
 						</h2>
 						<div className="mt-4 grid grid-cols-3 gap-2">
-							<Score label="ทักษะวิชาชีพ" value={record.technicalScore} />
-							<Score label="การสื่อสาร" value={record.communicationScore} />
-							<Score label="ความรับผิดชอบ" value={record.responsibilityScore} />
+							<Score label={t("evaluations.technical")} value={record.technicalScore} />
+							<Score label={t("evaluations.communication")} value={record.communicationScore} />
+							<Score label={t("evaluations.responsibility")} value={record.responsibilityScore} />
 						</div>
 						<p className="mt-5 whitespace-pre-wrap rounded-xl bg-muted p-4 text-sm leading-6">
 							{record.comment}
 						</p>
 						{record.submittedAt && (
 							<p className="mt-3 text-xs text-muted-foreground">
-								ส่งเมื่อ {formatDate(record.submittedAt)}
+								{t("evaluations.submittedAt", { date: formatDate(record.submittedAt, locale) })}
 							</p>
 						)}
 					</article>
 				))}
 			</div>
-			{action.isError && (
-				<Notice
-					message="ดำเนินการไม่สำเร็จ กรุณาตรวจสอบสิทธิ์ สถานะการฝึกงาน และข้อมูลล่าสุด"
-					error
-				/>
-			)}
+			{action.isError && <Notice message={t("evaluations.actionError")} error />}
 		</div>
 	);
 }
@@ -208,6 +201,7 @@ function EvaluationForm({
 	pending: boolean;
 	onSave: (scores: Scores) => void;
 }) {
+	const { t } = useLanguage();
 	function submit(event: FormEvent<HTMLFormElement>) {
 		event.preventDefault();
 		const data = new FormData(event.currentTarget);
@@ -223,15 +217,23 @@ function EvaluationForm({
 			className="mt-6 grid gap-4 rounded-2xl border bg-white p-6 sm:grid-cols-3"
 			onSubmit={submit}
 		>
-			<ScoreField name="technical" label="ทักษะวิชาชีพ" value={evaluation?.technicalScore} />
-			<ScoreField name="communication" label="การสื่อสาร" value={evaluation?.communicationScore} />
+			<ScoreField
+				name="technical"
+				label={t("evaluations.technical")}
+				value={evaluation?.technicalScore}
+			/>
+			<ScoreField
+				name="communication"
+				label={t("evaluations.communication")}
+				value={evaluation?.communicationScore}
+			/>
 			<ScoreField
 				name="responsibility"
-				label="ความรับผิดชอบ"
+				label={t("evaluations.responsibility")}
 				value={evaluation?.responsibilityScore}
 			/>
 			<label className="grid gap-2 text-sm font-semibold sm:col-span-3">
-				ความคิดเห็น
+				{t("evaluations.comment")}
 				<textarea
 					name="comment"
 					minLength={10}
@@ -242,12 +244,19 @@ function EvaluationForm({
 				/>
 			</label>
 			<Button className="sm:col-span-3" disabled={pending}>
-				{pending ? "กำลังบันทึก..." : evaluation ? "บันทึกการแก้ไข" : "บันทึกฉบับร่าง"}
+				{t(
+					pending
+						? "evaluations.saving"
+						: evaluation
+							? "evaluations.saveChanges"
+							: "evaluations.saveDraft",
+				)}
 			</Button>
 		</form>
 	);
 }
 function ScoreField({ name, label, value }: { name: string; label: string; value?: number }) {
+	const { t } = useLanguage();
 	return (
 		<label className="grid gap-2 text-sm font-semibold">
 			{label}
@@ -259,7 +268,7 @@ function ScoreField({ name, label, value }: { name: string; label: string; value
 			>
 				{[1, 2, 3, 4, 5].map((score) => (
 					<option key={score} value={score}>
-						{score} คะแนน
+						{t("evaluations.score", { score })}
 					</option>
 				))}
 			</select>
@@ -290,8 +299,8 @@ function Notice({ message, error = false }: { message: string; error?: boolean }
 		</div>
 	);
 }
-function formatDate(value: string | Date) {
-	return new Intl.DateTimeFormat("th-TH", { dateStyle: "medium", timeStyle: "short" }).format(
+function formatDate(value: string | Date, locale: string) {
+	return new Intl.DateTimeFormat(locale, { dateStyle: "medium", timeStyle: "short" }).format(
 		new Date(value),
 	);
 }

@@ -8,7 +8,7 @@ import { useLanguage } from "@/i18n/config";
 import { apiClient } from "@/lib/api-client";
 import type { OrganizationRole } from "@/features/organizations/role-navigation";
 import {
-	applicationStatusLabels,
+	applicationStatusKeys,
 	availableReviewActions,
 	canWithdrawApplication,
 	type ApplicationStatus,
@@ -24,7 +24,7 @@ async function loadOrganizations() {
 }
 
 export function ApplicationPage() {
-	const { t } = useLanguage();
+	const { locale, t } = useLanguage();
 	const queryClient = useQueryClient();
 	const [confirmation, setConfirmation] = useState<{
 		id: string;
@@ -118,30 +118,28 @@ export function ApplicationPage() {
 	return (
 		<div>
 			<div>
-				<p className="text-sm font-semibold text-primary">APPLICATIONS</p>
-				<h1 className="mt-2 text-3xl font-black">ใบสมัครฝึกงาน</h1>
+				<p className="text-sm font-semibold text-primary">{t("applications.eyebrow")}</p>
+				<h1 className="mt-2 text-3xl font-black">{t("applications.title")}</h1>
 				<p className="mt-2 text-muted-foreground">
 					{role === "student"
-						? "ติดตามผลและจัดการใบสมัครของคุณ"
+						? t("applications.studentDescription")
 						: role?.startsWith("company") || role === "supervisor"
-							? "ตรวจสอบผู้สมัครในตำแหน่งของบริษัท"
-							: "ติดตามใบสมัครของนักศึกษาในมหาวิทยาลัย"}
+							? t("applications.companyDescription")
+							: t("applications.universityDescription")}
 				</p>
 			</div>
 			{applications.isLoading && <div className="mt-8 h-40 animate-pulse rounded-2xl bg-muted" />}
-			{applications.isError && (
-				<Notice message="ไม่สามารถโหลดใบสมัครได้ กรุณาลองใหม่" destructive />
-			)}
+			{applications.isError && <Notice message={t("applications.loadError")} destructive />}
 			{applications.data?.data.length === 0 &&
 				(role === "student" ? (
 					<div className="mt-8 rounded-2xl border bg-white p-10 text-center text-muted-foreground">
-						<p>ยังไม่มีใบสมัครในขณะนี้</p>
+						<p>{t("applications.empty")}</p>
 						<Button className="mt-4" asChild>
-							<Link to="/app/internships">ไปดูตำแหน่งฝึกงาน</Link>
+							<Link to="/app/internships">{t("applications.browse")}</Link>
 						</Button>
 					</div>
 				) : (
-					<Notice message="ยังไม่มีใบสมัครในขณะนี้" />
+					<Notice message={t("applications.empty")} />
 				))}
 			<div className="mt-8 grid gap-4">
 				{applications.data?.data.map((application) => {
@@ -159,13 +157,15 @@ export function ApplicationPage() {
 										<BriefcaseBusiness className="size-5" />
 									</span>
 									<div>
-										<h2 className="font-bold">{details.internship?.title ?? "ตำแหน่งฝึกงาน"}</h2>
+										<h2 className="font-bold">
+											{details.internship?.title ?? t("applications.fallbackTitle")}
+										</h2>
 										<p className="mt-1 text-xs text-muted-foreground">
-											เลขที่ {application.id.slice(0, 8)}
+											{t("applications.number", { number: application.id.slice(0, 8) })}
 										</p>
 									</div>
 								</div>
-								<StatusBadge status={status} />
+								<StatusBadge status={status} label={t(applicationStatusKeys[status])} />
 							</div>
 							<div className="mt-5 grid gap-2 text-sm text-muted-foreground sm:grid-cols-3">
 								{details.student && (
@@ -182,17 +182,18 @@ export function ApplicationPage() {
 								)}
 								<span className="flex items-center gap-2">
 									<CalendarDays className="size-4" />
-									{new Intl.DateTimeFormat("th-TH", { dateStyle: "medium" }).format(
+									{new Intl.DateTimeFormat(locale, { dateStyle: "medium" }).format(
 										new Date(application.submittedAt),
 									)}
 								</span>
 							</div>
 							<div className="mt-5 rounded-xl bg-muted p-4 text-sm leading-6">
-								<span className="font-semibold">เหตุผลที่สมัคร:</span> {application.statement}
+								<span className="font-semibold">{t("applications.reason")}</span>{" "}
+								{application.statement}
 							</div>
 							{mutation.isError && mutation.variables?.id === application.id && (
 								<p role="alert" className="mt-3 text-sm text-destructive">
-									ดำเนินการไม่สำเร็จ สถานะอาจถูกเปลี่ยนไปแล้วหรือจำนวนรับเต็ม
+									{t("applications.actionError")}
 								</p>
 							)}
 							<div className="mt-5 flex flex-wrap gap-2">
@@ -202,7 +203,7 @@ export function ApplicationPage() {
 										disabled={mutation.isPending}
 										onClick={() => setConfirmation({ id: application.id, action: "withdrawn" })}
 									>
-										ถอนใบสมัคร
+										{t("applications.withdraw")}
 									</Button>
 								)}
 								{actions.map((action) => (
@@ -217,10 +218,10 @@ export function ApplicationPage() {
 										}
 									>
 										{action === "under_review"
-											? "เริ่มตรวจสอบ"
+											? t("applications.startReview")
 											: action === "accepted"
-												? "รับเข้าฝึกงาน"
-												: "ไม่รับ"}
+												? t("applications.accept")
+												: t("applications.decline")}
 									</Button>
 								))}
 							</div>
@@ -244,7 +245,7 @@ export function ApplicationPage() {
 	);
 }
 
-function StatusBadge({ status }: { status: ApplicationStatus }) {
+function StatusBadge({ status, label }: { status: ApplicationStatus; label: string }) {
 	const tone =
 		status === "accepted"
 			? "bg-emerald-50 text-emerald-700"
@@ -252,9 +253,7 @@ function StatusBadge({ status }: { status: ApplicationStatus }) {
 				? "bg-slate-100 text-slate-600"
 				: "bg-amber-50 text-amber-700";
 	return (
-		<span className={`w-fit rounded-full px-3 py-1 text-xs font-semibold ${tone}`}>
-			{applicationStatusLabels[status]}
-		</span>
+		<span className={`w-fit rounded-full px-3 py-1 text-xs font-semibold ${tone}`}>{label}</span>
 	);
 }
 function Notice({ message, destructive = false }: { message: string; destructive?: boolean }) {
