@@ -38,22 +38,26 @@ function readRequired(name: string, value: string | undefined): string {
 }
 
 function readOrigins(value: string | undefined): readonly string[] {
-  const origins = (value ?? "http://localhost:5173")
+  const configuredOrigins = (value ?? "http://localhost:5173")
     .split(",")
     .map((origin) => origin.trim())
     .filter(Boolean);
 
-  if (origins.length === 0) {
+  if (configuredOrigins.length === 0) {
     throw new Error("CORS_ORIGINS must contain at least one origin");
   }
 
-  for (const origin of origins) {
+  const origins = configuredOrigins.map((origin) => {
     try {
-      new URL(origin);
+      const parsed = new URL(origin);
+      if (parsed.pathname !== "/" || parsed.search || parsed.hash) {
+        throw new Error();
+      }
+      return parsed.origin;
     } catch {
       throw new Error(`Invalid CORS origin: ${origin}`);
     }
-  }
+  });
 
   return Object.freeze([...new Set(origins)]);
 }

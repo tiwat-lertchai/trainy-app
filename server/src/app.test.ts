@@ -8,7 +8,9 @@ beforeAll(async () => {
   // Tests use a valid-looking URL because these security checks never query the
   // database. This keeps the suite independent from Neon and developer secrets.
   process.env.DATABASE_URL = "postgresql://test:test@localhost/test?sslmode=require";
-  process.env.CORS_ORIGINS = trustedOrigin;
+  // Operators commonly include a trailing slash. URL origins never do, so the
+  // configuration parser must canonicalize it before exact-match checks.
+  process.env.CORS_ORIGINS = `${trustedOrigin}/`;
   process.env.BETTER_AUTH_SECRET = "test-secret-that-is-longer-than-thirty-two-characters";
   process.env.BETTER_AUTH_URL = "http://localhost:3000";
   process.env.LINE_CHANNEL_ID = "test-line-channel-id";
