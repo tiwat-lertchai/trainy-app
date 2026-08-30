@@ -7,6 +7,7 @@ import { secureHeaders } from "hono/secure-headers";
 import { env } from "./config/env";
 import { errorHandler } from "./middleware/error-handler";
 import { auditMutations } from "./middleware/audit-mutations";
+import { apiRateLimit, authRateLimit } from "./middleware/rate-limit";
 import { academicRoute } from "./modules/academic/academic.route";
 import { attendanceRoute } from "./modules/attendance/attendance.route";
 import { authRoute } from "./modules/auth/auth.route";
@@ -88,6 +89,17 @@ function createApp() {
     }),
   );
   app.onError(errorHandler);
+  // Rate limiting: tighter budget on auth (brute-force/OAuth abuse), a looser
+  // backstop on the rest of the API (scripted scraping/abuse). See
+  // middleware/rate-limit.ts for the trust model this relies on. Skipped in
+  // the test environment: the limiter is a module-level singleton shared by
+  // every test file that imports this app, and the existing test suite was
+  // not written to account for a shared request budget across files.
+  // middleware/rate-limit.test.ts exercises the limiter directly instead.
+  if (env.NODE_ENV !== "test") {
+    app.use("/api/auth/*", authRateLimit);
+    app.use("/api/v1/*", apiRateLimit);
+  }
   app.use("/api/v1/*", auditMutations);
 
   return app;
