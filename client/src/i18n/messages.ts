@@ -246,6 +246,9 @@ export const messages = {
 		"applications.loadError": "ไม่สามารถโหลดใบสมัครได้ กรุณาลองใหม่",
 		"applications.empty": "ยังไม่มีใบสมัครในขณะนี้",
 		"applications.browse": "ไปดูตำแหน่งฝึกงาน",
+		"applications.createRequest": "ยื่นคำร้องฝึกงานที่หาเอง",
+		"applications.emptyHint":
+			"เลือกตำแหน่งที่เปิดรับ หรือยื่นคำร้องสำหรับสถานประกอบการที่คุณติดต่อไว้แล้วได้จากปุ่มด้านบน",
 		"applications.fallbackTitle": "ตำแหน่งฝึกงาน",
 		"applications.number": "เลขที่ {number}",
 		"applications.reason": "เหตุผลที่สมัคร:",
@@ -409,6 +412,10 @@ export const messages = {
 		"attendance.incompleteRecords": "ไม่ครบชั่วโมง",
 		"attendance.totalNetMinutes": "รวมนาทีสุทธิ",
 		"internshipRequests.title": "คำร้องฝึกงานที่หาสถานประกอบการเอง",
+		"internshipRequests.loading": "กำลังโหลดข้อมูลนักศึกษา...",
+		"internshipRequests.organizationError": "โหลดข้อมูลองค์กรไม่สำเร็จ กรุณาลองใหม่",
+		"internshipRequests.studentOnly": "หน้านี้สำหรับนักศึกษาเท่านั้น",
+		"internshipRequests.backToApplications": "กลับไปหน้าใบสมัคร",
 		"internshipRequests.description":
 			"ส่งคำร้องให้อาจารย์ที่ปรึกษา หัวหน้าหลักสูตร และศูนย์สหกิจศึกษาตรวจตามลำดับ",
 		"internshipRequests.type": "ประเภทการฝึกงาน",
@@ -808,6 +815,9 @@ export const messages = {
 		"applications.loadError": "Applications could not be loaded. Please try again.",
 		"applications.empty": "There are no applications yet.",
 		"applications.browse": "Browse internships",
+		"applications.createRequest": "Submit a self-arranged internship request",
+		"applications.emptyHint":
+			"Choose an open position or use the button above to request an internship with a company you have already contacted.",
 		"applications.fallbackTitle": "Internship position",
 		"applications.number": "Application {number}",
 		"applications.reason": "Application statement:",
@@ -975,6 +985,11 @@ export const messages = {
 		"attendance.incompleteRecords": "Incomplete hours",
 		"attendance.totalNetMinutes": "Total net minutes",
 		"internshipRequests.title": "Self-arranged internship requests",
+		"internshipRequests.loading": "Loading student information...",
+		"internshipRequests.organizationError":
+			"Organization information could not be loaded. Please try again.",
+		"internshipRequests.studentOnly": "This page is available to students only.",
+		"internshipRequests.backToApplications": "Back to applications",
 		"internshipRequests.description":
 			"Submit a request for sequential review by your advisor, program chair, and CWIE center.",
 		"internshipRequests.type": "Internship type",

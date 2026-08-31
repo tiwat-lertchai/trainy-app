@@ -16,6 +16,7 @@ import { Route as AppApplicationsRouteImport } from './routes/app.applications'
 import { Route as AppAttendanceRouteImport } from './routes/app.attendance'
 import { Route as AppDocumentsRouteImport } from './routes/app.documents'
 import { Route as AppEvaluationsRouteImport } from './routes/app.evaluations'
+import { Route as AppInternshipRequestRouteImport } from './routes/app.internship-request'
 import { Route as AppInternshipsRouteImport } from './routes/app.internships'
 import { Route as AppInvitesRouteImport } from './routes/app.invites'
 import { Route as AppMembersRouteImport } from './routes/app.members'
@@ -60,6 +61,11 @@ const AppDocumentsRoute = AppDocumentsRouteImport.update({
 const AppEvaluationsRoute = AppEvaluationsRouteImport.update({
   id: '/evaluations',
   path: '/evaluations',
+  getParentRoute: () => AppRoute,
+} as any)
+const AppInternshipRequestRoute = AppInternshipRequestRouteImport.update({
+  id: '/internship-request',
+  path: '/internship-request',
   getParentRoute: () => AppRoute,
 } as any)
 const AppInternshipsRoute = AppInternshipsRouteImport.update({
@@ -121,6 +127,7 @@ export interface FileRoutesByFullPath {
   '/app/attendance': typeof AppAttendanceRoute
   '/app/documents': typeof AppDocumentsRoute
   '/app/evaluations': typeof AppEvaluationsRoute
+  '/app/internship-request': typeof AppInternshipRequestRoute
   '/app/internships': typeof AppInternshipsRoute
   '/app/invites': typeof AppInvitesRouteWithChildren
   '/app/members': typeof AppMembersRoute
@@ -140,6 +147,7 @@ export interface FileRoutesByTo {
   '/app/attendance': typeof AppAttendanceRoute
   '/app/documents': typeof AppDocumentsRoute
   '/app/evaluations': typeof AppEvaluationsRoute
+  '/app/internship-request': typeof AppInternshipRequestRoute
   '/app/internships': typeof AppInternshipsRoute
   '/app/members': typeof AppMembersRoute
   '/app/onboarding': typeof AppOnboardingRoute
@@ -159,6 +167,7 @@ export interface FileRoutesById {
   '/app/attendance': typeof AppAttendanceRoute
   '/app/documents': typeof AppDocumentsRoute
   '/app/evaluations': typeof AppEvaluationsRoute
+  '/app/internship-request': typeof AppInternshipRequestRoute
   '/app/internships': typeof AppInternshipsRoute
   '/app/invites': typeof AppInvitesRouteWithChildren
   '/app/members': typeof AppMembersRoute
@@ -180,6 +189,7 @@ export interface FileRouteTypes {
     | '/app/attendance'
     | '/app/documents'
     | '/app/evaluations'
+    | '/app/internship-request'
     | '/app/internships'
     | '/app/invites'
     | '/app/members'
@@ -199,6 +209,7 @@ export interface FileRouteTypes {
     | '/app/attendance'
     | '/app/documents'
     | '/app/evaluations'
+    | '/app/internship-request'
     | '/app/internships'
     | '/app/members'
     | '/app/onboarding'
@@ -217,6 +228,7 @@ export interface FileRouteTypes {
     | '/app/attendance'
     | '/app/documents'
     | '/app/evaluations'
+    | '/app/internship-request'
     | '/app/internships'
     | '/app/invites'
     | '/app/members'
@@ -283,6 +295,13 @@ declare module '@tanstack/react-router' {
       path: '/evaluations'
       fullPath: '/app/evaluations'
       preLoaderRoute: typeof AppEvaluationsRouteImport
+      parentRoute: typeof AppRoute
+    }
+    '/app/internship-request': {
+      id: '/app/internship-request'
+      path: '/internship-request'
+      fullPath: '/app/internship-request'
+      preLoaderRoute: typeof AppInternshipRequestRouteImport
       parentRoute: typeof AppRoute
     }
     '/app/internships': {
@@ -378,6 +397,7 @@ interface AppRouteChildren {
   AppAttendanceRoute: typeof AppAttendanceRoute
   AppDocumentsRoute: typeof AppDocumentsRoute
   AppEvaluationsRoute: typeof AppEvaluationsRoute
+  AppInternshipRequestRoute: typeof AppInternshipRequestRoute
   AppInternshipsRoute: typeof AppInternshipsRoute
   AppInvitesRoute: typeof AppInvitesRouteWithChildren
   AppMembersRoute: typeof AppMembersRoute
@@ -394,6 +414,7 @@ const AppRouteChildren: AppRouteChildren = {
   AppAttendanceRoute: AppAttendanceRoute,
   AppDocumentsRoute: AppDocumentsRoute,
   AppEvaluationsRoute: AppEvaluationsRoute,
+  AppInternshipRequestRoute: AppInternshipRequestRoute,
   AppInternshipsRoute: AppInternshipsRoute,
   AppInvitesRoute: AppInvitesRouteWithChildren,
   AppMembersRoute: AppMembersRoute,

@@ -13,6 +13,7 @@ import {
 	canWithdrawApplication,
 	type ApplicationStatus,
 } from "./application-rules";
+import { studentApplicationPaths } from "./application-navigation";
 import { InternshipRequestPanel } from "./internship-request-panel";
 
 const WORKSPACE_KEY = "trainy-workspace-id";
@@ -127,6 +128,18 @@ export function ApplicationPage() {
 							? t("applications.companyDescription")
 							: t("applications.universityDescription")}
 				</p>
+				{role === "student" && (
+					<div className="mt-5 flex flex-wrap gap-3">
+						<Button asChild>
+							<Link to={studentApplicationPaths.selfArrangedRequest}>
+								{t("applications.createRequest")}
+							</Link>
+						</Button>
+						<Button variant="outline" asChild>
+							<Link to={studentApplicationPaths.browseInternships}>{t("applications.browse")}</Link>
+						</Button>
+					</div>
+				)}
 			</div>
 			{applications.isLoading && <div className="mt-8 h-40 animate-pulse rounded-2xl bg-muted" />}
 			{applications.isError && <Notice message={t("applications.loadError")} destructive />}
@@ -134,9 +147,7 @@ export function ApplicationPage() {
 				(role === "student" ? (
 					<div className="mt-8 rounded-2xl border bg-white p-10 text-center text-muted-foreground">
 						<p>{t("applications.empty")}</p>
-						<Button className="mt-4" asChild>
-							<Link to="/app/internships">{t("applications.browse")}</Link>
-						</Button>
+						<p className="mt-2 text-sm">{t("applications.emptyHint")}</p>
 					</div>
 				) : (
 					<Notice message={t("applications.empty")} />
@@ -240,7 +251,7 @@ export function ApplicationPage() {
 				onCancel={() => setConfirmation(null)}
 				onConfirm={() => confirmation && mutation.mutate(confirmation)}
 			/>
-			<InternshipRequestPanel organizationId={organizationId} role={role} />
+			{role !== "student" && <InternshipRequestPanel organizationId={organizationId} role={role} />}
 		</div>
 	);
 }
