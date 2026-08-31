@@ -41,6 +41,8 @@ function request(overrides: Partial<RequestWithApprovals> = {}): RequestWithAppr
     universityOrganizationId: "university",
     academicMajorId: "major-1",
     type: "regular",
+    semester: 1,
+    academicYear: 2569,
     companyOrganizationId: "company",
     companyNameProposed: null,
     companyContactName: null,
@@ -185,6 +187,8 @@ const baseCreateInput = {
   universityOrganizationId: "university",
   academicMajorId: "major-1",
   type: "regular" as const,
+  semester: 1,
+  academicYear: 2569,
   positionTitle: "Frontend Intern",
   description: "Build things for the summer.",
   proposedStartDate: new Date("2026-10-01"),
@@ -233,6 +237,7 @@ describe("InternshipRequestService.createRequest", () => {
       "chair-1",
     );
     expect(record.approvals.find((a) => a.step === "center")?.reviewerUserId).toBeNull();
+    expect(record).toMatchObject({ type: "regular", semester: 1, academicYear: 2569 });
   });
 
   test("rejects a request from someone who isn't a student at that university", async () => {

@@ -376,6 +376,9 @@ Base path: `/api/v1/attendance`
 | POST   | `/:attendanceId/adjustments`             | Placement student                                                          |
 | GET    | `/:placementId/adjustments`              | Assigned advisor/supervisor                                                |
 | POST   | `/adjustments/:adjustmentId/review`      | Assigned advisor/supervisor                                                |
+| POST   | `/:placementId/leaves`                   | Placement student                                                          |
+| GET    | `/:placementId/leaves`                   | Placement participant or active staff                                      |
+| POST   | `/leaves/:leaveId/review`                | Assigned advisor/supervisor                                                |
 | GET    | `/organizations/:organizationId/summary` | University admin/coordinator/advisor                                       |
 
 Location is captured only when the student explicitly checks in or out;
@@ -416,6 +419,12 @@ Sending both `location` and `locationExceptionReason` in the same request is
 rejected. Attendance status is one of `checked_in`, `complete`, `late`,
 `left_early`, `late_and_left_early`, or `incomplete`, derived from the
 schedule's grace period and end time.
+
+Off-site work is explicit evidence rather than a replacement for GPS. Send
+`offsiteDestination` together with `locationExceptionReason`. Single-day leave
+requests contain `leaveDate` and `reason`; they are record-only and never add
+or subtract attendance hours. Pending or approved leave blocks check-in for
+that date.
 
 Request a time correction:
 
@@ -465,11 +474,15 @@ must be mounted on persistent storage in production and included in backups.
 
 Base path: `/api/v1/evaluations`
 
-| Method | Path                       | Access                         |
-| ------ | -------------------------- | ------------------------------ |
-| POST   | `/`                        | Assigned advisor or supervisor |
-| GET    | `/placements/:placementId` | Placement participant          |
-| POST   | `/:evaluationId/submit`    | Evaluation owner               |
+| Method | Path                                      | Access                                 |
+| ------ | ----------------------------------------- | -------------------------------------- |
+| POST   | `/`                                       | Assigned advisor or supervisor         |
+| GET    | `/placements/:placementId`                | Placement participant                  |
+| POST   | `/:evaluationId/submit`                   | Evaluation owner                       |
+| GET    | `/rubrics/placements/:placementId`        | Participant or active university staff |
+| POST   | `/rubrics`                                | Configured component evaluator         |
+| POST   | `/rubrics/:submissionId/submit`           | Rubric submission owner                |
+| GET    | `/rubrics/placements/:placementId/result` | Participant or active university staff |
 
 ```json
 {
@@ -484,6 +497,13 @@ Base path: `/api/v1/evaluations`
 Scores are integers from 1 to 5. Each placement has at most one advisor and one
 supervisor evaluation. Submitted evaluations are immutable. Students only see
 submitted evaluations.
+
+The rubric endpoints are the configurable CWIE evaluation workflow. The active
+scheme is resolved by placement university and track. Every configured
+criterion must be supplied exactly once and cannot exceed its maximum. Totals
+and the A–F grade are calculated by the server. Drafts are private to their
+owner, and submitted rubrics are immutable. The legacy endpoints above remain
+available during client migration.
 
 ## Notifications
 

@@ -101,6 +101,8 @@ beforeAll(async () => {
       internshipId: internship.id,
       studentUserId: "student",
       universityOrganizationId: university.id,
+      semester: 1,
+      academicYear: 2569,
       statement: "Accepted application for placement integration testing.",
       status: "accepted",
     })
@@ -133,6 +135,9 @@ describe("DrizzlePlacementRepository", () => {
       studentUserId: "student",
       universityOrganizationId: ids.university,
       companyOrganizationId: ids.company,
+      track: "regular",
+      semester: 1,
+      academicYear: 2569,
       startDate: new Date("2027-01-01"),
       endDate: new Date("2027-04-01"),
     });
@@ -164,6 +169,9 @@ describe("DrizzlePlacementRepository", () => {
         studentUserId: "student",
         universityOrganizationId: ids.university,
         companyOrganizationId: ids.company,
+        track: "regular",
+        semester: 1,
+        academicYear: 2569,
         startDate: new Date("2027-01-01"),
         endDate: new Date("2027-04-01"),
       }),

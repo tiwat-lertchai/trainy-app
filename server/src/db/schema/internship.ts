@@ -12,6 +12,7 @@ import {
   uuid,
 } from "drizzle-orm/pg-core";
 import { user } from "./auth";
+import { internshipRequestType } from "./internship-request";
 import { organization } from "./organization";
 
 export const internshipStatus = pgEnum("internship_status", ["draft", "published", "closed"]);
@@ -37,6 +38,7 @@ export const internship = pgTable(
       .notNull()
       .references(() => user.id, { onDelete: "restrict" }),
     title: text("title").notNull(),
+    type: internshipRequestType("type").default("regular").notNull(),
     description: text("description").notNull(),
     location: text("location").notNull(),
     workMode: internshipWorkMode("work_mode").notNull(),
@@ -69,6 +71,8 @@ export const internshipApplication = pgTable(
       .notNull()
       .references(() => user.id, { onDelete: "restrict" }),
     universityOrganizationId: uuid("university_organization_id").notNull(),
+    semester: integer("semester").notNull(),
+    academicYear: integer("academic_year").notNull(),
     statement: text("statement").notNull(),
     status: applicationStatus("status").default("submitted").notNull(),
     submittedAt: timestamp("submitted_at", { withTimezone: true }).defaultNow().notNull(),
@@ -83,6 +87,11 @@ export const internshipApplication = pgTable(
       columns: [table.universityOrganizationId],
       foreignColumns: [organization.id],
     }).onDelete("restrict"),
+    check("internship_application_semester_range", sql`${table.semester} between 1 and 3`),
+    check(
+      "internship_application_academic_year_range",
+      sql`${table.academicYear} between 2400 and 2800`,
+    ),
     uniqueIndex("internship_application_internship_student_uidx").on(
       table.internshipId,
       table.studentUserId,

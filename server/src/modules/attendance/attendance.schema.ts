@@ -45,6 +45,12 @@ export const attendanceActionSchema = z
     (value) => !(value.location && value.locationExceptionReason),
     "Send location or an exception reason, not both",
   );
+export const checkInSchema = attendanceActionSchema
+  .extend({ offsiteDestination: z.string().trim().min(3).max(500).optional() })
+  .refine(
+    (value) => !value.offsiteDestination || value.locationExceptionReason,
+    "An off-site reason is required with the destination",
+  );
 export const createAdjustmentSchema = z
   .object({
     proposedCheckInAt: z.coerce.date().optional(),
@@ -59,9 +65,18 @@ export const reviewAdjustmentSchema = z.object({
   decision: z.enum(["approved", "rejected"]),
   note: z.string().trim().min(3).max(2_000),
 });
+export const createLeaveSchema = z.object({
+  leaveDate: z.string().regex(/^\d{4}-\d{2}-\d{2}$/, "Expected an ISO date (YYYY-MM-DD)"),
+  reason: z.string().trim().min(10).max(2_000),
+});
+export const reviewLeaveSchema = z.object({
+  decision: z.enum(["approved", "rejected"]),
+  note: z.string().trim().min(3).max(2_000),
+});
 export const placementIdParamSchema = z.object({ placementId: z.string().uuid() });
 export const attendanceIdParamSchema = z.object({ attendanceId: z.string().uuid() });
 export const adjustmentIdParamSchema = z.object({ adjustmentId: z.string().uuid() });
+export const leaveIdParamSchema = z.object({ leaveId: z.string().uuid() });
 export const organizationIdParamSchema = z.object({ organizationId: z.string().uuid() });
 const isoDate = z.string().regex(/^\d{4}-\d{2}-\d{2}$/, "Expected an ISO date (YYYY-MM-DD)");
 export const attendanceRangeQuerySchema = z.object({

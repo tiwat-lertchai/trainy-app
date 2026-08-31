@@ -19,11 +19,24 @@ export type PlacementView = PlacementRecord & {
 };
 export type AcceptedApplication = Pick<
   typeof internshipApplication.$inferSelect,
-  "id" | "internshipId" | "studentUserId" | "universityOrganizationId" | "status"
-> & { companyOrganizationId: string };
+  | "id"
+  | "internshipId"
+  | "studentUserId"
+  | "universityOrganizationId"
+  | "semester"
+  | "academicYear"
+  | "status"
+> & { companyOrganizationId: string; track: "regular" | "cooperative" };
 export type ApprovedRequest = Pick<
   typeof internshipRequest.$inferSelect,
-  "id" | "studentUserId" | "universityOrganizationId" | "companyOrganizationId" | "status"
+  | "id"
+  | "studentUserId"
+  | "universityOrganizationId"
+  | "companyOrganizationId"
+  | "type"
+  | "semester"
+  | "academicYear"
+  | "status"
 >;
 export type PlacementMembership = {
   organizationId: string;
@@ -48,6 +61,9 @@ export interface PlacementRepository {
           studentUserId: string;
           universityOrganizationId: string;
           companyOrganizationId: string;
+          track: "regular" | "cooperative";
+          semester: number;
+          academicYear: number;
           startDate: Date;
           endDate: Date;
         }
@@ -56,6 +72,9 @@ export interface PlacementRepository {
           studentUserId: string;
           universityOrganizationId: string;
           companyOrganizationId: string;
+          track: "regular" | "cooperative";
+          semester: number;
+          academicYear: number;
           startDate: Date;
           endDate: Date;
         },
@@ -80,6 +99,9 @@ export class DrizzlePlacementRepository implements PlacementRepository {
         universityOrganizationId: internshipApplication.universityOrganizationId,
         status: internshipApplication.status,
         companyOrganizationId: internship.companyOrganizationId,
+        track: internship.type,
+        semester: internshipApplication.semester,
+        academicYear: internshipApplication.academicYear,
       })
       .from(internshipApplication)
       .innerJoin(internship, eq(internship.id, internshipApplication.internshipId))
@@ -116,6 +138,9 @@ export class DrizzlePlacementRepository implements PlacementRepository {
         studentUserId: internshipRequest.studentUserId,
         universityOrganizationId: internshipRequest.universityOrganizationId,
         companyOrganizationId: internshipRequest.companyOrganizationId,
+        type: internshipRequest.type,
+        semester: internshipRequest.semester,
+        academicYear: internshipRequest.academicYear,
         status: internshipRequest.status,
       })
       .from(internshipRequest)

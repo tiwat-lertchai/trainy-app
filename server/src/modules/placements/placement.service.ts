@@ -44,6 +44,9 @@ export class PlacementService {
       studentUserId: application.studentUserId,
       universityOrganizationId: application.universityOrganizationId,
       companyOrganizationId: application.companyOrganizationId,
+      track: application.track,
+      semester: application.semester,
+      academicYear: application.academicYear,
       startDate: input.startDate,
       endDate: input.endDate,
     });
@@ -91,6 +94,9 @@ export class PlacementService {
       studentUserId: request.studentUserId,
       universityOrganizationId: request.universityOrganizationId,
       companyOrganizationId: request.companyOrganizationId,
+      track: request.type,
+      semester: request.semester,
+      academicYear: request.academicYear,
       startDate: input.startDate,
       endDate: input.endDate,
     });

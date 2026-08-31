@@ -101,6 +101,7 @@ export const attendanceRecord = pgTable(
     checkInLocation: jsonb("check_in_location").$type<LocationEvidence>(),
     checkOutLocation: jsonb("check_out_location").$type<LocationEvidence>(),
     locationExceptionReason: text("location_exception_reason"),
+    offsiteDestination: text("offsite_destination"),
     netMinutes: integer("net_minutes"),
     status: attendanceStatus("status").default("checked_in").notNull(),
     studentNote: text("student_note"),
@@ -113,6 +114,10 @@ export const attendanceRecord = pgTable(
   (table) => [
     uniqueIndex("attendance_placement_date_uidx").on(table.placementId, table.workDate),
     index("attendance_student_date_idx").on(table.studentUserId, table.workDate),
+    check(
+      "attendance_offsite_reason_required",
+      sql`${table.offsiteDestination} is null or ${table.locationExceptionReason} is not null`,
+    ),
   ],
 );
 
@@ -141,6 +146,32 @@ export const attendanceAdjustmentRequest = pgTable(
   ],
 );
 
+export const attendanceLeaveRequest = pgTable(
+  "attendance_leave_request",
+  {
+    id: uuid("id").defaultRandom().primaryKey(),
+    placementId: uuid("placement_id")
+      .notNull()
+      .references(() => placement.id, { onDelete: "cascade" }),
+    requestedByUserId: text("requested_by_user_id")
+      .notNull()
+      .references(() => user.id, { onDelete: "restrict" }),
+    leaveDate: date("leave_date", { mode: "string" }).notNull(),
+    reason: text("reason").notNull(),
+    status: adjustmentStatus("status").default("pending").notNull(),
+    reviewerUserId: text("reviewer_user_id").references(() => user.id, {
+      onDelete: "restrict",
+    }),
+    reviewNote: text("review_note"),
+    reviewedAt: timestamp("reviewed_at", { withTimezone: true }),
+    createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
+  },
+  (table) => [
+    uniqueIndex("attendance_leave_placement_date_uidx").on(table.placementId, table.leaveDate),
+    index("attendance_leave_status_idx").on(table.status),
+  ],
+);
+
 export const attendanceRecordRelations = relations(attendanceRecord, ({ one, many }) => ({
   placement: one(placement, { fields: [attendanceRecord.placementId], references: [placement.id] }),
   schedule: one(placementWorkSchedule, {
@@ -153,5 +184,21 @@ export const attendanceAdjustmentRelations = relations(attendanceAdjustmentReque
   attendance: one(attendanceRecord, {
     fields: [attendanceAdjustmentRequest.attendanceId],
     references: [attendanceRecord.id],
+  }),
+}));
+export const attendanceLeaveRequestRelations = relations(attendanceLeaveRequest, ({ one }) => ({
+  placement: one(placement, {
+    fields: [attendanceLeaveRequest.placementId],
+    references: [placement.id],
+  }),
+  requester: one(user, {
+    fields: [attendanceLeaveRequest.requestedByUserId],
+    references: [user.id],
+    relationName: "attendanceLeaveRequester",
+  }),
+  reviewer: one(user, {
+    fields: [attendanceLeaveRequest.reviewerUserId],
+    references: [user.id],
+    relationName: "attendanceLeaveReviewer",
   }),
 }));

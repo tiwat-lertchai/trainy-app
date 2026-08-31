@@ -5,6 +5,11 @@ export type InternshipStatus = (typeof internshipStatuses)[number];
 
 export const internshipWorkModes = ["onsite", "hybrid", "remote"] as const;
 export type InternshipWorkMode = (typeof internshipWorkModes)[number];
+export const internshipTypes = ["regular", "cooperative"] as const;
+export type InternshipType = (typeof internshipTypes)[number];
+
+export const semesterSchema = z.number().int().min(1).max(3);
+export const academicYearSchema = z.number().int().min(2400).max(2800);
 
 export const applicationStatuses = [
   "submitted",
@@ -17,6 +22,7 @@ export type ApplicationStatus = (typeof applicationStatuses)[number];
 
 export const createInternshipSchema = z.object({
   title: z.string().trim().min(3).max(160),
+  type: z.enum(internshipTypes),
   description: z.string().trim().min(20).max(10_000),
   location: z.string().trim().min(2).max(240),
   workMode: z.enum(internshipWorkModes),
@@ -33,6 +39,8 @@ export const updateInternshipSchema = createInternshipSchema
 
 export const createApplicationSchema = z.object({
   universityOrganizationId: z.string().uuid(),
+  semester: semesterSchema,
+  academicYear: academicYearSchema,
   statement: z.string().trim().min(20).max(5_000),
 });
 

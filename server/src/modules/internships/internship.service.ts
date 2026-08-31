@@ -5,7 +5,12 @@ import type {
   InternshipRepository,
   MembershipAccess,
 } from "./internship.repository";
-import type { ApplicationStatus, InternshipStatus, InternshipWorkMode } from "./internship.schema";
+import type {
+  ApplicationStatus,
+  InternshipStatus,
+  InternshipType,
+  InternshipWorkMode,
+} from "./internship.schema";
 
 const companyReaderRoles = ["company_admin", "supervisor"] as const;
 const universityReaderRoles = ["university_admin", "coordinator", "advisor"] as const;
@@ -20,6 +25,7 @@ export class InternshipService {
     actorUserId: string;
     companyOrganizationId: string;
     title: string;
+    type: InternshipType;
     description: string;
     location: string;
     workMode: InternshipWorkMode;
@@ -35,6 +41,7 @@ export class InternshipService {
       companyOrganizationId: input.companyOrganizationId,
       createdByUserId: input.actorUserId,
       title: input.title,
+      type: input.type,
       description: input.description,
       location: input.location,
       workMode: input.workMode,
@@ -69,6 +76,7 @@ export class InternshipService {
     actorUserId: string;
     internshipId: string;
     title?: string;
+    type?: InternshipType;
     description?: string;
     location?: string;
     workMode?: InternshipWorkMode;
@@ -87,6 +95,7 @@ export class InternshipService {
 
     const contentIsChanging = [
       input.title,
+      input.type,
       input.description,
       input.location,
       input.workMode,
@@ -116,6 +125,8 @@ export class InternshipService {
     actorUserId: string;
     internshipId: string;
     universityOrganizationId: string;
+    semester: number;
+    academicYear: number;
     statement: string;
   }): Promise<ApplicationRecord> {
     const internship = await this.requireInternship(input.internshipId);
@@ -138,6 +149,8 @@ export class InternshipService {
       internshipId: internship.id,
       studentUserId: input.actorUserId,
       universityOrganizationId: input.universityOrganizationId,
+      semester: input.semester,
+      academicYear: input.academicYear,
       statement: input.statement,
     });
     if (!application) {

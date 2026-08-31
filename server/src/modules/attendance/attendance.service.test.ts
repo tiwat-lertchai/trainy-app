@@ -4,6 +4,7 @@ import type {
   AttendancePlacement,
   AttendanceRecord,
   AttendanceRepository,
+  LeaveRecord,
   WorkSchedule,
 } from "./attendance.repository";
 import { AttendanceService } from "./attendance.service";
@@ -113,6 +114,32 @@ describe("AttendanceService", () => {
       expect(record).toMatchObject({ status: "checked_in" });
     });
 
+    test("records an off-site destination with its required reason", async () => {
+      const repository = seededRepository();
+      repository.schedules.push(schedule({ locationPolicy: "required_onsite" }));
+      const record = await new AttendanceService(repository, () => MONDAY_MORNING).checkIn(
+        "student",
+        "placement",
+        {
+          offsiteDestination: "Client office, Ratchadaphisek",
+          locationExceptionReason: "Assigned to support the client onsite today.",
+        },
+      );
+      expect(record).toMatchObject({
+        offsiteDestination: "Client office, Ratchadaphisek",
+        locationExceptionReason: "Assigned to support the client onsite today.",
+      });
+    });
+
+    test("rejects check-in while leave is pending", () => {
+      const repository = seededRepository();
+      repository.schedules.push(schedule());
+      repository.leaves.set("leave", leave());
+      expect(
+        new AttendanceService(repository, () => MONDAY_MORNING).checkIn("student", "placement", {}),
+      ).rejects.toMatchObject({ code: "ATTENDANCE_LEAVE_CONFLICT" });
+    });
+
     test("records attendance inside the geofence", async () => {
       const repository = seededRepository();
       repository.schedules.push(schedule({ locationPolicy: "required_onsite" }));
@@ -215,6 +242,69 @@ describe("AttendanceService", () => {
     });
   });
 
+  describe("leave requests", () => {
+    test("lets the placement student request one record-only leave day", async () => {
+      const repository = seededRepository();
+      const record = await new AttendanceService(repository).requestLeave("student", "placement", {
+        leaveDate: "2026-10-05",
+        reason: "Medical appointment requiring a full day away.",
+      });
+      expect(record).toMatchObject({
+        leaveDate: "2026-10-05",
+        status: "pending",
+        requestedByUserId: "student",
+      });
+    });
+
+    test("rejects leave for a date with attendance", () => {
+      const repository = seededRepository();
+      repository.attendance.set("attendance", attendanceRecord());
+      expect(
+        new AttendanceService(repository).requestLeave("student", "placement", {
+          leaveDate: "2026-10-05",
+          reason: "Medical appointment requiring a full day away.",
+        }),
+      ).rejects.toMatchObject({ code: "LEAVE_ATTENDANCE_CONFLICT" });
+    });
+
+    test("rejects a duplicate leave date", () => {
+      const repository = seededRepository();
+      repository.leaves.set("leave", leave());
+      expect(
+        new AttendanceService(repository).requestLeave("student", "placement", {
+          leaveDate: "2026-10-05",
+          reason: "Medical appointment requiring a full day away.",
+        }),
+      ).rejects.toMatchObject({ code: "LEAVE_REQUEST_CONFLICT" });
+    });
+
+    test("rejects leave outside the placement period", () => {
+      const repository = seededRepository();
+      expect(
+        new AttendanceService(repository).requestLeave("student", "placement", {
+          leaveDate: "2027-02-01",
+          reason: "Medical appointment requiring a full day away.",
+        }),
+      ).rejects.toMatchObject({ code: "LEAVE_DATE_OUTSIDE_PLACEMENT" });
+    });
+
+    test("allows only an assigned reviewer to decide leave", async () => {
+      const repository = seededRepository();
+      repository.leaves.set("leave", leave());
+      await expect(
+        new AttendanceService(repository).reviewLeave("outsider", "leave", {
+          decision: "approved",
+          note: "Approved leave.",
+        }),
+      ).rejects.toMatchObject({ code: "ATTENDANCE_REVIEWER_REQUIRED" });
+      const record = await new AttendanceService(repository).reviewLeave("advisor", "leave", {
+        decision: "approved",
+        note: "Approved leave.",
+      });
+      expect(record).toMatchObject({ status: "approved", reviewerUserId: "advisor" });
+    });
+  });
+
   describe("universitySummary", () => {
     test("rejects an actor without university reporting access", () => {
       const repository = seededRepository();
@@ -259,6 +349,9 @@ class MemoryAttendanceRepository implements AttendanceRepository {
     studentUserId: "student",
     universityOrganizationId: "university",
     companyOrganizationId: "company",
+    track: "regular",
+    semester: 1,
+    academicYear: 2569,
     advisorUserId: "advisor",
     supervisorUserId: "supervisor",
     startDate: new Date("2026-10-01"),
@@ -274,6 +367,7 @@ class MemoryAttendanceRepository implements AttendanceRepository {
   schedules: WorkSchedule[] = [];
   attendance = new Map<string, AttendanceRecord>();
   adjustments = new Map<string, AdjustmentRecord>();
+  leaves = new Map<string, LeaveRecord>();
   universityRecords: AttendanceRecord[] = [];
 
   async findPlacement(id: string) {
@@ -313,6 +407,11 @@ class MemoryAttendanceRepository implements AttendanceRepository {
   async findAttendanceForDate(placementId: string, workDate: string) {
     return [...this.attendance.values()].find(
       (item) => item.placementId === placementId && item.workDate === workDate,
+    );
+  }
+  async findLeaveForDate(placementId: string, leaveDate: string) {
+    return [...this.leaves.values()].find(
+      (item) => item.placementId === placementId && item.leaveDate === leaveDate,
     );
   }
   async createAttendance(input: AttendanceRecord) {
@@ -380,6 +479,35 @@ class MemoryAttendanceRepository implements AttendanceRepository {
   async listUniversityAttendance() {
     return this.universityRecords;
   }
+  async createLeave(input: LeaveRecord) {
+    if (await this.findLeaveForDate(input.placementId, input.leaveDate)) return undefined;
+    const record = leave(input);
+    this.leaves.set(record.id, record);
+    return record;
+  }
+  async findLeave(id: string) {
+    return this.leaves.get(id);
+  }
+  async listLeaves(placementId: string) {
+    return [...this.leaves.values()].filter((item) => item.placementId === placementId);
+  }
+  async reviewLeave(input: {
+    leave: LeaveRecord;
+    reviewerUserId: string;
+    decision: "approved" | "rejected";
+    note: string;
+    reviewedAt: Date;
+  }) {
+    const record = this.leaves.get(input.leave.id);
+    if (!record || record.status !== "pending") throw new Error("Missing pending leave");
+    Object.assign(record, {
+      status: input.decision,
+      reviewerUserId: input.reviewerUserId,
+      reviewNote: input.note,
+      reviewedAt: input.reviewedAt,
+    });
+    return record;
+  }
 }
 
 function seededRepository() {
@@ -428,11 +556,28 @@ function attendanceRecord(overrides: Partial<AttendanceRecord> = {}): Attendance
     checkInLocation: null,
     checkOutLocation: null,
     locationExceptionReason: null,
+    offsiteDestination: null,
     netMinutes: null,
     status: "checked_in",
     studentNote: null,
     createdAt: now,
     updatedAt: now,
+    ...overrides,
+  };
+}
+
+function leave(overrides: Partial<LeaveRecord> = {}): LeaveRecord {
+  return {
+    id: "leave",
+    placementId: "placement",
+    requestedByUserId: "student",
+    leaveDate: "2026-10-05",
+    reason: "Medical appointment requiring a full day away.",
+    status: "pending",
+    reviewerUserId: null,
+    reviewNote: null,
+    reviewedAt: null,
+    createdAt: new Date("2026-08-27"),
     ...overrides,
   };
 }

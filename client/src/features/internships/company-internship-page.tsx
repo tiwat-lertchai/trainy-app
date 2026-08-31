@@ -66,6 +66,7 @@ export function CompanyInternshipPage({
 		const data = new FormData(event.currentTarget);
 		create.mutate({
 			title: String(data.get("title")),
+			type: String(data.get("type")) as "regular" | "cooperative",
 			description: String(data.get("description")),
 			location: String(data.get("location")),
 			workMode: String(data.get("workMode")) as "onsite" | "hybrid" | "remote",
@@ -95,6 +96,13 @@ export function CompanyInternshipPage({
 					className="mt-8 grid gap-5 rounded-2xl border bg-white p-6 sm:grid-cols-2"
 				>
 					<Field name="title" label={t("companyInternships.titleField")} />
+					<label className="grid gap-2 text-sm font-semibold">
+						Internship track
+						<select name="type" className="h-11 rounded-xl border bg-background px-3 font-normal">
+							<option value="regular">Regular internship</option>
+							<option value="cooperative">Cooperative education</option>
+						</select>
+					</label>
 					<Field name="location" label={t("companyInternships.location")} />
 					<label className="grid gap-2 text-sm font-semibold">
 						{t("companyInternships.workMode")}

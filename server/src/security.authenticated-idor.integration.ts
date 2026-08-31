@@ -102,6 +102,8 @@ beforeAll(async () => {
     internshipId: ids.internshipA,
     studentUserId: users.studentA,
     universityOrganizationId: ids.universityA,
+    semester: 1,
+    academicYear: 2569,
     statement: "Security fixture application statement, long enough.",
     status: "accepted",
   });
@@ -113,6 +115,9 @@ beforeAll(async () => {
     studentUserId: users.studentA,
     universityOrganizationId: ids.universityA,
     companyOrganizationId: ids.companyA,
+    track: "regular",
+    semester: 1,
+    academicYear: 2569,
     advisorUserId: users.advisorA,
     supervisorUserId: users.supervisorA,
     startDate: new Date("2026-09-01"),

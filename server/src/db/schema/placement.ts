@@ -2,6 +2,7 @@ import { relations, sql } from "drizzle-orm";
 import {
   check,
   index,
+  integer,
   pgEnum,
   pgTable,
   text,
@@ -11,7 +12,7 @@ import {
 } from "drizzle-orm/pg-core";
 import { user } from "./auth";
 import { internship, internshipApplication } from "./internship";
-import { internshipRequest } from "./internship-request";
+import { internshipRequest, internshipRequestType } from "./internship-request";
 import { organization } from "./organization";
 
 export const placementStatus = pgEnum("placement_status", [
@@ -43,6 +44,9 @@ export const placement = pgTable(
     companyOrganizationId: uuid("company_organization_id")
       .notNull()
       .references(() => organization.id, { onDelete: "restrict" }),
+    track: internshipRequestType("track").notNull(),
+    semester: integer("semester").notNull(),
+    academicYear: integer("academic_year").notNull(),
     advisorUserId: text("advisor_user_id").references(() => user.id, {
       onDelete: "restrict",
     }),
@@ -60,6 +64,8 @@ export const placement = pgTable(
   },
   (table) => [
     check("placement_date_order", sql`${table.endDate} > ${table.startDate}`),
+    check("placement_semester_range", sql`${table.semester} between 1 and 3`),
+    check("placement_academic_year_range", sql`${table.academicYear} between 2400 and 2800`),
     check(
       "placement_origin_xor",
       sql`(${table.applicationId} is not null) <> (${table.requestId} is not null)`,

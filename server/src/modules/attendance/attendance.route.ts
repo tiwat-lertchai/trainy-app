@@ -9,9 +9,13 @@ import {
   attendanceIdParamSchema,
   attendanceRangeQuerySchema,
   createAdjustmentSchema,
+  createLeaveSchema,
+  checkInSchema,
+  leaveIdParamSchema,
   organizationIdParamSchema,
   placementIdParamSchema,
   reviewAdjustmentSchema,
+  reviewLeaveSchema,
   saveScheduleSchema,
   universitySummaryQuerySchema,
 } from "./attendance.schema";
@@ -42,7 +46,7 @@ export const attendanceRoute = new Hono<{ Variables: AuthVariables }>()
   .post(
     "/:placementId/check-in",
     zValidator("param", placementIdParamSchema),
-    zValidator("json", attendanceActionSchema),
+    zValidator("json", checkInSchema),
     async (c) =>
       c.json(
         {
@@ -102,6 +106,40 @@ export const attendanceRoute = new Hono<{ Variables: AuthVariables }>()
     c.json({
       data: await service.listAdjustments(c.get("authUser").id, c.req.valid("param").placementId),
     }),
+  )
+  .post(
+    "/:placementId/leaves",
+    zValidator("param", placementIdParamSchema),
+    zValidator("json", createLeaveSchema),
+    async (c) =>
+      c.json(
+        {
+          data: await service.requestLeave(
+            c.get("authUser").id,
+            c.req.valid("param").placementId,
+            c.req.valid("json"),
+          ),
+        },
+        201,
+      ),
+  )
+  .get("/:placementId/leaves", zValidator("param", placementIdParamSchema), async (c) =>
+    c.json({
+      data: await service.listLeaves(c.get("authUser").id, c.req.valid("param").placementId),
+    }),
+  )
+  .post(
+    "/leaves/:leaveId/review",
+    zValidator("param", leaveIdParamSchema),
+    zValidator("json", reviewLeaveSchema),
+    async (c) =>
+      c.json({
+        data: await service.reviewLeave(
+          c.get("authUser").id,
+          c.req.valid("param").leaveId,
+          c.req.valid("json"),
+        ),
+      }),
   )
   .post(
     "/adjustments/:adjustmentId/review",

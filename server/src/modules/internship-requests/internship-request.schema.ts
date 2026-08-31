@@ -54,6 +54,8 @@ export const createInternshipRequestSchema = z
     universityOrganizationId: z.string().uuid(),
     academicMajorId: z.string().uuid(),
     type: z.enum(internshipRequestTypes),
+    semester: z.number().int().min(1).max(3),
+    academicYear: z.number().int().min(2400).max(2800),
     advisorUserId: z.string().trim().min(1),
     ...editableRequestFields,
   })

@@ -64,6 +64,8 @@ beforeAll(async () => {
       universityOrganizationId: university.id,
       academicMajorId: major.id,
       type: "regular",
+      semester: 1,
+      academicYear: 2569,
       companyNameProposed: "Original Company",
       companyContactName: "Original Contact",
       companyContactEmail: "original@example.test",

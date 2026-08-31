@@ -2,6 +2,7 @@ import { and, asc, desc, eq, gte, inArray, lte } from "drizzle-orm";
 import type { Database } from "../../db";
 import {
   attendanceAdjustmentRequest,
+  attendanceLeaveRequest,
   attendanceRecord,
   organizationMembership,
   placement,
@@ -12,6 +13,7 @@ export type AttendancePlacement = typeof placement.$inferSelect;
 export type WorkSchedule = typeof placementWorkSchedule.$inferSelect;
 export type AttendanceRecord = typeof attendanceRecord.$inferSelect;
 export type AdjustmentRecord = typeof attendanceAdjustmentRequest.$inferSelect;
+export type LeaveRecord = typeof attendanceLeaveRequest.$inferSelect;
 
 export interface AttendanceRepository {
   findPlacement(id: string): Promise<AttendancePlacement | undefined>;
@@ -30,6 +32,7 @@ export interface AttendanceRepository {
     placementId: string,
     workDate: string,
   ): Promise<AttendanceRecord | undefined>;
+  findLeaveForDate(placementId: string, leaveDate: string): Promise<LeaveRecord | undefined>;
   createAttendance(
     input: typeof attendanceRecord.$inferInsert,
   ): Promise<AttendanceRecord | undefined>;
@@ -51,6 +54,16 @@ export interface AttendanceRepository {
     attendanceChanges?: Partial<AttendanceRecord>;
     reviewedAt: Date;
   }): Promise<AdjustmentRecord>;
+  createLeave(input: typeof attendanceLeaveRequest.$inferInsert): Promise<LeaveRecord | undefined>;
+  findLeave(id: string): Promise<LeaveRecord | undefined>;
+  listLeaves(placementId: string): Promise<LeaveRecord[]>;
+  reviewLeave(input: {
+    leave: LeaveRecord;
+    reviewerUserId: string;
+    decision: "approved" | "rejected";
+    note: string;
+    reviewedAt: Date;
+  }): Promise<LeaveRecord>;
   listUniversityAttendance(
     organizationId: string,
     from: string,
@@ -121,6 +134,15 @@ export class DrizzleAttendanceRepository implements AttendanceRepository {
       where: and(
         eq(attendanceRecord.placementId, placementId),
         eq(attendanceRecord.workDate, workDate),
+      ),
+    });
+  }
+
+  findLeaveForDate(placementId: string, leaveDate: string) {
+    return this.database.query.attendanceLeaveRequest.findFirst({
+      where: and(
+        eq(attendanceLeaveRequest.placementId, placementId),
+        eq(attendanceLeaveRequest.leaveDate, leaveDate),
       ),
     });
   }
@@ -228,6 +250,56 @@ export class DrizzleAttendanceRepository implements AttendanceRepository {
       if (!record) throw new Error("Attendance adjustment was already reviewed");
       return record;
     });
+  }
+
+  async createLeave(input: typeof attendanceLeaveRequest.$inferInsert) {
+    const [record] = await this.database
+      .insert(attendanceLeaveRequest)
+      .values(input)
+      .onConflictDoNothing({
+        target: [attendanceLeaveRequest.placementId, attendanceLeaveRequest.leaveDate],
+      })
+      .returning();
+    return record;
+  }
+
+  findLeave(id: string) {
+    return this.database.query.attendanceLeaveRequest.findFirst({
+      where: eq(attendanceLeaveRequest.id, id),
+    });
+  }
+
+  listLeaves(placementId: string) {
+    return this.database.query.attendanceLeaveRequest.findMany({
+      where: eq(attendanceLeaveRequest.placementId, placementId),
+      orderBy: [desc(attendanceLeaveRequest.leaveDate)],
+    });
+  }
+
+  async reviewLeave(input: {
+    leave: LeaveRecord;
+    reviewerUserId: string;
+    decision: "approved" | "rejected";
+    note: string;
+    reviewedAt: Date;
+  }) {
+    const [record] = await this.database
+      .update(attendanceLeaveRequest)
+      .set({
+        status: input.decision,
+        reviewerUserId: input.reviewerUserId,
+        reviewNote: input.note,
+        reviewedAt: input.reviewedAt,
+      })
+      .where(
+        and(
+          eq(attendanceLeaveRequest.id, input.leave.id),
+          eq(attendanceLeaveRequest.status, "pending"),
+        ),
+      )
+      .returning();
+    if (!record) throw new Error("Attendance leave request was already reviewed");
+    return record;
   }
 
   async listUniversityAttendance(organizationId: string, from: string, to: string) {

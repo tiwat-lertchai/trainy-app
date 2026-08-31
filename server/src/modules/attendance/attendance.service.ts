@@ -9,6 +9,7 @@ import type {
 
 type LocationInput = { latitude: number; longitude: number; accuracyMeters: number };
 type ActionInput = { location?: LocationInput; locationExceptionReason?: string; note?: string };
+type CheckInInput = ActionInput & { offsiteDestination?: string };
 
 export class AttendanceService {
   constructor(
@@ -59,9 +60,15 @@ export class AttendanceService {
     return this.repository.listSchedules(placementId);
   }
 
-  async checkIn(actorUserId: string, placementId: string, input: ActionInput) {
+  async checkIn(actorUserId: string, placementId: string, input: CheckInInput) {
     const placement = await this.requirePlacement(placementId);
     this.requireStudent(actorUserId, placement.studentUserId);
+    if (input.offsiteDestination && !input.locationExceptionReason?.trim())
+      throw new AppError(
+        "An off-site reason is required with the destination",
+        422,
+        "ATTENDANCE_OFFSITE_REASON_REQUIRED",
+      );
     if (placement.status !== "active")
       throw new AppError("Attendance requires an active placement", 409, "PLACEMENT_NOT_ACTIVE");
     const now = this.now();
@@ -73,6 +80,13 @@ export class AttendanceService {
         409,
         "ATTENDANCE_SCHEDULE_NOT_FOUND",
       );
+    const leave = await this.repository.findLeaveForDate(placementId, local.date);
+    if (leave && leave.status !== "rejected")
+      throw new AppError(
+        "Attendance cannot be recorded while leave is pending or approved",
+        409,
+        "ATTENDANCE_LEAVE_CONFLICT",
+      );
     const evidence = this.validateLocation(schedule, input, now);
     const record = await this.repository.createAttendance({
       placementId,
@@ -82,6 +96,7 @@ export class AttendanceService {
       checkedInAt: now,
       checkInLocation: evidence,
       locationExceptionReason: input.locationExceptionReason,
+      offsiteDestination: input.offsiteDestination,
       studentNote: input.note,
     });
     if (!record)
@@ -223,6 +238,70 @@ export class AttendanceService {
       decision: input.decision,
       note: input.note,
       attendanceChanges: changes,
+      reviewedAt: this.now(),
+    });
+  }
+
+  async requestLeave(
+    actorUserId: string,
+    placementId: string,
+    input: { leaveDate: string; reason: string },
+  ) {
+    const placement = await this.requirePlacement(placementId);
+    this.requireStudent(actorUserId, placement.studentUserId);
+    if (placement.status !== "active")
+      throw new AppError("Leave requires an active placement", 409, "PLACEMENT_NOT_ACTIVE");
+    const placementStart = bangkokParts(placement.startDate).date;
+    const placementEnd = bangkokParts(placement.endDate).date;
+    if (input.leaveDate < placementStart || input.leaveDate > placementEnd)
+      throw new AppError(
+        "Leave date must fall within the placement period",
+        422,
+        "LEAVE_DATE_OUTSIDE_PLACEMENT",
+      );
+    if (await this.repository.findAttendanceForDate(placementId, input.leaveDate))
+      throw new AppError(
+        "Leave cannot be requested for a date with attendance",
+        409,
+        "LEAVE_ATTENDANCE_CONFLICT",
+      );
+    const record = await this.repository.createLeave({
+      placementId,
+      requestedByUserId: actorUserId,
+      leaveDate: input.leaveDate,
+      reason: input.reason,
+    });
+    if (!record)
+      throw new AppError(
+        "A leave request already exists for this date",
+        409,
+        "LEAVE_REQUEST_CONFLICT",
+      );
+    return record;
+  }
+
+  async listLeaves(actorUserId: string, placementId: string) {
+    const placement = await this.requirePlacement(placementId);
+    await this.requireParticipantOrStaff(actorUserId, placement);
+    return this.repository.listLeaves(placementId);
+  }
+
+  async reviewLeave(
+    actorUserId: string,
+    leaveId: string,
+    input: { decision: "approved" | "rejected"; note: string },
+  ) {
+    const leave = await this.repository.findLeave(leaveId);
+    if (!leave) throw new AppError("Leave request was not found", 404, "LEAVE_REQUEST_NOT_FOUND");
+    if (leave.status !== "pending")
+      throw new AppError("Leave request was already reviewed", 409, "LEAVE_REQUEST_REVIEWED");
+    const placement = await this.requirePlacement(leave.placementId);
+    this.requireReviewer(actorUserId, placement);
+    return this.repository.reviewLeave({
+      leave,
+      reviewerUserId: actorUserId,
+      decision: input.decision,
+      note: input.note,
       reviewedAt: this.now(),
     });
   }

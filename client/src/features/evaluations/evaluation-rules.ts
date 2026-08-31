@@ -1,5 +1,5 @@
 export type EvaluationStatus = "draft" | "submitted";
-export type EvaluatorType = "advisor" | "supervisor";
+export type EvaluatorType = "advisor" | "supervisor" | "center_head" | "program_committee";
 
 export function canEditEvaluation(status: EvaluationStatus | undefined, evaluator: boolean) {
 	return evaluator && status !== "submitted";
@@ -19,5 +19,7 @@ export function visibleEvaluations<
 export const evaluatorKeys = {
 	advisor: "evaluations.evaluator.advisor",
 	supervisor: "evaluations.evaluator.supervisor",
+	center_head: "evaluations.evaluator.advisor",
+	program_committee: "evaluations.evaluator.advisor",
 } satisfies Record<EvaluatorType, MessageKey>;
 import type { MessageKey } from "@/i18n/messages";

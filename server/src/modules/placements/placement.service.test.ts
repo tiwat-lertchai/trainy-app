@@ -20,6 +20,9 @@ describe("PlacementService", () => {
     expect(record).toMatchObject({
       status: "pending",
       studentUserId: "student",
+      track: "regular",
+      semester: 1,
+      academicYear: 2569,
     });
   });
 
@@ -74,6 +77,9 @@ describe("PlacementService", () => {
       studentUserId: "student",
       requestId: "request",
       applicationId: null,
+      track: "cooperative",
+      semester: 2,
+      academicYear: 2569,
     });
   });
 
@@ -149,6 +155,9 @@ class MemoryPlacementRepository implements PlacementRepository {
     studentUserId: "student",
     universityOrganizationId: "university",
     companyOrganizationId: "company",
+    track: "regular",
+    semester: 1,
+    academicYear: 2569,
     status: "accepted",
   };
   request: ApprovedRequest = {
@@ -156,6 +165,9 @@ class MemoryPlacementRepository implements PlacementRepository {
     studentUserId: "student",
     universityOrganizationId: "university",
     companyOrganizationId: "company",
+    type: "cooperative",
+    semester: 2,
+    academicYear: 2569,
     status: "approved",
   };
   memberships: PlacementMembership[] = [];
@@ -237,6 +249,9 @@ function placementRecord(overrides: Partial<PlacementRecord> = {}): PlacementRec
     studentUserId: "student",
     universityOrganizationId: "university",
     companyOrganizationId: "company",
+    track: "regular",
+    semester: 1,
+    academicYear: 2569,
     advisorUserId: null,
     supervisorUserId: null,
     startDate: new Date("2026-10-01"),

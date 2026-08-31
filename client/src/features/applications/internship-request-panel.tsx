@@ -81,6 +81,8 @@ function StudentRequests({ organizationId }: { organizationId?: string }) {
 					universityOrganizationId: organizationId!,
 					academicMajorId: majorId,
 					type: String(data.get("type")) as "regular" | "cooperative",
+					semester: Number(data.get("semester")),
+					academicYear: Number(data.get("academicYear")),
 					positionTitle: String(data.get("positionTitle")),
 					description: String(data.get("description")),
 					proposedStartDate: String(data.get("proposedStartDate")),
@@ -158,6 +160,24 @@ function StudentRequests({ organizationId }: { organizationId?: string }) {
 						<option value="regular">{t("internshipRequests.type.regular")}</option>
 						<option value="cooperative">{t("internshipRequests.type.cooperative")}</option>
 					</select>
+				</Field>
+				<Field label="Semester">
+					<select name="semester" required className={controlClass} defaultValue="1">
+						<option value="1">1</option>
+						<option value="2">2</option>
+						<option value="3">3</option>
+					</select>
+				</Field>
+				<Field label="Academic year (B.E.)">
+					<input
+						name="academicYear"
+						type="number"
+						min="2400"
+						max="2800"
+						defaultValue="2569"
+						required
+						className={controlClass}
+					/>
 				</Field>
 				<Field label={t("internshipRequests.faculty")}>
 					<select

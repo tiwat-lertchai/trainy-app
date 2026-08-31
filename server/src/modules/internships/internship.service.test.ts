@@ -26,6 +26,7 @@ describe("InternshipService", () => {
 
     expect(created.status).toBe("draft");
     expect(created.companyOrganizationId).toBe("company");
+    expect(created.type).toBe("regular");
   });
 
   test("rejects a supervisor creating an internship", async () => {
@@ -83,11 +84,15 @@ describe("InternshipService", () => {
       actorUserId: "student",
       internshipId: "internship",
       universityOrganizationId: "university",
+      semester: 1,
+      academicYear: 2569,
       statement: "I am ready to learn and contribute to this team.",
     });
 
     expect(application.status).toBe("submitted");
     expect(application.studentUserId).toBe("student");
+    expect(application.semester).toBe(1);
+    expect(application.academicYear).toBe(2569);
   });
 
   test("rejects duplicate applications", async () => {
@@ -100,6 +105,8 @@ describe("InternshipService", () => {
         actorUserId: "student",
         internshipId: "internship",
         universityOrganizationId: "university",
+        semester: 1,
+        academicYear: 2569,
         statement: "I am ready to learn and contribute to this team.",
       }),
     ).rejects.toMatchObject({ code: "APPLICATION_CONFLICT" });
@@ -115,6 +122,8 @@ describe("InternshipService", () => {
         actorUserId: "student",
         internshipId: "internship",
         universityOrganizationId: "university",
+        semester: 1,
+        academicYear: 2569,
         statement: "I am ready to learn and contribute to this team.",
       }),
     ).rejects.toMatchObject({ code: "APPLICATION_DEADLINE_PASSED" });
@@ -278,6 +287,7 @@ function membership(
 function internshipInput() {
   return {
     title: "Backend Engineering Intern",
+    type: "regular" as const,
     description: "Build and test maintainable backend services with our engineering team.",
     location: "Bangkok",
     workMode: "hybrid" as const,
@@ -311,6 +321,8 @@ function applicationRecord(
     internshipId: "internship",
     studentUserId: "student",
     universityOrganizationId: "university",
+    semester: 1,
+    academicYear: 2569,
     statement: "I am ready to learn and contribute to this team.",
     status,
     submittedAt: now,

@@ -26,6 +26,8 @@ export function InternshipPage() {
 	const queryClient = useQueryClient();
 	const [selectedId, setSelectedId] = useState<string | null>(null);
 	const [statement, setStatement] = useState("");
+	const [semester, setSemester] = useState(1);
+	const [academicYear, setAcademicYear] = useState(2569);
 	const organizations = useQuery({ queryKey: ["organizations"], queryFn: loadOrganizations });
 	const internships = useQuery({
 		queryKey: ["internships", "published"],
@@ -44,7 +46,12 @@ export function InternshipPage() {
 			if (!studentMembership) throw new Error("STUDENT_MEMBERSHIP_REQUIRED");
 			const response = await apiClient.api.v1.internships[":internshipId"].applications.$post({
 				param: { internshipId },
-				json: { universityOrganizationId: studentMembership.organization.id, statement },
+				json: {
+					universityOrganizationId: studentMembership.organization.id,
+					semester,
+					academicYear,
+					statement,
+				},
 			});
 			if (!response.ok) throw new Error(`APPLICATION_${response.status}`);
 			return response.json();
@@ -172,6 +179,31 @@ export function InternshipPage() {
 										value={statement}
 										onChange={(event) => setStatement(event.target.value)}
 									/>
+									<div className="mt-3 grid grid-cols-2 gap-3">
+										<label className="grid gap-1 text-sm font-semibold">
+											Semester
+											<select
+												className="h-10 rounded-xl border px-3"
+												value={semester}
+												onChange={(event) => setSemester(Number(event.target.value))}
+											>
+												<option value="1">1</option>
+												<option value="2">2</option>
+												<option value="3">3</option>
+											</select>
+										</label>
+										<label className="grid gap-1 text-sm font-semibold">
+											Academic year (B.E.)
+											<input
+												className="h-10 rounded-xl border px-3"
+												type="number"
+												min="2400"
+												max="2800"
+												value={academicYear}
+												onChange={(event) => setAcademicYear(Number(event.target.value))}
+											/>
+										</label>
+									</div>
 									<div className="mt-2 flex justify-between text-xs text-muted-foreground">
 										<span>{t("internships.statementMinimum")}</span>
 										<span>{statement.length}/5000</span>

@@ -1,7 +1,112 @@
 // One-time/idempotent seed data for local and staging environments. Every
 // insert uses onConflictDoNothing so the script can be re-run safely.
 import { closeDatabase, db } from "../db";
-import { academicFaculty, academicMajor, organization } from "../db/schema";
+import {
+  academicFaculty,
+  academicMajor,
+  evaluationComponent,
+  evaluationCriterion,
+  evaluationScheme,
+  organization,
+} from "../db/schema";
+
+const cwie14SupervisorCriteria = [
+  "Quantity of work",
+  "Quality of work",
+  "Academic ability and applied knowledge",
+  "Judgment and decision making",
+  "Organization and planning",
+  "Communication skills",
+  "Responsibility and dependability",
+  "Interest in work",
+  "Interpersonal skills",
+  "Ethics and morality",
+];
+
+async function seedEvaluationScheme(organizationId: string, track: "regular" | "cooperative") {
+  const [inserted] = await db
+    .insert(evaluationScheme)
+    .values({
+      universityOrganizationId: organizationId,
+      track,
+      name: `CWIE 14 (${track})`,
+      version: 1,
+    })
+    .onConflictDoNothing({
+      target: [
+        evaluationScheme.universityOrganizationId,
+        evaluationScheme.track,
+        evaluationScheme.version,
+      ],
+    })
+    .returning();
+  const scheme =
+    inserted ??
+    (await db.query.evaluationScheme.findFirst({
+      where: (table, { and, eq }) =>
+        and(
+          eq(table.universityOrganizationId, organizationId),
+          eq(table.track, track),
+          eq(table.version, 1),
+        ),
+    }));
+  if (!scheme) throw new Error(`Could not resolve ${track} evaluation scheme`);
+
+  const definitions = [
+    {
+      evaluatorType: "supervisor" as const,
+      label: "Workplace supervisor assessment",
+      maxScore: 50,
+      criteria: cwie14SupervisorCriteria.map((label) => ({ label, maxScore: 5 })),
+    },
+    {
+      evaluatorType: "advisor" as const,
+      label: "Academic advisor assessment",
+      maxScore: 40,
+      criteria: [{ label: "CWIE supervision assessment", maxScore: 40 }],
+    },
+    {
+      evaluatorType: "center_head" as const,
+      label: "Pre-internship orientation attendance",
+      maxScore: 5,
+      criteria: [{ label: "Orientation participation", maxScore: 5 }],
+    },
+    {
+      evaluatorType: "program_committee" as const,
+      label: "Post-internship orientation attendance",
+      maxScore: 5,
+      criteria: [{ label: "Closing orientation participation", maxScore: 5 }],
+    },
+  ];
+  for (const [sortOrder, definition] of definitions.entries()) {
+    const [created] = await db
+      .insert(evaluationComponent)
+      .values({ schemeId: scheme.id, sortOrder: sortOrder + 1, ...definition })
+      .onConflictDoNothing({
+        target: [evaluationComponent.schemeId, evaluationComponent.evaluatorType],
+      })
+      .returning();
+    const component =
+      created ??
+      (await db.query.evaluationComponent.findFirst({
+        where: (table, { and, eq }) =>
+          and(eq(table.schemeId, scheme.id), eq(table.evaluatorType, definition.evaluatorType)),
+      }));
+    if (!component) throw new Error(`Could not resolve ${definition.evaluatorType} component`);
+    await db
+      .insert(evaluationCriterion)
+      .values(
+        definition.criteria.map((criterion, index) => ({
+          componentId: component.id,
+          sortOrder: index + 1,
+          ...criterion,
+        })),
+      )
+      .onConflictDoNothing({
+        target: [evaluationCriterion.componentId, evaluationCriterion.sortOrder],
+      });
+  }
+}
 
 const universities = [
   {
@@ -57,6 +162,9 @@ async function seed() {
           .onConflictDoNothing({ target: [academicMajor.facultyId, academicMajor.name] });
       }
     }
+
+    await seedEvaluationScheme(organizationId, "regular");
+    await seedEvaluationScheme(organizationId, "cooperative");
 
     console.log(`Seeded ${university.name}`);
   }

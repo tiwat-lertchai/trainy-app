@@ -85,6 +85,27 @@
       "when": 1787940835439,
       "tag": "0011_square_onslaught",
       "breakpoints": true
+    },
+    {
+      "idx": 12,
+      "version": "7",
+      "when": 1788172472546,
+      "tag": "0012_lumpy_black_panther",
+      "breakpoints": true
+    },
+    {
+      "idx": 13,
+      "version": "7",
+      "when": 1788172903258,
+      "tag": "0013_aromatic_silver_surfer",
+      "breakpoints": true
+    },
+    {
+      "idx": 14,
+      "version": "7",
+      "when": 1788173406400,
+      "tag": "0014_slimy_mantis",
+      "breakpoints": true
     }
   ]
 }

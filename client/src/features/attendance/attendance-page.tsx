@@ -47,6 +47,9 @@ export function AttendancePage() {
 	const queryClient = useQueryClient();
 	const [selectedPlacement, setSelectedPlacement] = useState("");
 	const [summaryRange, setSummaryRange] = useState({ from: "", to: "" });
+	const [offsite, setOffsite] = useState(false);
+	const [offsiteDestination, setOffsiteDestination] = useState("");
+	const [offsiteReason, setOffsiteReason] = useState("");
 
 	const organizations = useQuery({
 		queryKey: ["organizations"],
@@ -113,6 +116,17 @@ export function AttendancePage() {
 		},
 		enabled: Boolean(placementId) && canReviewAdjustments(role),
 	});
+	const leaves = useQuery({
+		queryKey: ["attendance-leaves", placementId],
+		queryFn: async () => {
+			const r = await apiClient.api.v1.attendance[":placementId"].leaves.$get({
+				param: { placementId },
+			});
+			if (!r.ok) throw new Error();
+			return r.json();
+		},
+		enabled: Boolean(placementId),
+	});
 	const summary = useQuery({
 		queryKey: ["attendance-summary", organizationId, summaryRange.from, summaryRange.to],
 		queryFn: async () => {
@@ -132,6 +146,7 @@ export function AttendancePage() {
 	const invalidate = () => {
 		queryClient.invalidateQueries({ queryKey: ["attendance", placementId] });
 		queryClient.invalidateQueries({ queryKey: ["attendance-adjustments", placementId] });
+		queryClient.invalidateQueries({ queryKey: ["attendance-leaves", placementId] });
 	};
 
 	const scheduleAction = useMutation({
@@ -169,7 +184,8 @@ export function AttendancePage() {
 	const attendanceAction = useMutation({
 		mutationFn: async (
 			input:
-				| { kind: "check-in" }
+				| { kind: "check-in"; offsiteDestination?: string; offsiteReason?: string }
+				| { kind: "leave"; leaveDate: string; reason: string }
 				| { kind: "check-out"; attendanceId: string }
 				| { kind: "adjustment"; attendanceId: string; reason: string; proposedCheckOutAt?: string }
 				| { kind: "review"; adjustmentId: string; decision: "approved" | "rejected"; note: string },
@@ -178,7 +194,19 @@ export function AttendancePage() {
 				const evidence = await captureEvidence(t("attendance.locationPrompt"));
 				const r = await apiClient.api.v1.attendance[":placementId"]["check-in"].$post({
 					param: { placementId },
-					json: evidence,
+					json: {
+						...evidence,
+						offsiteDestination: input.offsiteDestination,
+						locationExceptionReason: input.offsiteReason ?? evidence.locationExceptionReason,
+					},
+				});
+				if (!r.ok) throw new Error();
+				return r.json();
+			}
+			if (input.kind === "leave") {
+				const r = await apiClient.api.v1.attendance[":placementId"].leaves.$post({
+					param: { placementId },
+					json: { leaveDate: input.leaveDate, reason: input.reason },
 				});
 				if (!r.ok) throw new Error();
 				return r.json();
@@ -236,6 +264,20 @@ export function AttendancePage() {
 			locationPolicy,
 			geofence,
 		});
+	}
+
+	function submitLeave(event: FormEvent<HTMLFormElement>) {
+		event.preventDefault();
+		const form = event.currentTarget;
+		const data = new FormData(form);
+		attendanceAction.mutate(
+			{
+				kind: "leave",
+				leaveDate: String(data.get("leaveDate")),
+				reason: String(data.get("reason")),
+			},
+			{ onSuccess: () => form.reset() },
+		);
 	}
 
 	function requestAdjustment(attendanceId: string) {
@@ -342,7 +384,13 @@ export function AttendancePage() {
 						{!todayRecord && (
 							<Button
 								disabled={attendanceAction.isPending}
-								onClick={() => attendanceAction.mutate({ kind: "check-in" })}
+								onClick={() =>
+									attendanceAction.mutate({
+										kind: "check-in",
+										offsiteDestination: offsite ? offsiteDestination : undefined,
+										offsiteReason: offsite ? offsiteReason : undefined,
+									})
+								}
 							>
 								{t("attendance.checkIn")}
 							</Button>
@@ -358,11 +406,73 @@ export function AttendancePage() {
 							</Button>
 						)}
 					</div>
+					{!todayRecord && (
+						<div className="mt-4 grid gap-3 rounded-xl bg-muted p-4 sm:grid-cols-2">
+							<label className="flex items-center gap-2 text-sm font-semibold sm:col-span-2">
+								<input
+									type="checkbox"
+									checked={offsite}
+									onChange={(event) => setOffsite(event.target.checked)}
+								/>
+								Check in at an off-site work location
+							</label>
+							{offsite && (
+								<>
+									<input
+										className="h-10 rounded-xl border px-3"
+										placeholder="Destination"
+										value={offsiteDestination}
+										onChange={(event) => setOffsiteDestination(event.target.value)}
+									/>
+									<input
+										className="h-10 rounded-xl border px-3"
+										placeholder="Reason"
+										value={offsiteReason}
+										onChange={(event) => setOffsiteReason(event.target.value)}
+									/>
+								</>
+							)}
+						</div>
+					)}
 					{attendanceAction.isError && (
 						<p role="alert" className="mt-3 text-sm text-destructive">
 							{t("attendance.actionError")}
 						</p>
 					)}
+				</section>
+			)}
+
+			{canCheckInOut(role) && placementId && (
+				<section className="mt-8 rounded-2xl border bg-white p-6">
+					<h2 className="font-bold">Leave requests</h2>
+					<p className="mt-1 text-sm text-muted-foreground">
+						Record-only leave; approved leave does not add or subtract attendance hours.
+					</p>
+					<form className="mt-4 grid gap-3 sm:grid-cols-[12rem_1fr_auto]" onSubmit={submitLeave}>
+						<input name="leaveDate" type="date" required className="h-11 rounded-xl border px-3" />
+						<input
+							name="reason"
+							required
+							minLength={5}
+							maxLength={2000}
+							placeholder="Reason"
+							className="h-11 rounded-xl border px-3"
+						/>
+						<Button disabled={attendanceAction.isPending}>Request leave</Button>
+					</form>
+					<div className="mt-4 grid gap-2">
+						{leaves.data?.data.map((leave) => (
+							<div
+								key={leave.id}
+								className="flex justify-between rounded-xl bg-muted px-4 py-3 text-sm"
+							>
+								<span>
+									{leave.leaveDate} — {leave.reason}
+								</span>
+								<strong>{leave.status}</strong>
+							</div>
+						))}
+					</div>
 				</section>
 			)}
 

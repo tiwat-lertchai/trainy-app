@@ -2,6 +2,7 @@ import { relations, sql } from "drizzle-orm";
 import {
   check,
   index,
+  integer,
   pgEnum,
   pgTable,
   text,
@@ -55,6 +56,8 @@ export const internshipRequest = pgTable(
       .notNull()
       .references(() => academicMajor.id, { onDelete: "restrict" }),
     type: internshipRequestType("type").notNull(),
+    semester: integer("semester").notNull(),
+    academicYear: integer("academic_year").notNull(),
     // Set once the company exists in the system (already present, or joined
     // later through an invite). Until then, the student's own description of
     // who they found is kept in the proposed* fields below.
@@ -84,6 +87,11 @@ export const internshipRequest = pgTable(
     check(
       "internship_request_date_order",
       sql`${table.proposedEndDate} > ${table.proposedStartDate}`,
+    ),
+    check("internship_request_semester_range", sql`${table.semester} between 1 and 3`),
+    check(
+      "internship_request_academic_year_range",
+      sql`${table.academicYear} between 2400 and 2800`,
     ),
     index("internship_request_student_idx").on(table.studentUserId),
     index("internship_request_university_idx").on(table.universityOrganizationId),

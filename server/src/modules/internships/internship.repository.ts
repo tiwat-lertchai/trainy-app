@@ -6,7 +6,12 @@ import {
   organization,
   organizationMembership,
 } from "../../db/schema";
-import type { ApplicationStatus, InternshipStatus, InternshipWorkMode } from "./internship.schema";
+import type {
+  ApplicationStatus,
+  InternshipStatus,
+  InternshipType,
+  InternshipWorkMode,
+} from "./internship.schema";
 
 export type InternshipRecord = typeof internship.$inferSelect;
 export type ApplicationRecord = typeof internshipApplication.$inferSelect;
@@ -22,6 +27,7 @@ export type MembershipAccess = Pick<
 
 type InternshipChanges = Partial<{
   title: string;
+  type: InternshipType;
   description: string;
   location: string;
   workMode: InternshipWorkMode;
@@ -36,6 +42,7 @@ export interface InternshipRepository {
     companyOrganizationId: string;
     createdByUserId: string;
     title: string;
+    type: InternshipType;
     description: string;
     location: string;
     workMode: InternshipWorkMode;
@@ -55,6 +62,8 @@ export interface InternshipRepository {
     internshipId: string;
     studentUserId: string;
     universityOrganizationId: string;
+    semester: number;
+    academicYear: number;
     statement: string;
   }): Promise<ApplicationRecord | undefined>;
   listStudentApplications(studentUserId: string): Promise<ApplicationView[]>;

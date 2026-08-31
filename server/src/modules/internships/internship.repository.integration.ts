@@ -70,6 +70,7 @@ beforeAll(async () => {
     companyOrganizationId: company.id,
     createdByUserId: "company-admin",
     title: "Integration Internship",
+    type: "regular",
     description: "An internship created by the repository integration test.",
     location: "Bangkok",
     workMode: "hybrid",
@@ -102,6 +103,8 @@ describe("DrizzleInternshipRepository", () => {
       internshipId: internship.id,
       studentUserId: "student",
       universityOrganizationId: integrationIds.universityId,
+      semester: 1,
+      academicYear: 2569,
       statement: "I want to contribute and learn through this internship.",
     });
     if (!application) throw new Error("Integration application was not created");
@@ -127,6 +130,8 @@ describe("DrizzleInternshipRepository", () => {
         internshipId: internship.id,
         studentUserId: "student",
         universityOrganizationId: integrationIds.universityId,
+        semester: 1,
+        academicYear: 2569,
         statement: "This duplicate must be rejected by the database.",
       }),
     ).toBeUndefined();
@@ -137,6 +142,8 @@ describe("DrizzleInternshipRepository", () => {
       internshipId: internship.id,
       studentUserId: "student-two",
       universityOrganizationId: integrationIds.universityId,
+      semester: 1,
+      academicYear: 2569,
       statement: "I am the second candidate competing for the final place.",
     });
     if (!second) throw new Error("Second integration application was not created");

@@ -27,6 +27,8 @@ export class InternshipRequestService {
     universityOrganizationId: string;
     academicMajorId: string;
     type: "regular" | "cooperative";
+    semester: number;
+    academicYear: number;
     positionTitle: string;
     description: string;
     proposedStartDate: Date;
@@ -63,6 +65,8 @@ export class InternshipRequestService {
         universityOrganizationId: input.universityOrganizationId,
         academicMajorId: input.academicMajorId,
         type: input.type,
+        semester: input.semester,
+        academicYear: input.academicYear,
         positionTitle: input.positionTitle,
         description: input.description,
         proposedStartDate: input.proposedStartDate,
