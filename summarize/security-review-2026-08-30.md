@@ -72,7 +72,7 @@ What this round actually did:
   scrape/abuse any authenticated-but-cheap-to-call endpoint (e.g. session
   checks, list endpoints) without any per-client throttle, since Better
   Auth's own session verification and Drizzle's parameterized queries don't
-  by themselves limit request *volume*.
+  by themselves limit request _volume_.
 - **Fix (added, see files below):** a dependency-free, in-memory
   fixed-window limiter (`server/src/middleware/rate-limit.ts`):
   - `authRateLimit`: 20 requests/minute per client, mounted on
@@ -194,7 +194,7 @@ allows the Kali container.
 ## Commit information
 
 - Committed locally on `master`: `ff8ef94 feat(security): add per-client
-  rate limiting to auth and API routes`.
+rate limiting to auth and API routes`.
 - Files: `server/src/app.ts` (wired in the two rate limiters, gated off in
   tests), `server/src/middleware/rate-limit.ts` (new),
   `server/src/middleware/rate-limit.test.ts` (new).
