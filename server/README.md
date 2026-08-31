@@ -44,6 +44,10 @@ persistent volume และรวม directory นี้ในแผนสำร
 bun run dev
 ```
 
+การสลับไปใช้ฐานข้อมูลทดสอบบน Neon รวมถึง connection preflight, migration,
+seed และ Docker override อธิบายไว้ใน
+[Neon test database workflow](docs/neon-test-database.md)
+
 ## การตรวจสอบก่อน Commit
 
 ```sh
