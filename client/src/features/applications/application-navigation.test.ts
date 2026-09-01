@@ -1,5 +1,9 @@
 import { describe, expect, it } from "bun:test";
-import { canAccessStudentRequest, studentApplicationPaths } from "./application-navigation";
+import {
+	canAccessStudentRequest,
+	studentApplicationActionPlacement,
+	studentApplicationPaths,
+} from "./application-navigation";
 
 describe("student application navigation", () => {
 	it("provides direct routes for listed and self-arranged internships", () => {
@@ -11,5 +15,12 @@ describe("student application navigation", () => {
 		expect(canAccessStudentRequest("student")).toBeTrue();
 		expect(canAccessStudentRequest("advisor")).toBeFalse();
 		expect(canAccessStudentRequest(undefined)).toBeFalse();
+	});
+
+	it("puts both application actions inside the empty state when the student has no applications", () => {
+		expect(studentApplicationActionPlacement("student", 0)).toBe("empty-state");
+		expect(studentApplicationActionPlacement("student", 2)).toBe("header");
+		expect(studentApplicationActionPlacement("advisor", 0)).toBe("hidden");
+		expect(studentApplicationActionPlacement("student", undefined)).toBe("hidden");
 	});
 });

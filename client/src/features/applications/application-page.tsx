@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { Link } from "@tanstack/react-router";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { BriefcaseBusiness, CalendarDays, Mail, UserRound } from "lucide-react";
+import { BriefcaseBusiness, CalendarDays, Mail, Plus, Search, UserRound } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { ConfirmationDialog } from "@/components/ui/confirmation-dialog";
 import { useLanguage } from "@/i18n/config";
@@ -13,7 +13,10 @@ import {
 	canWithdrawApplication,
 	type ApplicationStatus,
 } from "./application-rules";
-import { studentApplicationPaths } from "./application-navigation";
+import {
+	studentApplicationActionPlacement,
+	studentApplicationPaths,
+} from "./application-navigation";
 import { InternshipRequestPanel } from "./internship-request-panel";
 
 const WORKSPACE_KEY = "trainy-workspace-id";
@@ -90,6 +93,10 @@ export function ApplicationPage() {
 			: ["company_admin", "supervisor"].includes(role ?? "")
 				? companyApplications
 				: universityApplications;
+	const studentActionPlacement = studentApplicationActionPlacement(
+		role,
+		applications.data?.data.length,
+	);
 	const mutation = useMutation({
 		mutationFn: async ({
 			id,
@@ -128,15 +135,19 @@ export function ApplicationPage() {
 							? t("applications.companyDescription")
 							: t("applications.universityDescription")}
 				</p>
-				{role === "student" && (
+				{studentActionPlacement === "header" && (
 					<div className="mt-5 flex flex-wrap gap-3">
 						<Button asChild>
 							<Link to={studentApplicationPaths.selfArrangedRequest}>
+								<Plus />
 								{t("applications.createRequest")}
 							</Link>
 						</Button>
 						<Button variant="outline" asChild>
-							<Link to={studentApplicationPaths.browseInternships}>{t("applications.browse")}</Link>
+							<Link to={studentApplicationPaths.browseInternships}>
+								<Search />
+								{t("applications.browse")}
+							</Link>
 						</Button>
 					</div>
 				)}
@@ -148,6 +159,20 @@ export function ApplicationPage() {
 					<div className="mt-8 rounded-2xl border bg-white p-10 text-center text-muted-foreground">
 						<p>{t("applications.empty")}</p>
 						<p className="mt-2 text-sm">{t("applications.emptyHint")}</p>
+						<div className="mt-6 flex flex-wrap justify-center gap-3">
+							<Button asChild>
+								<Link to={studentApplicationPaths.selfArrangedRequest}>
+									<Plus />
+									{t("applications.createRequest")}
+								</Link>
+							</Button>
+							<Button variant="outline" asChild>
+								<Link to={studentApplicationPaths.browseInternships}>
+									<Search />
+									{t("applications.browse")}
+								</Link>
+							</Button>
+						</div>
 					</div>
 				) : (
 					<Notice message={t("applications.empty")} />
