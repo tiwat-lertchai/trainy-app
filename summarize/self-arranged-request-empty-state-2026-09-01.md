@@ -30,6 +30,22 @@ Existing Thai and English strings already described the self-arranged request ac
 - ESLint: passed.
 - Browser-based inspection of the deployed domain was attempted but blocked by the browser-control security policy. The deployed site will remain visually unchanged until this commit is deployed.
 
+## Runtime follow-up
+
+The user reported that the action still did not appear after starting the app. The running Docker images were from 31 August 18:03, before the UI commit, so plain `docker compose up` reused the stale bundle. Rebuilt both production images from current `master` and force-recreated the client/server containers.
+
+The first Neon override restart then exposed a separate configuration bug: `compose.neon-test.yaml` did not forward `NEON_ALLOW_PRODUCTION_RESET`, so the target guard correctly terminated the server and nginx could not resolve its upstream. The override now forwards the flag explicitly and defaults it to `false`; the example and operator documentation were updated.
+
+After recreation:
+
+- Client and server containers are healthy and remain running.
+- `/api/v1/health/ready` returned database connected.
+- Server startup completed guarded Neon identity check, migrations, idempotent seed, and a second identity check.
+- The nginx-served production bundle contains the Thai self-arranged-request CTA string.
+- Compose configuration asserts the flag is `true` for the authorized resettable run and the local database dependency is absent.
+
+Direct verification of `trainy.snoowy.page` was not possible from the tool environment because its DNS lookup failed. Local port 8081 is serving the corrected bundle; the external tunnel/DNS path must resolve on the user's machine.
+
 ## Dependencies and security
 
 No dependency, backend, database, authentication, or authorization change. No credential was introduced.

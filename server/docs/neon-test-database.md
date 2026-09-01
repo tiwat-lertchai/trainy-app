@@ -25,6 +25,7 @@ For an explicitly authorized production branch that will be reset after the
 test, use `DATABASE_ENVIRONMENT=production-resettable` together with
 `NEON_ALLOW_PRODUCTION_RESET=true`. Both values and the exact host match are
 required. This escape hatch must never be enabled for routine deployments.
+The Compose override forwards this flag explicitly and defaults it to `false`.
 
 ## Verify and prepare schema
 

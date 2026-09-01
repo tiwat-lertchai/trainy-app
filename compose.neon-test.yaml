@@ -9,6 +9,7 @@ services:
       DATABASE_DRIVER: neon
       DATABASE_ENVIRONMENT: ${DATABASE_ENVIRONMENT:?set DATABASE_ENVIRONMENT=test}
       NEON_TEST_HOST: ${NEON_TEST_HOST:?set the exact Neon test branch hostname}
+      NEON_ALLOW_PRODUCTION_RESET: ${NEON_ALLOW_PRODUCTION_RESET:-false}
     command:
       - sh
       - -c
