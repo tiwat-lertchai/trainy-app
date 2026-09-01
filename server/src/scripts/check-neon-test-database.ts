@@ -5,6 +5,7 @@ type NeonTargetInput = {
   databaseDriver?: string;
   databaseEnvironment?: string;
   expectedHost?: string;
+  allowProductionReset?: string;
 };
 
 export function validateNeonTestTarget(input: NeonTargetInput) {
@@ -14,8 +15,12 @@ export function validateNeonTestTarget(input: NeonTargetInput) {
   if (input.databaseDriver !== "neon") {
     throw new Error("DATABASE_DRIVER must be neon for the Neon test database workflow");
   }
-  if (input.databaseEnvironment !== "test") {
-    throw new Error("DATABASE_ENVIRONMENT must be explicitly set to test");
+  const resettableProduction =
+    input.databaseEnvironment === "production-resettable" && input.allowProductionReset === "true";
+  if (input.databaseEnvironment !== "test" && !resettableProduction) {
+    throw new Error(
+      "DATABASE_ENVIRONMENT must be test, or production-resettable with NEON_ALLOW_PRODUCTION_RESET=true",
+    );
   }
   if (!expectedHost) {
     throw new Error("NEON_TEST_HOST is required and must match the selected Neon test branch host");
@@ -34,7 +39,7 @@ export function validateNeonTestTarget(input: NeonTargetInput) {
   if (parsed.searchParams.get("sslmode") !== "require") {
     throw new Error("Neon DATABASE_URL must include sslmode=require");
   }
-  return { databaseUrl, hostname: parsed.hostname };
+  return { databaseUrl, hostname: parsed.hostname, environment: input.databaseEnvironment };
 }
 
 if (import.meta.main) {
@@ -43,6 +48,7 @@ if (import.meta.main) {
     databaseDriver: process.env.DATABASE_DRIVER,
     databaseEnvironment: process.env.DATABASE_ENVIRONMENT,
     expectedHost: process.env.NEON_TEST_HOST,
+    allowProductionReset: process.env.NEON_ALLOW_PRODUCTION_RESET,
   });
   const pool = new Pool({ connectionString: target.databaseUrl });
   try {
@@ -55,7 +61,7 @@ if (import.meta.main) {
       JSON.stringify({
         status: "connected",
         provider: "neon",
-        environment: "test",
+        environment: target.environment,
         host: target.hostname,
         database: identity.database_name,
         user: identity.current_user,

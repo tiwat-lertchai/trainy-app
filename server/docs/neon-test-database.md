@@ -21,6 +21,11 @@ Set `DATABASE_URL` to the pooled test-branch URL with `sslmode=require`. Set
 requires `DATABASE_DRIVER=neon` and `DATABASE_ENVIRONMENT=test`; a different
 host or environment stops execution before migration.
 
+For an explicitly authorized production branch that will be reset after the
+test, use `DATABASE_ENVIRONMENT=production-resettable` together with
+`NEON_ALLOW_PRODUCTION_RESET=true`. Both values and the exact host match are
+required. This escape hatch must never be enabled for routine deployments.
+
 ## Verify and prepare schema
 
 From `server/`:

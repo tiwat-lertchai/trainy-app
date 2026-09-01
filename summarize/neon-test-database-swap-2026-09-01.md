@@ -44,8 +44,12 @@ No dependency or lockfile changes. `bun audit` found no vulnerabilities in 310 p
 
 ## Limitations and next step
 
-The actual cloud connection, migrations, seed, and transaction smoke test remain intentionally unverified until the user provides/configures a dedicated Neon test branch URL. Do not point this workflow at production.
+The user explicitly authorized using the current production branch as a temporary resettable test target. Added a second guarded mode requiring both `DATABASE_ENVIRONMENT=production-resettable` and `NEON_ALLOW_PRODUCTION_RESET=true`, while retaining the exact hostname and TLS checks.
+
+The guarded connection identified the approved Neon target as database `neondb` with role `neondb_owner`. All migrations through 0014 applied successfully, the idempotent Chandrakasem seed completed, and the final identity check passed. A direct transaction through Trainy's `neon-serverless` application driver passed, and the new placement, leave, evaluation scheme, and evaluation submission tables were present. No connection URL or credential was written to tracked files.
+
+The production branch now contains migrated/seeded test state and is expected to be reset by the user after testing. Avoid treating its current data as durable production data.
 
 ## Commit
 
-Committed locally as `feat(db): add guarded Neon test workflow`. Not pushed.
+The base workflow was committed locally as `feat(db): add guarded Neon test workflow`. The production-resettable follow-up is committed separately. Neither commit was pushed.

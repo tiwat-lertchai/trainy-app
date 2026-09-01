@@ -14,6 +14,19 @@ describe("Neon test database target guard", () => {
     expect(validateNeonTestTarget(valid).hostname).toBe(valid.expectedHost);
   });
 
+  test("requires an explicit second flag for a resettable production branch", () => {
+    expect(() =>
+      validateNeonTestTarget({ ...valid, databaseEnvironment: "production-resettable" }),
+    ).toThrow("NEON_ALLOW_PRODUCTION_RESET=true");
+    expect(
+      validateNeonTestTarget({
+        ...valid,
+        databaseEnvironment: "production-resettable",
+        allowProductionReset: "true",
+      }).environment,
+    ).toBe("production-resettable");
+  });
+
   test("rejects a different branch host", () => {
     expect(() =>
       validateNeonTestTarget({ ...valid, expectedHost: "production-pooler.aws.neon.tech" }),
@@ -22,7 +35,7 @@ describe("Neon test database target guard", () => {
 
   test("rejects non-test, non-Neon, and non-TLS targets", () => {
     expect(() => validateNeonTestTarget({ ...valid, databaseEnvironment: "production" })).toThrow(
-      "explicitly set to test",
+      "production-resettable",
     );
     expect(() =>
       validateNeonTestTarget({
