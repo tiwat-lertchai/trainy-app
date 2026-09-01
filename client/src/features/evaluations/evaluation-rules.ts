@@ -19,7 +19,7 @@ export function visibleEvaluations<
 export const evaluatorKeys = {
 	advisor: "evaluations.evaluator.advisor",
 	supervisor: "evaluations.evaluator.supervisor",
-	center_head: "evaluations.evaluator.advisor",
-	program_committee: "evaluations.evaluator.advisor",
+	center_head: "evaluations.evaluator.centerHead",
+	program_committee: "evaluations.evaluator.programCommittee",
 } satisfies Record<EvaluatorType, MessageKey>;
 import type { MessageKey } from "@/i18n/messages";

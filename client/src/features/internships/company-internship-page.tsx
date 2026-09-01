@@ -97,10 +97,10 @@ export function CompanyInternshipPage({
 				>
 					<Field name="title" label={t("companyInternships.titleField")} />
 					<label className="grid gap-2 text-sm font-semibold">
-						Internship track
+						{t("companyInternships.track")}
 						<select name="type" className="h-11 rounded-xl border bg-background px-3 font-normal">
-							<option value="regular">Regular internship</option>
-							<option value="cooperative">Cooperative education</option>
+							<option value="regular">{t("internshipRequests.type.regular")}</option>
+							<option value="cooperative">{t("internshipRequests.type.cooperative")}</option>
 						</select>
 					</label>
 					<Field name="location" label={t("companyInternships.location")} />

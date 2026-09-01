@@ -161,14 +161,14 @@ function StudentRequests({ organizationId }: { organizationId?: string }) {
 						<option value="cooperative">{t("internshipRequests.type.cooperative")}</option>
 					</select>
 				</Field>
-				<Field label="Semester">
+				<Field label={t("internshipRequests.semester")}>
 					<select name="semester" required className={controlClass} defaultValue="1">
 						<option value="1">1</option>
 						<option value="2">2</option>
 						<option value="3">3</option>
 					</select>
 				</Field>
-				<Field label="Academic year (B.E.)">
+				<Field label={t("internshipRequests.academicYear")}>
 					<input
 						name="academicYear"
 						type="number"

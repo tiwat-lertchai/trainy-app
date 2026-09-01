@@ -181,7 +181,7 @@ export function InternshipPage() {
 									/>
 									<div className="mt-3 grid grid-cols-2 gap-3">
 										<label className="grid gap-1 text-sm font-semibold">
-											Semester
+											{t("internshipRequests.semester")}
 											<select
 												className="h-10 rounded-xl border px-3"
 												value={semester}
@@ -193,7 +193,7 @@ export function InternshipPage() {
 											</select>
 										</label>
 										<label className="grid gap-1 text-sm font-semibold">
-											Academic year (B.E.)
+											{t("internshipRequests.academicYear")}
 											<input
 												className="h-10 rounded-xl border px-3"
 												type="number"

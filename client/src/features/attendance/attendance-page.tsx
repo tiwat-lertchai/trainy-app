@@ -414,19 +414,19 @@ export function AttendancePage() {
 									checked={offsite}
 									onChange={(event) => setOffsite(event.target.checked)}
 								/>
-								Check in at an off-site work location
+								{t("attendance.offsite.checkbox")}
 							</label>
 							{offsite && (
 								<>
 									<input
 										className="h-10 rounded-xl border px-3"
-										placeholder="Destination"
+										placeholder={t("attendance.offsite.destination")}
 										value={offsiteDestination}
 										onChange={(event) => setOffsiteDestination(event.target.value)}
 									/>
 									<input
 										className="h-10 rounded-xl border px-3"
-										placeholder="Reason"
+										placeholder={t("attendance.offsite.reason")}
 										value={offsiteReason}
 										onChange={(event) => setOffsiteReason(event.target.value)}
 									/>
@@ -444,10 +444,8 @@ export function AttendancePage() {
 
 			{canCheckInOut(role) && placementId && (
 				<section className="mt-8 rounded-2xl border bg-white p-6">
-					<h2 className="font-bold">Leave requests</h2>
-					<p className="mt-1 text-sm text-muted-foreground">
-						Record-only leave; approved leave does not add or subtract attendance hours.
-					</p>
+					<h2 className="font-bold">{t("attendance.leave.title")}</h2>
+					<p className="mt-1 text-sm text-muted-foreground">{t("attendance.leave.description")}</p>
 					<form className="mt-4 grid gap-3 sm:grid-cols-[12rem_1fr_auto]" onSubmit={submitLeave}>
 						<input name="leaveDate" type="date" required className="h-11 rounded-xl border px-3" />
 						<input
@@ -455,10 +453,10 @@ export function AttendancePage() {
 							required
 							minLength={5}
 							maxLength={2000}
-							placeholder="Reason"
+							placeholder={t("attendance.leave.reasonPlaceholder")}
 							className="h-11 rounded-xl border px-3"
 						/>
-						<Button disabled={attendanceAction.isPending}>Request leave</Button>
+						<Button disabled={attendanceAction.isPending}>{t("attendance.leave.submit")}</Button>
 					</form>
 					<div className="mt-4 grid gap-2">
 						{leaves.data?.data.map((leave) => (
@@ -469,7 +467,7 @@ export function AttendancePage() {
 								<span>
 									{leave.leaveDate} — {leave.reason}
 								</span>
-								<strong>{leave.status}</strong>
+								<strong>{t(adjustmentStatusKeys[leave.status])}</strong>
 							</div>
 						))}
 					</div>
