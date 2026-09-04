@@ -1,0 +1,48 @@
+services:
+  server:
+    build:
+      context: .
+      dockerfile: server/Dockerfile
+    environment:
+      NODE_ENV: production
+      PORT: 3000
+      CORS_ORIGINS: ${CORS_ORIGINS:-http://localhost:8081}
+      DATABASE_URL: ${DATABASE_URL:?set DATABASE_URL in .env}
+      BETTER_AUTH_SECRET: ${BETTER_AUTH_SECRET:?set BETTER_AUTH_SECRET in .env}
+      BETTER_AUTH_URL: ${BETTER_AUTH_URL:-http://localhost:8081}
+      LINE_CHANNEL_ID: ${LINE_CHANNEL_ID:?set LINE_CHANNEL_ID in .env}
+      LINE_CHANNEL_SECRET: ${LINE_CHANNEL_SECRET:?set LINE_CHANNEL_SECRET in .env}
+      UPLOAD_DIR: /app/server/uploads
+    volumes:
+      - uploads:/app/server/uploads
+
+  client:
+    build:
+      context: .
+      dockerfile: client/Dockerfile
+      args:
+        VITE_SERVER_URL: ${VITE_SERVER_URL:-http://localhost:8081}
+    depends_on:
+      - server
+    ports:
+      - "8081:80"
+
+  postgres-test:
+    image: postgres:17-alpine
+    profiles: ["test"]
+    environment:
+      POSTGRES_DB: trainy_test
+      POSTGRES_USER: trainy
+      POSTGRES_PASSWORD: trainy_test
+    ports:
+      - "5433:5432"
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U trainy -d trainy_test"]
+      interval: 2s
+      timeout: 3s
+      retries: 15
+    tmpfs:
+      - /var/lib/postgresql/data
+
+volumes:
+  uploads:

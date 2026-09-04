@@ -50,3 +50,6 @@ uploads/
 
 # tsc --build incremental cache
 *.tsbuildinfo
+
+# reports
+reports/
