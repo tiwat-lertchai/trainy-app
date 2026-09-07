@@ -18,6 +18,7 @@ import {
 	Settings,
 	TicketCheck,
 	UsersRound,
+	UserRound,
 	X,
 } from "lucide-react";
 import { BrandMark } from "@/components/brand/brand-mark";
@@ -37,6 +38,7 @@ import type { MessageKey } from "@/i18n/messages";
 import {
 	dashboardFromReport,
 	dashboardFromWorkflow,
+	liveDashboardQueryOptions,
 	type DashboardSnapshot,
 } from "./dashboard-data";
 import { dashboardNavigationLinks } from "./dashboard-navigation";
@@ -48,6 +50,7 @@ const navigationDetails: Record<
 	{ label: MessageKey; icon: typeof LayoutDashboard }
 > = {
 	overview: { label: "nav.overview", icon: LayoutDashboard },
+	profile: { label: "nav.profile", icon: UserRound },
 	internships: { label: "nav.internships", icon: BriefcaseBusiness },
 	applications: { label: "nav.applications", icon: ClipboardCheck },
 	placements: { label: "nav.placements", icon: Building2 },
@@ -105,6 +108,7 @@ export function AppDashboard() {
 			return response.json();
 		},
 		enabled: Boolean(workspaceId && isAdmin && pathname === "/app"),
+		...liveDashboardQueryOptions,
 	});
 	const placements = useQuery({
 		queryKey: ["placements", role === "student" ? "me" : workspaceId, "dashboard"],
@@ -119,6 +123,7 @@ export function AppDashboard() {
 			return response.json();
 		},
 		enabled: Boolean(workspaceId && role && !isAdmin && pathname === "/app"),
+		...liveDashboardQueryOptions,
 	});
 	const applications = useQuery({
 		queryKey: ["applications", "me", "dashboard"],
@@ -128,6 +133,7 @@ export function AppDashboard() {
 			return response.json();
 		},
 		enabled: role === "student" && pathname === "/app",
+		...liveDashboardQueryOptions,
 	});
 
 	if (session.isPending) return <FullPageMessage title={t("dashboard.loadingSession")} />;

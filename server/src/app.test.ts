@@ -87,6 +87,17 @@ describe("onboarding routes", () => {
   });
 });
 
+describe("student profile routes", () => {
+  it("rejects unauthenticated reads and writes of sensitive profile data", async () => {
+    const [read, write] = await Promise.all([
+      app.request("/api/v1/student-profile/me"),
+      app.request("/api/v1/student-profile/me", { method: "PUT" }),
+    ]);
+    expect(read.status).toBe(401);
+    expect(write.status).toBe(401);
+  });
+});
+
 describe("internship routes", () => {
   it("rejects unauthenticated requests before exposing internship data", async () => {
     const response = await app.request("/api/v1/internships");

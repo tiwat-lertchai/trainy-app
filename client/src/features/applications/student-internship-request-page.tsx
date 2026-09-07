@@ -7,6 +7,7 @@ import { apiClient } from "@/lib/api-client";
 import type { OrganizationRole } from "@/features/organizations/role-navigation";
 import { canAccessStudentRequest } from "./application-navigation";
 import { InternshipRequestPanel } from "./internship-request-panel";
+import { loadStudentProfile } from "@/features/student-profile/student-profile-api";
 
 const WORKSPACE_KEY = "trainy-workspace-id";
 
@@ -25,12 +26,28 @@ export function StudentInternshipRequestPage() {
 		memberships.find((item) => item.organization.id === localStorage.getItem(WORKSPACE_KEY)) ??
 		memberships[0];
 	const role = context?.membership.role as OrganizationRole | undefined;
+	const studentProfile = useQuery({
+		queryKey: ["student-profile", "me"],
+		queryFn: loadStudentProfile,
+		enabled: role === "student",
+	});
 
 	if (organizations.isLoading) return <PageMessage message={t("internshipRequests.loading")} />;
 	if (organizations.isError)
 		return <PageMessage message={t("internshipRequests.organizationError")} destructive />;
 	if (!canAccessStudentRequest(role))
 		return <PageMessage message={t("internshipRequests.studentOnly")} destructive />;
+	if (studentProfile.isLoading) return <PageMessage message={t("studentProfile.loading")} />;
+	if (studentProfile.data?.complete === false)
+		return (
+			<div className="rounded-2xl border border-amber-200 bg-amber-50 p-8 text-center text-amber-950">
+				<h1 className="text-xl font-bold">{t("studentProfile.requiredTitle")}</h1>
+				<p className="mt-2">{t("studentProfile.requiredDetail")}</p>
+				<Button className="mt-5" asChild>
+					<Link to="/app/profile">{t("studentProfile.completeNow")}</Link>
+				</Button>
+			</div>
+		);
 
 	return (
 		<div>

@@ -13,4 +13,5 @@ export * from "./placement";
 export * from "./attendance";
 export * from "./progress";
 export * from "./student-academic-record";
+export * from "./student-profile";
 export * from "./system";

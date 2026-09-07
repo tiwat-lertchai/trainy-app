@@ -240,6 +240,14 @@ describe("InternshipRequestService.createRequest", () => {
     expect(record).toMatchObject({ type: "regular", semester: 1, academicYear: 2569 });
   });
 
+  test("blocks a new request until the student profile is complete", async () => {
+    const { repository } = service();
+    const svc = new InternshipRequestService(repository, { isComplete: async () => false });
+    await expect(svc.createRequest(baseCreateInput)).rejects.toMatchObject({
+      code: "STUDENT_PROFILE_INCOMPLETE",
+    });
+  });
+
   test("rejects a request from someone who isn't a student at that university", async () => {
     const { service: svc } = service();
     await expect(

@@ -13,8 +13,13 @@ import {
   updateInternshipSchema,
 } from "./internship.schema";
 import { InternshipService } from "./internship.service";
+import { DrizzleStudentProfileRepository } from "../student-profile/student-profile.repository";
 
-const service = new InternshipService(new DrizzleInternshipRepository(db));
+const service = new InternshipService(
+  new DrizzleInternshipRepository(db),
+  undefined,
+  new DrizzleStudentProfileRepository(db),
+);
 const organizationParamSchema = z.object({ organizationId: z.string().uuid() });
 
 export const internshipRoute = new Hono<{ Variables: AuthVariables }>()

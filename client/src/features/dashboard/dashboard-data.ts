@@ -11,6 +11,12 @@ export type DashboardSnapshot = {
 	secondaryLabel: "internships" | "organizations" | "members";
 };
 
+export const liveDashboardQueryOptions = {
+	refetchOnMount: "always" as const,
+	refetchOnWindowFocus: true,
+	refetchInterval: 15_000,
+};
+
 export function dashboardFromReport(report: {
 	activeMembers: number;
 	internships?: number;

@@ -1,14 +1,18 @@
-import { and, eq } from "drizzle-orm";
+import { and, asc, eq } from "drizzle-orm";
 import type { Database } from "../../db";
 import {
   onboardingRequest,
   organization,
   organizationMembership,
   platformStaff,
+  user,
 } from "../../db/schema";
 import type { OrganizationRole } from "../organizations/organization.schema";
 
 export type OnboardingRecord = typeof onboardingRequest.$inferSelect;
+export type OnboardingReviewRecord = OnboardingRecord & {
+  applicant: { id: string; name: string; email: string };
+};
 export type OnboardingInsert = typeof onboardingRequest.$inferInsert;
 
 export interface OnboardingRepository {
@@ -20,7 +24,7 @@ export interface OnboardingRepository {
     userId: string,
   ): Promise<typeof organizationMembership.$inferSelect | undefined>;
   isPlatformStaff(userId: string): Promise<boolean>;
-  listPending(): Promise<OnboardingRecord[]>;
+  listPending(): Promise<OnboardingReviewRecord[]>;
   listAvailableOrganizations(): Promise<
     Array<Pick<typeof organization.$inferSelect, "id" | "name" | "type">>
   >;
@@ -72,11 +76,18 @@ export class DrizzleOnboardingRepository implements OnboardingRepository {
       }),
     );
   }
-  listPending() {
-    return this.database.query.onboardingRequest.findMany({
-      where: eq(onboardingRequest.status, "pending"),
-      limit: 100,
-    });
+  async listPending() {
+    const rows = await this.database
+      .select({
+        request: onboardingRequest,
+        applicant: { id: user.id, name: user.name, email: user.email },
+      })
+      .from(onboardingRequest)
+      .innerJoin(user, eq(user.id, onboardingRequest.userId))
+      .where(eq(onboardingRequest.status, "pending"))
+      .orderBy(asc(onboardingRequest.submittedAt))
+      .limit(100);
+    return rows.map(({ request, applicant }) => ({ ...request, applicant }));
   }
   listAvailableOrganizations() {
     return this.database

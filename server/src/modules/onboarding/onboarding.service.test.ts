@@ -76,7 +76,12 @@ class FakeRepository implements OnboardingRepository {
     return this.staff.has(userId);
   }
   async listPending() {
-    return this.requests.filter((item) => item.status === "pending");
+    return this.requests
+      .filter((item) => item.status === "pending")
+      .map((item) => ({
+        ...item,
+        applicant: { id: item.userId, name: "Test Applicant", email: "applicant@example.com" },
+      }));
   }
   async listAvailableOrganizations() {
     return this.organizations.map(({ id, name, type }) => ({ id, name, type }));

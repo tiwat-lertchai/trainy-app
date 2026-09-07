@@ -596,6 +596,7 @@ function RequestCard({
 		proposedEndDate: string | Date;
 		revisionNote: string | null;
 		approvals: Array<{ id: string; step: string; decision: string }>;
+		student?: { id: string; name: string; email: string };
 	};
 	actions?: React.ReactNode;
 }) {
@@ -619,6 +620,11 @@ function RequestCard({
 					{t(requestStatusKeys[status])}
 				</span>
 			</div>
+			{request.student && (
+				<p className="mt-4 rounded-xl bg-muted p-3 text-sm font-medium">
+					{t("internshipRequests.applicant")}: {request.student.name} · {request.student.email}
+				</p>
+			)}
 			<p className="mt-4 text-sm text-muted-foreground">
 				{formatDate(request.proposedStartDate, locale)} –{" "}
 				{formatDate(request.proposedEndDate, locale)}

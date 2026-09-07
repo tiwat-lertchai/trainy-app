@@ -120,6 +120,23 @@ Update a membership:
 
 The last active organization admin cannot be demoted or suspended.
 
+## Student personal and health profile
+
+Base path: `/api/v1/student-profile`
+
+| Method | Path  | Access                        |
+| ------ | ----- | ----------------------------- |
+| GET    | `/me` | Current authenticated user    |
+| PUT    | `/me` | Current authenticated user    |
+
+The profile contains date of birth, current address, emergency contact, blood
+type, medical conditions, allergies, regular medications, and accessibility
+needs. It is isolated from application and request-review payloads and is only
+readable or writable through the owner's `/me` endpoint. A complete record is
+required before the server accepts a position application or a self-arranged
+internship request. Students enter an explicit `None`/`ไม่มี` value when a
+health item does not apply.
+
 ## First-time onboarding and approvals
 
 Base path: `/api/v1/onboarding`

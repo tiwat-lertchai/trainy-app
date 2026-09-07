@@ -15,7 +15,10 @@ import type { InternshipRequestStep } from "./internship-request.schema";
 export type RequestRecord = typeof internshipRequest.$inferSelect;
 export type RequestInsert = typeof internshipRequest.$inferInsert;
 export type ApprovalRecord = typeof internshipRequestApproval.$inferSelect;
-export type RequestWithApprovals = RequestRecord & { approvals: ApprovalRecord[] };
+export type RequestWithApprovals = RequestRecord & {
+  approvals: ApprovalRecord[];
+  student?: { id: string; name: string; email: string };
+};
 type Membership = { role: string; status: "active" | "suspended" };
 type MajorContext = { id: string; organizationId: string; programChairUserId: string | null };
 export type RequestOrganization = Pick<typeof organization.$inferSelect, "id" | "type" | "status">;
@@ -124,7 +127,10 @@ export class DrizzleInternshipRequestRepository implements InternshipRequestRepo
   listActive() {
     return this.database.query.internshipRequest.findMany({
       where: (table, { inArray }) => inArray(table.status, ["submitted", "revision_requested"]),
-      with: { approvals: true },
+      with: {
+        approvals: true,
+        student: { columns: { id: true, name: true, email: true } },
+      },
       limit: 200,
     });
   }

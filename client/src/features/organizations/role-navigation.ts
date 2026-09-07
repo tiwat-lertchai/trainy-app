@@ -3,6 +3,7 @@ export type OrganizationRole =
 
 export type NavigationKey =
 	| "overview"
+	| "profile"
 	| "internships"
 	| "applications"
 	| "placements"
@@ -46,6 +47,7 @@ const roleNavigation: Record<OrganizationRole, readonly NavigationKey[]> = {
 	],
 	student: [
 		"overview",
+		"profile",
 		"internships",
 		"applications",
 		"placements",

@@ -12,8 +12,12 @@ import {
   reviewStepSchema,
 } from "./internship-request.schema";
 import { InternshipRequestService } from "./internship-request.service";
+import { DrizzleStudentProfileRepository } from "../student-profile/student-profile.repository";
 
-const service = new InternshipRequestService(new DrizzleInternshipRequestRepository(db));
+const service = new InternshipRequestService(
+  new DrizzleInternshipRequestRepository(db),
+  new DrizzleStudentProfileRepository(db),
+);
 
 export const internshipRequestRoute = new Hono<{ Variables: AuthVariables }>()
   .use("*", requireAuth)

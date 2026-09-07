@@ -1,7 +1,18 @@
 import { describe, expect, test } from "bun:test";
-import { dashboardFromReport, dashboardFromWorkflow } from "./dashboard-data";
+import {
+	dashboardFromReport,
+	dashboardFromWorkflow,
+	liveDashboardQueryOptions,
+} from "./dashboard-data";
 
 describe("dashboard data", () => {
+	test("refreshes live metrics on mount, focus, and a short interval", () => {
+		expect(liveDashboardQueryOptions).toEqual({
+			refetchOnMount: "always",
+			refetchOnWindowFocus: true,
+			refetchInterval: 15_000,
+		});
+	});
 	test("derives organization-admin metrics from the authorized report", () => {
 		expect(
 			dashboardFromReport({

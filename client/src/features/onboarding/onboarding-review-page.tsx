@@ -68,7 +68,10 @@ export function OnboardingReviewPage() {
 										{company ? <Building2 /> : <Clock3 />}
 									</span>
 									<div>
-										<h2 className="text-lg font-bold">{roleLabel(item.requestedRole, t)}</h2>
+										<h2 className="text-lg font-bold">{item.applicant.name}</h2>
+										<p className="text-sm font-medium">
+											{roleLabel(item.requestedRole, t)} · {item.applicant.email}
+										</p>
 										<p className="mt-1 text-sm text-muted-foreground">
 											{t("onboardingReview.submittedAt")}{" "}
 											{new Intl.DateTimeFormat(locale === "th" ? "th-TH" : "en-US", {

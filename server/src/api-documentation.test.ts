@@ -11,6 +11,7 @@ const documentedRouteFamilies = [
   "/api/v1/health/ready",
   "/api/v1/organizations",
   "/api/v1/onboarding",
+  "/api/v1/student-profile",
   "/:onboardingId/review",
   "/api/v1/internships",
   "/applications/:applicationId/status",

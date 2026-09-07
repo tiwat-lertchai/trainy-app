@@ -1,11 +1,13 @@
 import { useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { Link } from "@tanstack/react-router";
 import { BriefcaseBusiness, Building2, CalendarDays, MapPin, Users } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useLanguage } from "@/i18n/config";
 import { apiClient } from "@/lib/api-client";
 import { canApply, workModeKeys } from "./internship-format";
 import { CompanyInternshipPage } from "./company-internship-page";
+import { loadStudentProfile } from "@/features/student-profile/student-profile-api";
 
 const WORKSPACE_KEY = "trainy-workspace-id";
 
@@ -32,6 +34,11 @@ export function InternshipPage() {
 	const internships = useQuery({
 		queryKey: ["internships", "published"],
 		queryFn: loadPublishedInternships,
+	});
+	const studentProfile = useQuery({
+		queryKey: ["student-profile", "me"],
+		queryFn: loadStudentProfile,
+		enabled: Boolean(organizations.data?.data.some((item) => item.membership.role === "student")),
 	});
 	const studentMembership = organizations.data?.data.find(
 		(item) => item.membership.role === "student",
@@ -84,6 +91,15 @@ export function InternshipPage() {
 					<p className="mt-2 text-muted-foreground">{t("internships.description")}</p>
 				</div>
 			</div>
+			{studentMembership && studentProfile.data?.complete === false && (
+				<div className="mt-6 rounded-2xl border border-amber-200 bg-amber-50 p-5 text-amber-950">
+					<p className="font-bold">{t("studentProfile.requiredTitle")}</p>
+					<p className="mt-1 text-sm">{t("studentProfile.requiredDetail")}</p>
+					<Button className="mt-4" asChild>
+						<Link to="/app/profile">{t("studentProfile.completeNow")}</Link>
+					</Button>
+				</div>
+			)}
 
 			{internships.isLoading && (
 				<div className="mt-8 grid gap-5 md:grid-cols-2">
@@ -150,7 +166,7 @@ export function InternshipPage() {
 									)}
 								</span>
 							</div>
-							{studentMembership && open && (
+							{studentMembership && open && studentProfile.data?.complete && (
 								<Button
 									className="mt-6 w-full"
 									variant={selected ? "secondary" : "default"}

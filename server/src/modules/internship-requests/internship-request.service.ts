@@ -4,6 +4,7 @@ import type {
   RequestWithApprovals,
 } from "./internship-request.repository";
 import { internshipRequestSteps, type InternshipRequestStep } from "./internship-request.schema";
+import type { StudentProfileReadiness } from "../student-profile/student-profile.repository";
 
 const universityManagerRoles = ["university_admin", "coordinator"] as const;
 
@@ -20,7 +21,12 @@ function currentStep(request: RequestWithApprovals): InternshipRequestStep | und
 }
 
 export class InternshipRequestService {
-  constructor(private readonly repository: InternshipRequestRepository) {}
+  constructor(
+    private readonly repository: InternshipRequestRepository,
+    private readonly studentProfiles: StudentProfileReadiness = {
+      isComplete: async () => true,
+    },
+  ) {}
 
   async createRequest(input: {
     actorUserId: string;
@@ -41,6 +47,13 @@ export class InternshipRequestService {
     companyContactPhone?: string;
   }): Promise<RequestWithApprovals> {
     await this.requireMembership(input.actorUserId, input.universityOrganizationId, ["student"]);
+    if (!(await this.studentProfiles.isComplete(input.actorUserId))) {
+      throw new AppError(
+        "Complete the student profile before creating an internship request",
+        422,
+        "STUDENT_PROFILE_INCOMPLETE",
+      );
+    }
     await this.requireMembership(input.advisorUserId, input.universityOrganizationId, ["advisor"]);
 
     const major = await this.repository.findMajorContext(input.academicMajorId);

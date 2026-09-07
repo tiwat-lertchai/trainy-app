@@ -1,5 +1,6 @@
 export const dashboardNavigationLinks = {
 	overview: "/app",
+	profile: "/app/profile",
 	internships: "/app/internships",
 	applications: "/app/applications",
 	placements: "/app/placements",

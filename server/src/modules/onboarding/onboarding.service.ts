@@ -1,5 +1,9 @@
 import { AppError } from "../../lib/app-error";
-import type { OnboardingRecord, OnboardingRepository } from "./onboarding.repository";
+import type {
+  OnboardingRecord,
+  OnboardingRepository,
+  OnboardingReviewRecord,
+} from "./onboarding.repository";
 import type { z } from "zod";
 import type { reviewOnboardingSchema, submitOnboardingSchema } from "./onboarding.schema";
 
@@ -51,7 +55,7 @@ export class OnboardingService {
 
   async listReviews(reviewerUserId: string) {
     const requests = await this.repository.listPending();
-    const allowed: OnboardingRecord[] = [];
+    const allowed: OnboardingReviewRecord[] = [];
     for (const request of requests)
       if (await this.canReview(reviewerUserId, request)) allowed.push(request);
     return allowed;

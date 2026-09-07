@@ -133,6 +133,16 @@ describe("DrizzleInternshipRequestRepository.resubmit", () => {
     expect(
       record.approvals.find((approval) => approval.step === "center")?.reviewerUserId,
     ).toBeNull();
+    expect(await repository.listActive()).toContainEqual(
+      expect.objectContaining({
+        id: requestId,
+        student: {
+          id: "request-student",
+          name: "request-student",
+          email: "request-student@example.test",
+        },
+      }),
+    );
   });
 });
 

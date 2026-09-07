@@ -11,6 +11,7 @@ import type {
   InternshipType,
   InternshipWorkMode,
 } from "./internship.schema";
+import type { StudentProfileReadiness } from "../student-profile/student-profile.repository";
 
 const companyReaderRoles = ["company_admin", "supervisor"] as const;
 const universityReaderRoles = ["university_admin", "coordinator", "advisor"] as const;
@@ -19,6 +20,9 @@ export class InternshipService {
   constructor(
     private readonly repository: InternshipRepository,
     private readonly now: () => Date = () => new Date(),
+    private readonly studentProfiles: StudentProfileReadiness = {
+      isComplete: async () => true,
+    },
   ) {}
 
   async createInternship(input: {
@@ -140,6 +144,13 @@ export class InternshipService {
     await this.requireMembership(input.actorUserId, input.universityOrganizationId, "university", [
       "student",
     ]);
+    if (!(await this.studentProfiles.isComplete(input.actorUserId))) {
+      throw new AppError(
+        "Complete the student profile before applying",
+        422,
+        "STUDENT_PROFILE_INCOMPLETE",
+      );
+    }
 
     if (await this.repository.findApplication(internship.id, input.actorUserId)) {
       throw new AppError("Student has already applied", 409, "APPLICATION_CONFLICT");

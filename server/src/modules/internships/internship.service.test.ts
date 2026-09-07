@@ -95,6 +95,25 @@ describe("InternshipService", () => {
     expect(application.academicYear).toBe(2569);
   });
 
+  test("blocks an application until the student profile is complete", async () => {
+    const repository = seededRepository("published");
+    repository.memberships.push(membership("student", "university", "student", "university"));
+    const service = new InternshipService(repository, () => now, {
+      isComplete: async () => false,
+    });
+
+    await expect(
+      service.apply({
+        actorUserId: "student",
+        internshipId: "internship",
+        universityOrganizationId: "university",
+        semester: 1,
+        academicYear: 2569,
+        statement: "I am ready to learn and contribute to this team.",
+      }),
+    ).rejects.toMatchObject({ code: "STUDENT_PROFILE_INCOMPLETE" });
+  });
+
   test("rejects duplicate applications", async () => {
     const repository = seededRepository("published");
     repository.memberships.push(membership("student", "university", "student", "university"));

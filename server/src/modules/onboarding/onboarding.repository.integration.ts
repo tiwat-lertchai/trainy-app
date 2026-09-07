@@ -70,6 +70,16 @@ describe("DrizzleOnboardingRepository", () => {
         registrationNumber: "0101",
       },
     });
+    expect(await repository.listPending()).toContainEqual(
+      expect.objectContaining({
+        id: pending.id,
+        applicant: {
+          id: "company-admin",
+          name: "company-admin",
+          email: "company-admin@example.test",
+        },
+      }),
+    );
     expect(await repository.isPlatformStaff("cwie")).toBeTrue();
     const approved = await repository.approve({
       request: pending,

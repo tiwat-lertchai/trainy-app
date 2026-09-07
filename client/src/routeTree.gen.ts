@@ -22,6 +22,7 @@ import { Route as AppInvitesRouteImport } from './routes/app.invites'
 import { Route as AppMembersRouteImport } from './routes/app.members'
 import { Route as AppOnboardingRouteImport } from './routes/app.onboarding'
 import { Route as AppPlacementsRouteImport } from './routes/app.placements'
+import { Route as AppProfileRouteImport } from './routes/app.profile'
 import { Route as AppProgressRouteImport } from './routes/app.progress'
 import { Route as AppReportsRouteImport } from './routes/app.reports'
 import { Route as AppReviewsRouteImport } from './routes/app.reviews'
@@ -93,6 +94,11 @@ const AppPlacementsRoute = AppPlacementsRouteImport.update({
   path: '/placements',
   getParentRoute: () => AppRoute,
 } as any)
+const AppProfileRoute = AppProfileRouteImport.update({
+  id: '/profile',
+  path: '/profile',
+  getParentRoute: () => AppRoute,
+} as any)
 const AppProgressRoute = AppProgressRouteImport.update({
   id: '/progress',
   path: '/progress',
@@ -133,6 +139,7 @@ export interface FileRoutesByFullPath {
   '/app/members': typeof AppMembersRoute
   '/app/onboarding': typeof AppOnboardingRoute
   '/app/placements': typeof AppPlacementsRoute
+  '/app/profile': typeof AppProfileRoute
   '/app/progress': typeof AppProgressRoute
   '/app/reports': typeof AppReportsRoute
   '/app/reviews': typeof AppReviewsRoute
@@ -152,6 +159,7 @@ export interface FileRoutesByTo {
   '/app/members': typeof AppMembersRoute
   '/app/onboarding': typeof AppOnboardingRoute
   '/app/placements': typeof AppPlacementsRoute
+  '/app/profile': typeof AppProfileRoute
   '/app/progress': typeof AppProgressRoute
   '/app/reports': typeof AppReportsRoute
   '/app/reviews': typeof AppReviewsRoute
@@ -173,6 +181,7 @@ export interface FileRoutesById {
   '/app/members': typeof AppMembersRoute
   '/app/onboarding': typeof AppOnboardingRoute
   '/app/placements': typeof AppPlacementsRoute
+  '/app/profile': typeof AppProfileRoute
   '/app/progress': typeof AppProgressRoute
   '/app/reports': typeof AppReportsRoute
   '/app/reviews': typeof AppReviewsRoute
@@ -195,6 +204,7 @@ export interface FileRouteTypes {
     | '/app/members'
     | '/app/onboarding'
     | '/app/placements'
+    | '/app/profile'
     | '/app/progress'
     | '/app/reports'
     | '/app/reviews'
@@ -214,6 +224,7 @@ export interface FileRouteTypes {
     | '/app/members'
     | '/app/onboarding'
     | '/app/placements'
+    | '/app/profile'
     | '/app/progress'
     | '/app/reports'
     | '/app/reviews'
@@ -234,6 +245,7 @@ export interface FileRouteTypes {
     | '/app/members'
     | '/app/onboarding'
     | '/app/placements'
+    | '/app/profile'
     | '/app/progress'
     | '/app/reports'
     | '/app/reviews'
@@ -339,6 +351,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AppPlacementsRouteImport
       parentRoute: typeof AppRoute
     }
+    '/app/profile': {
+      id: '/app/profile'
+      path: '/profile'
+      fullPath: '/app/profile'
+      preLoaderRoute: typeof AppProfileRouteImport
+      parentRoute: typeof AppRoute
+    }
     '/app/progress': {
       id: '/app/progress'
       path: '/progress'
@@ -403,6 +422,7 @@ interface AppRouteChildren {
   AppMembersRoute: typeof AppMembersRoute
   AppOnboardingRoute: typeof AppOnboardingRoute
   AppPlacementsRoute: typeof AppPlacementsRoute
+  AppProfileRoute: typeof AppProfileRoute
   AppProgressRoute: typeof AppProgressRoute
   AppReportsRoute: typeof AppReportsRoute
   AppReviewsRoute: typeof AppReviewsRoute
@@ -420,6 +440,7 @@ const AppRouteChildren: AppRouteChildren = {
   AppMembersRoute: AppMembersRoute,
   AppOnboardingRoute: AppOnboardingRoute,
   AppPlacementsRoute: AppPlacementsRoute,
+  AppProfileRoute: AppProfileRoute,
   AppProgressRoute: AppProgressRoute,
   AppReportsRoute: AppReportsRoute,
   AppReviewsRoute: AppReviewsRoute,

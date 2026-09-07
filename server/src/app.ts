@@ -24,6 +24,7 @@ import { placementRoute } from "./modules/placements/placement.route";
 import { progressRoute } from "./modules/progress/progress.route";
 import { reportRoute } from "./modules/reports/report.route";
 import { rootRoute } from "./modules/root/root.route";
+import { studentProfileRoute } from "./modules/student-profile/student-profile.route";
 
 function createApp() {
   const app = new Hono();
@@ -123,6 +124,7 @@ export const app = createApp()
   .route("/api/v1/placements", placementRoute)
   .route("/api/v1/progress-reports", progressRoute)
   .route("/api/v1/reports", reportRoute)
+  .route("/api/v1/student-profile", studentProfileRoute)
   .route("/api/v1/health", healthRoute);
 
 export type AppType = typeof app;
