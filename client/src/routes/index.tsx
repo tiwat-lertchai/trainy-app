@@ -322,7 +322,7 @@ function LandingPage() {
 							{editorial.ready}
 						</h2>
 						<Button
-							className="h-12 rounded-full bg-sidebar-primary px-7 text-sidebar-primary-foreground"
+							className="h-12 rounded-full bg-sidebar-primary px-7 text-sidebar-primary-foreground hover:bg-sidebar-primary/88 hover:text-sidebar-primary-foreground active:bg-sidebar-primary/80 focus-visible:ring-sidebar-primary/55"
 							onClick={handleSignIn}
 							disabled={signingIn}
 						>
