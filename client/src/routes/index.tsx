@@ -4,16 +4,12 @@ import { createFileRoute } from "@tanstack/react-router";
 import {
 	ArrowRight,
 	BellRing,
-	BriefcaseBusiness,
 	Building2,
 	Check,
 	CheckCircle2,
 	ChevronDown,
-	Clock3,
-	FileCheck2,
 	GraduationCap,
 	Languages,
-	LineChart,
 	Menu,
 	ShieldCheck,
 	Sparkles,
@@ -52,8 +48,8 @@ function LandingPage() {
 
 	return (
 		<div className="min-h-screen overflow-hidden bg-background">
-			<header className="fixed inset-x-0 top-0 z-50 border-b border-border/70 bg-card/88 backdrop-blur-xl">
-				<div className="mx-auto flex h-18 max-w-7xl items-center justify-between px-5 sm:px-8">
+			<header className="relative z-50 bg-background">
+				<div className="mx-auto flex h-[78px] max-w-[1180px] items-center justify-between px-5 sm:px-8">
 					<a href="#top" aria-label="Trainy home">
 						<BrandMark />
 					</a>
@@ -73,11 +69,7 @@ function LandingPage() {
 					</nav>
 					<div className="hidden items-center gap-3 md:flex">
 						<LanguageToggle locale={locale} onChange={setLocale} />
-						<Button
-							className="h-11 rounded-xl px-5 shadow-lg shadow-primary/15"
-							onClick={handleSignIn}
-							disabled={signingIn}
-						>
+						<Button className="h-10 rounded-full px-5" onClick={handleSignIn} disabled={signingIn}>
 							{signingIn ? t("auth.signingIn") : t("auth.signIn")}
 						</Button>
 					</div>
@@ -117,26 +109,26 @@ function LandingPage() {
 				)}
 			</header>
 
-			<main id="top" className="pt-18">
+			<main id="top">
 				<section className="relative isolate overflow-hidden">
-					<div className="hero-grid absolute inset-0 opacity-70" />
-					<div className="pointer-events-none absolute left-1/2 top-[-24rem] h-[54rem] w-[70rem] -translate-x-1/2 rounded-full bg-[radial-gradient(circle,rgb(200_255_72_/_0.24),transparent_64%)]" />
-					<div className="relative mx-auto grid min-h-[calc(100svh-4.5rem)] max-w-7xl items-center gap-14 px-5 py-16 sm:px-8 sm:py-24 lg:grid-cols-[0.88fr_1.12fr] lg:py-28">
+					<div className="relative mx-auto grid min-h-[710px] max-w-[1180px] items-center gap-10 px-5 pb-24 pt-12 sm:px-8 lg:grid-cols-[1.04fr_0.96fr] lg:gap-14 lg:pb-24 lg:pt-16">
 						<div className="max-w-2xl">
-							<div className="mb-6 inline-flex items-center gap-2 rounded-full border border-accent/50 bg-accent px-3.5 py-2 text-sm font-bold text-accent-foreground shadow-sm">
-								<Sparkles className="size-4" />
+							<div className="mb-6 inline-flex items-center gap-2 rounded-full border border-border bg-card/30 py-1.5 pl-2 pr-3 text-sm font-medium text-muted-foreground">
+								<span className="grid size-6 place-items-center rounded-full bg-accent text-accent-foreground">
+									<Sparkles className="size-3.5" />
+								</span>
 								{t("hero.eyebrow")}
 							</div>
-							<h1 className="text-balance text-[2.75rem] font-black leading-[1.08] tracking-[-0.045em] text-foreground sm:text-6xl lg:text-[4.25rem]">
+							<h1 className="max-w-[700px] text-balance text-[3.35rem] font-semibold leading-[0.97] tracking-[-0.07em] text-foreground sm:text-7xl lg:text-[5.35rem]">
 								{t("hero.title")}
 							</h1>
-							<p className="mt-6 max-w-xl text-pretty text-lg leading-8 text-muted-foreground sm:text-xl">
+							<p className="mt-7 max-w-[550px] text-pretty text-lg leading-8 text-muted-foreground">
 								{t("hero.description")}
 							</p>
 							<div className="mt-9 flex flex-col gap-3 sm:flex-row">
 								<Button
 									size="lg"
-									className="h-13 rounded-xl px-7 text-base shadow-xl shadow-primary/20"
+									className="h-13 rounded-full px-6 text-base"
 									onClick={handleSignIn}
 									disabled={signingIn}
 								>
@@ -146,58 +138,60 @@ function LandingPage() {
 								<Button
 									size="lg"
 									variant="outline"
-									className="h-13 rounded-xl border-input bg-card/70 px-7 text-base"
+									className="h-13 rounded-full border-border bg-card/20 px-6 text-base"
 									asChild
 								>
 									<a href="#workflow">{t("hero.secondary")}</a>
 								</Button>
 							</div>
-							<div className="mt-6 flex flex-wrap gap-x-6 gap-y-2 text-sm font-medium text-muted-foreground">
+							<div className="mt-5 flex flex-wrap gap-x-6 gap-y-2 text-xs font-medium text-muted-foreground">
 								<MiniCheck text={t("hero.note")} />
 								<MiniCheck text={t("hero.responsive")} />
 							</div>
 						</div>
 						<DashboardPreview />
 					</div>
-					<div className="relative mx-auto grid max-w-7xl grid-cols-2 border-x border-t border-border/80 bg-card/65 backdrop-blur sm:grid-cols-4">
-						<Proof value="5" label={t("proof.roles")} />
-						<Proof value="1" label={t("proof.workflow")} />
-						<Proof value="24/7" label={t("proof.visibility")} />
-						<Proof value="TH · EN" label={t("proof.language")} />
+					<div className="border-y border-border bg-card/20 py-6">
+						<div className="mx-auto flex max-w-[1180px] flex-wrap items-center justify-center gap-x-8 gap-y-3 px-5 text-sm font-semibold text-muted-foreground sm:px-8">
+							<span>{t("features.actionTitle")}</span>
+							<i className="size-2 rounded-full bg-accent" />
+							<span>{t("features.progressTitle")}</span>
+							<i className="size-2 rounded-full bg-accent" />
+							<span>{t("features.documentsTitle")}</span>
+							<i className="size-2 rounded-full bg-accent" />
+							<span>{t("features.rolesTitle")}</span>
+						</div>
 					</div>
 				</section>
 
-				<section id="features" className="scroll-mt-18 bg-card py-22 sm:py-28">
-					<div className="mx-auto max-w-7xl px-5 sm:px-8">
-						<SectionHeading
-							eyebrow={t("features.eyebrow")}
-							title={t("features.title")}
-							description={t("features.description")}
-						/>
-						<div className="mt-12 grid gap-5 lg:grid-cols-2">
+				<section id="features" className="scroll-mt-18 py-28 sm:py-32">
+					<div id="why" className="mx-auto max-w-[1180px] scroll-mt-8 px-5 sm:px-8">
+						<div className="grid items-start gap-6 lg:grid-cols-[0.85fr_1.15fr] lg:gap-16">
+							<p className="pt-2 text-xs font-bold uppercase tracking-[0.14em] text-muted-foreground">
+								{t("features.eyebrow")}
+							</p>
+							<h2 className="text-balance text-4xl font-semibold leading-[1.08] tracking-[-0.055em] sm:text-6xl">
+								{t("features.title")}
+							</h2>
+						</div>
+						<div className="mt-16 grid gap-4 md:grid-cols-3">
 							<FeatureCard
-								icon={BellRing}
-								tone="blue"
-								title={t("features.actionTitle")}
-								detail={t("features.actionDetail")}
+								number="01"
+								icon={GraduationCap}
+								title={t("roles.student")}
+								detail={t("roles.studentDetail")}
 							/>
 							<FeatureCard
-								icon={LineChart}
-								tone="green"
-								title={t("features.progressTitle")}
-								detail={t("features.progressDetail")}
-							/>
-							<FeatureCard
-								icon={FileCheck2}
-								tone="violet"
-								title={t("features.documentsTitle")}
-								detail={t("features.documentsDetail")}
-							/>
-							<FeatureCard
+								number="02"
 								icon={UsersRound}
-								tone="amber"
-								title={t("features.rolesTitle")}
-								detail={t("features.rolesDetail")}
+								title={t("roles.advisor")}
+								detail={t("roles.advisorDetail")}
+							/>
+							<FeatureCard
+								number="03"
+								icon={Building2}
+								title={t("roles.organization")}
+								detail={t("roles.organizationDetail")}
 							/>
 						</div>
 					</div>
@@ -383,120 +377,68 @@ function MiniCheck({ text }: { text: string }) {
 function DashboardPreview() {
 	const { t } = useLanguage();
 	return (
-		<div className="relative mx-auto w-full max-w-2xl lg:translate-x-4">
-			<div className="absolute -inset-5 rounded-[2.4rem] bg-accent/55 blur-3xl" />
-			<div className="relative rounded-[1.8rem] border border-card bg-card/80 p-2.5 shadow-[0_35px_90px_-28px_rgb(16_17_15_/_0.34)] backdrop-blur-xl">
-				<div className="overflow-hidden rounded-[1.3rem] border border-border bg-muted">
-					<div className="flex items-center justify-between border-b border-border bg-card px-5 py-4">
-						<BrandMark className="origin-left scale-90" />
-						<div className="flex items-center gap-3">
-							<BellRing className="size-4 text-muted-foreground" />
-							<span className="size-9 rounded-full bg-accent ring-4 ring-accent/25" />
-						</div>
+		<div className="relative mx-auto grid min-h-[560px] w-full place-items-center">
+			<div className="absolute size-[430px] rounded-full bg-accent sm:size-[520px] lg:-right-8" />
+			<div className="absolute right-0 top-4 hidden size-28 animate-[spin_18s_linear_infinite] place-items-center rounded-full border border-foreground/25 text-center text-[10px] font-bold tracking-[0.18em] lg:grid">
+				LEARN · RECORD
+				<br />
+				GROW · REPEAT
+			</div>
+			<div className="relative w-[min(390px,90%)] rotate-[2.2deg] rounded-[42px] bg-sidebar p-3 text-sidebar-foreground shadow-[0_35px_70px_rgb(16_17_15_/_0.28)] transition duration-500 hover:-translate-y-1.5 hover:rotate-0">
+				<div className="min-h-[560px] overflow-hidden rounded-[32px] bg-[#171914] p-5 sm:p-6">
+					<div className="mb-7 flex justify-between px-1 text-xs text-sidebar-foreground/60">
+						<span>09:41</span>
+						<span>● ●● 100%</span>
 					</div>
-					<div className="p-5 sm:p-7">
+					<div className="mb-5">
+						<p className="text-sm text-sidebar-foreground/65">{t("preview.workspace")}</p>
+						<h2 className="mt-1 text-2xl font-semibold tracking-tight">{t("preview.heading")}</h2>
+					</div>
+					<div className="rounded-[23px] border border-sidebar-border bg-sidebar-accent p-5">
 						<div className="flex items-start justify-between gap-4">
-							<div>
-								<p className="text-xs font-bold uppercase tracking-[0.16em] text-primary">
-									{t("preview.workspace")}
-								</p>
-								<h2 className="mt-2 text-xl font-black sm:text-2xl">{t("preview.heading")}</h2>
-								<p className="mt-1 text-sm text-muted-foreground">{t("preview.subheading")}</p>
-							</div>
-							<span className="rounded-full bg-success-muted px-3 py-1.5 text-xs font-bold text-success-foreground">
-								{t("preview.onTrack")}
+							<p className="font-semibold">{t("preview.next")}</p>
+							<span className="rounded-full bg-sidebar-primary px-2.5 py-1 text-xs font-bold text-sidebar-primary-foreground">
+								{t("preview.today")}
 							</span>
 						</div>
-						<div className="mt-6 rounded-2xl border border-border bg-card p-4 sm:p-5">
-							<div className="flex items-center justify-between">
-								<p className="text-sm font-bold">{t("preview.journey")}</p>
-								<p className="text-sm font-black text-primary">64%</p>
-							</div>
-							<div className="mt-4 h-2 rounded-full bg-muted">
-								<div className="h-full w-[64%] rounded-full bg-accent" />
-							</div>
-							<div className="mt-3 flex justify-between text-[10px] font-semibold text-muted-foreground sm:text-xs">
-								<span>{t("preview.approved")}</span>
-								<span>{t("preview.active")}</span>
-								<span>{t("preview.complete")}</span>
-							</div>
+						<p className="mt-6 text-xl font-medium leading-snug">{t("preview.task1")}</p>
+						<p className="mt-2 text-xs leading-5 text-sidebar-foreground/55">
+							{t("preview.subheading")}
+						</p>
+						<div className="mt-5 rounded-xl bg-sidebar-primary py-3 text-center text-sm font-bold text-sidebar-primary-foreground">
+							{t("hero.primary")} →
 						</div>
-						<div className="mt-4 grid grid-cols-2 gap-3 sm:grid-cols-3">
-							<Metric icon={Clock3} label={t("preview.hours")} value="128" />
-							<Metric icon={LineChart} label={t("preview.progress")} value="64%" />
-							<div className="hidden sm:block">
-								<Metric icon={BriefcaseBusiness} label={t("preview.active")} value="1" />
-							</div>
+					</div>
+					<div className="mt-4 flex items-end justify-between rounded-[18px] bg-[#1d1f1a] p-4">
+						<div>
+							<p className="text-xs text-sidebar-foreground/55">{t("preview.hours")}</p>
+							<strong className="text-xl">128</strong>
 						</div>
-						<div className="mt-4 rounded-2xl border border-border bg-card p-4 sm:p-5">
-							<div className="flex items-center justify-between">
-								<h3 className="font-black">{t("preview.next")}</h3>
-								<span className="rounded-full bg-destructive-muted px-2.5 py-1 text-xs font-bold text-destructive">
-									2 {t("preview.items")}
-								</span>
-							</div>
-							<div className="mt-3 space-y-2">
-								<ActionItem title={t("preview.task1")} due={t("preview.today")} urgent />
-								<ActionItem title={t("preview.task2")} due={t("preview.friday")} />
-							</div>
+						<div className="flex gap-1.5">
+							{[0, 1, 2, 3, 4, 5, 6].map((day) => (
+								<i
+									key={day}
+									className={`size-2 rounded-full ${day < 5 ? "bg-sidebar-primary" : "bg-sidebar-border"}`}
+								/>
+							))}
+						</div>
+					</div>
+					<p className="mb-1 mt-5 px-1 text-[11px] font-medium uppercase tracking-[0.13em] text-sidebar-foreground/50">
+						{t("preview.onTrack")}
+					</p>
+					<div className="flex gap-3 border-t border-sidebar-border px-1 py-3">
+						<span className="grid size-9 shrink-0 place-items-center rounded-xl bg-sidebar-accent text-sidebar-primary">
+							<ArrowRight className="size-4" />
+						</span>
+						<div>
+							<strong className="block text-sm">{t("preview.active")}</strong>
+							<small className="text-xs text-sidebar-foreground/50">
+								{t("preview.journey")} · 64%
+							</small>
 						</div>
 					</div>
 				</div>
 			</div>
-		</div>
-	);
-}
-function Metric({
-	icon: Icon,
-	label,
-	value,
-}: {
-	icon: typeof BriefcaseBusiness;
-	label: string;
-	value: string;
-}) {
-	return (
-		<div className="rounded-2xl border border-border bg-card p-4">
-			<div className="flex items-center gap-2 text-muted-foreground">
-				<Icon className="size-4 text-primary" />
-				<span className="truncate text-xs font-semibold">{label}</span>
-			</div>
-			<p className="mt-3 text-2xl font-black">{value}</p>
-		</div>
-	);
-}
-function ActionItem({
-	title,
-	due,
-	urgent = false,
-}: {
-	title: string;
-	due: string;
-	urgent?: boolean;
-}) {
-	return (
-		<div className="flex items-center gap-3 rounded-xl bg-muted px-3 py-3">
-			<span className="grid size-8 shrink-0 place-items-center rounded-lg bg-accent text-accent-foreground">
-				<CheckCircle2 className="size-4" />
-			</span>
-			<span className="min-w-0 flex-1 truncate text-xs font-bold sm:text-sm">{title}</span>
-			<span
-				className={
-					urgent
-						? "text-xs font-bold text-destructive"
-						: "text-xs font-semibold text-muted-foreground"
-				}
-			>
-				{due}
-			</span>
-		</div>
-	);
-}
-function Proof({ value, label }: { value: string; label: string }) {
-	return (
-		<div className="border-b border-r border-border/80 px-4 py-6 text-center sm:border-b-0">
-			<p className="text-xl font-black text-foreground sm:text-2xl">{value}</p>
-			<p className="mt-1 text-xs font-semibold text-muted-foreground sm:text-sm">{label}</p>
 		</div>
 	);
 }
@@ -543,31 +485,27 @@ function SectionHeading({
 		</div>
 	);
 }
-const featureTones = {
-	blue: "bg-accent text-accent-foreground",
-	green: "bg-success-muted text-success-foreground",
-	violet: "bg-info-muted text-info-foreground",
-	amber: "bg-warning-muted text-warning-foreground",
-};
 function FeatureCard({
+	number,
 	icon: Icon,
 	title,
 	detail,
-	tone,
 }: {
+	number: string;
 	icon: typeof BellRing;
 	title: string;
 	detail: string;
-	tone: keyof typeof featureTones;
 }) {
 	return (
-		<article className="group relative min-h-60 overflow-hidden rounded-[1.75rem] border border-border bg-muted p-7 transition hover:-translate-y-1 hover:border-foreground/20 hover:bg-card hover:shadow-xl hover:shadow-foreground/5 sm:p-9">
-			<span className={`grid size-12 place-items-center rounded-2xl ${featureTones[tone]}`}>
-				<Icon className="size-6" />
-			</span>
-			<h3 className="mt-8 text-2xl font-black text-foreground">{title}</h3>
-			<p className="mt-3 max-w-xl leading-7 text-muted-foreground">{detail}</p>
-			<div className="absolute -bottom-20 -right-20 size-52 rounded-full border-[38px] border-border/50 transition-transform group-hover:scale-110" />
+		<article className="group flex min-h-[320px] flex-col justify-between rounded-[22px] border border-border bg-card/30 p-7 transition duration-300 hover:-translate-y-1 hover:bg-card">
+			<span className="text-xs text-muted-foreground">{number}</span>
+			<div>
+				<span className="mb-6 grid size-13 place-items-center rounded-2xl bg-primary text-accent">
+					<Icon className="size-6" />
+				</span>
+				<h3 className="text-xl font-semibold tracking-tight text-foreground">{title}</h3>
+				<p className="mt-3 leading-7 text-muted-foreground">{detail}</p>
+			</div>
 		</article>
 	);
 }
