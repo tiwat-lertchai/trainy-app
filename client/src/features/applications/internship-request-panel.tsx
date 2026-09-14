@@ -152,7 +152,7 @@ function StudentRequests({ organizationId }: { organizationId?: string }) {
 			<h2 className="text-2xl font-black">{t("internshipRequests.title")}</h2>
 			<p className="mt-2 text-muted-foreground">{t("internshipRequests.description")}</p>
 			<form
-				className="mt-6 grid gap-4 rounded-2xl border bg-white p-6 md:grid-cols-2"
+				className="mt-6 grid gap-4 rounded-2xl border bg-card p-6 md:grid-cols-2"
 				onSubmit={submit}
 			>
 				<Field label={t("internshipRequests.type")}>
@@ -361,7 +361,7 @@ function RevisionForm({
 	const { t } = useLanguage();
 	return (
 		<form
-			className="grid gap-4 rounded-xl border bg-slate-50 p-4 md:grid-cols-2"
+			className="grid gap-4 rounded-xl border bg-muted p-4 md:grid-cols-2"
 			onSubmit={(event) => {
 				event.preventDefault();
 				onSubmit(event.currentTarget);
@@ -503,7 +503,7 @@ function RequestReviews() {
 		<section className="mt-10">
 			<h2 className="text-2xl font-black">{t("internshipRequests.pendingTitle")}</h2>
 			{reviews.data?.data.length === 0 && (
-				<p className="mt-5 rounded-2xl border bg-white p-8 text-center text-muted-foreground">
+				<p className="mt-5 rounded-2xl border bg-card p-8 text-center text-muted-foreground">
 					{t("internshipRequests.pendingEmpty")}
 				</p>
 			)}
@@ -603,10 +603,10 @@ function RequestCard({
 	const { locale, t } = useLanguage();
 	const status = request.status as InternshipRequestStatus;
 	return (
-		<article className="rounded-2xl border bg-white p-6">
+		<article className="rounded-2xl border bg-card p-6">
 			<div className="flex flex-col justify-between gap-3 sm:flex-row">
 				<div className="flex gap-3">
-					<span className="grid size-10 place-items-center rounded-xl bg-[#edf3ff] text-primary">
+					<span className="grid size-10 place-items-center rounded-xl bg-accent text-accent-foreground">
 						<Building2 className="size-5" />
 					</span>
 					<div>
@@ -616,7 +616,7 @@ function RequestCard({
 						</p>
 					</div>
 				</div>
-				<span className="h-fit rounded-full bg-amber-50 px-3 py-1 text-xs font-semibold text-amber-700">
+				<span className="h-fit rounded-full bg-warning-muted px-3 py-1 text-xs font-semibold text-warning-foreground">
 					{t(requestStatusKeys[status])}
 				</span>
 			</div>
@@ -633,11 +633,11 @@ function RequestCard({
 				{request.approvals.map((approval) => (
 					<span
 						key={approval.id}
-						className="inline-flex items-center gap-1 rounded-full bg-slate-100 px-3 py-1 text-xs"
+						className="inline-flex items-center gap-1 rounded-full bg-muted px-3 py-1 text-xs"
 					>
 						<span>
 							{approval.decision === "approved" ? (
-								<CheckCircle2 className="size-3 text-emerald-600" />
+								<CheckCircle2 className="size-3 text-success" />
 							) : (
 								<Clock3 className="size-3" />
 							)}
@@ -647,7 +647,7 @@ function RequestCard({
 				))}
 			</div>
 			{request.revisionNote && (
-				<p className="mt-4 rounded-xl bg-amber-50 p-3 text-sm text-amber-800">
+				<p className="mt-4 rounded-xl bg-warning-muted p-3 text-sm text-warning-foreground">
 					{t("internshipRequests.revisionReason", { reason: request.revisionNote })}
 				</p>
 			)}

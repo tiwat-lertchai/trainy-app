@@ -76,7 +76,7 @@ export function ConfirmationDialog({
 	if (!open) return null;
 	return (
 		<div
-			className="fixed inset-0 z-50 flex items-end bg-slate-950/50 sm:grid sm:place-items-center sm:p-4"
+			className="fixed inset-0 z-50 flex items-end bg-foreground/55 backdrop-blur-xs sm:grid sm:place-items-center sm:p-4"
 			role="presentation"
 			onMouseDown={(event) => {
 				if (event.target === event.currentTarget && !pending) onCancel();
@@ -88,10 +88,10 @@ export function ConfirmationDialog({
 				aria-modal="true"
 				aria-labelledby={titleId}
 				aria-describedby={descriptionId}
-				className="w-full max-w-md rounded-t-2xl border bg-white p-6 shadow-2xl sm:rounded-2xl"
+				className="w-full max-w-md rounded-t-2xl border bg-popover p-6 text-popover-foreground shadow-2xl sm:rounded-2xl"
 			>
 				<span
-					className={`grid size-11 place-items-center rounded-xl ${destructive ? "bg-red-50 text-destructive" : "bg-amber-50 text-amber-700"}`}
+					className={`grid size-11 place-items-center rounded-xl ${destructive ? "bg-destructive-muted text-destructive" : "bg-warning-muted text-warning-foreground"}`}
 				>
 					<AlertTriangle />
 				</span>

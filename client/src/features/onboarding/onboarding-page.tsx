@@ -185,13 +185,13 @@ export function OnboardingPage() {
 					{t("onboarding.changeRole")}
 				</button>
 			)}
-			<div className="mt-5 rounded-3xl border bg-white p-6 shadow-sm sm:p-8">
+			<div className="mt-5 rounded-3xl border bg-card p-6 shadow-sm sm:p-8">
 				<p className="text-sm font-semibold text-primary">{t("onboarding.eyebrow")}</p>
 				<h1 className="mt-2 text-3xl font-black">{t("onboarding.title")}</h1>
 				<p className="mt-2 text-muted-foreground">{t("onboarding.description")}</p>
 				<form className="mt-8 grid gap-5 sm:grid-cols-2" onSubmit={handleSubmit}>
 					{revisionRequest?.reviewNote && (
-						<div className="rounded-xl bg-amber-50 p-4 text-sm text-amber-900 sm:col-span-2">
+						<div className="rounded-xl bg-warning-muted p-4 text-sm text-warning-foreground sm:col-span-2">
 							{t("onboarding.revision", { note: revisionRequest.reviewNote })}
 						</div>
 					)}
@@ -261,7 +261,7 @@ function RoleSelection({ onSelect }: { onSelect: (role: OnboardingRole) => void 
 	return (
 		<div className="mx-auto max-w-5xl">
 			<div className="text-center">
-				<span className="mx-auto grid size-14 place-items-center rounded-2xl bg-[#edf3ff] text-primary">
+				<span className="mx-auto grid size-14 place-items-center rounded-2xl bg-accent text-accent-foreground">
 					<UserRoundCheck />
 				</span>
 				<h1 className="mt-5 text-3xl font-black">{t("onboarding.roleTitle")}</h1>
@@ -273,9 +273,9 @@ function RoleSelection({ onSelect }: { onSelect: (role: OnboardingRole) => void 
 						type="button"
 						key={option.value}
 						onClick={() => onSelect(option.value)}
-						className="rounded-2xl border bg-white p-5 text-left transition hover:-translate-y-0.5 hover:border-primary/40 hover:shadow-lg"
+						className="rounded-2xl border bg-card p-5 text-left transition hover:-translate-y-0.5 hover:border-primary/40 hover:shadow-lg"
 					>
-						<span className="grid size-10 place-items-center rounded-xl bg-[#edf3ff] text-primary">
+						<span className="grid size-10 place-items-center rounded-xl bg-accent text-accent-foreground">
 							{option.value === "student" ? (
 								<GraduationCap />
 							) : option.value.includes("company") || option.value === "supervisor" ? (
@@ -470,9 +470,9 @@ function RequestStatus({
 	const { t } = useLanguage();
 	const approved = request.status === "approved";
 	return (
-		<div className="mx-auto max-w-xl rounded-3xl border bg-white p-8 text-center">
+		<div className="mx-auto max-w-xl rounded-3xl border bg-card p-8 text-center">
 			<span
-				className={`mx-auto grid size-14 place-items-center rounded-2xl ${approved ? "bg-emerald-50 text-emerald-700" : "bg-amber-50 text-amber-700"}`}
+				className={`mx-auto grid size-14 place-items-center rounded-2xl ${approved ? "bg-success-muted text-success-foreground" : "bg-warning-muted text-warning-foreground"}`}
 			>
 				{approved ? <CheckCircle2 /> : <Clock3 />}
 			</span>

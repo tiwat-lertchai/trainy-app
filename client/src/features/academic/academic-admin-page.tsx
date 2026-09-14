@@ -144,7 +144,7 @@ export function AcademicAdminPage() {
 		);
 	if (!canManageRecords)
 		return (
-			<div className="mx-auto max-w-xl rounded-3xl border bg-white p-8 text-center text-muted-foreground">
+			<div className="mx-auto max-w-xl rounded-3xl border bg-card p-8 text-center text-muted-foreground">
 				{t("academic.forbidden")}
 			</div>
 		);
@@ -178,7 +178,7 @@ export function AcademicAdminPage() {
 
 			{faculties.isLoading && <div className="mt-8 h-32 animate-pulse rounded-2xl bg-muted" />}
 			{faculties.data?.data.length === 0 && (
-				<div className="mt-8 rounded-2xl border bg-white p-10 text-center text-muted-foreground">
+				<div className="mt-8 rounded-2xl border bg-card p-10 text-center text-muted-foreground">
 					{t("academic.noFaculties")}
 				</div>
 			)}
@@ -187,13 +187,13 @@ export function AcademicAdminPage() {
 				{faculties.data?.data.map((faculty) => {
 					const open = openFacultyId === faculty.id;
 					return (
-						<article key={faculty.id} className="rounded-2xl border bg-white p-6">
+						<article key={faculty.id} className="rounded-2xl border bg-card p-6">
 							<button
 								type="button"
 								className="flex w-full items-center gap-3 text-left"
 								onClick={() => setOpenFacultyId(open ? "" : faculty.id)}
 							>
-								<span className="grid size-11 place-items-center rounded-xl bg-[#edf3ff] text-primary">
+								<span className="grid size-11 place-items-center rounded-xl bg-accent text-accent-foreground">
 									<GraduationCap />
 								</span>
 								<span className="font-bold">{faculty.name}</span>
@@ -227,12 +227,12 @@ export function AcademicAdminPage() {
 										{majors.data?.data.map((major) => (
 											<li
 												key={major.id}
-												className="flex flex-wrap items-center gap-2 rounded-xl bg-slate-50 p-3 text-sm"
+												className="flex flex-wrap items-center gap-2 rounded-xl bg-muted p-3 text-sm"
 											>
 												<span className="font-semibold">{major.name}</span>
 												<select
 													aria-label={t("academic.programChairAria", { major: major.name })}
-													className="h-9 rounded-lg border bg-white px-2"
+													className="h-9 rounded-lg border bg-card px-2"
 													value={major.programChairUserId ?? ""}
 													disabled={!canManageStructure || setProgramChair.isPending}
 													onChange={(event) =>
@@ -329,7 +329,7 @@ function AcademicRecordForm({
 	}
 	return (
 		<form
-			className="grid gap-3 rounded-2xl border bg-white p-4 sm:grid-cols-[1fr_120px_120px_auto_auto] sm:items-end"
+			className="grid gap-3 rounded-2xl border bg-card p-4 sm:grid-cols-[1fr_120px_120px_auto_auto] sm:items-end"
 			onSubmit={submit}
 		>
 			<div>

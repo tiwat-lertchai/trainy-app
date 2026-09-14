@@ -92,7 +92,7 @@ export function InternshipPage() {
 				</div>
 			</div>
 			{studentMembership && studentProfile.data?.complete === false && (
-				<div className="mt-6 rounded-2xl border border-amber-200 bg-amber-50 p-5 text-amber-950">
+				<div className="mt-6 rounded-2xl border border-warning/30 bg-warning-muted p-5 text-warning-foreground">
 					<p className="font-bold">{t("studentProfile.requiredTitle")}</p>
 					<p className="mt-1 text-sm">{t("studentProfile.requiredDetail")}</p>
 					<Button className="mt-4" asChild>
@@ -110,13 +110,13 @@ export function InternshipPage() {
 			{internships.isError && (
 				<div
 					role="alert"
-					className="mt-8 rounded-2xl border border-destructive/20 bg-red-50 p-5 text-destructive"
+					className="mt-8 rounded-2xl border border-destructive/20 bg-destructive-muted p-5 text-destructive"
 				>
 					{t("internships.loadError")}
 				</div>
 			)}
 			{internships.data?.data.length === 0 && (
-				<div className="mt-8 rounded-2xl border bg-white p-10 text-center">
+				<div className="mt-8 rounded-2xl border bg-card p-10 text-center">
 					<BriefcaseBusiness className="mx-auto size-10 text-muted-foreground" />
 					<h2 className="mt-4 font-bold">{t("internships.emptyTitle")}</h2>
 					<p className="mt-2 text-sm text-muted-foreground">{t("internships.emptyDetail")}</p>
@@ -130,14 +130,14 @@ export function InternshipPage() {
 					return (
 						<article
 							key={internship.id}
-							className="rounded-2xl border bg-white p-6 shadow-sm shadow-slate-900/3"
+							className="rounded-2xl border bg-card p-6 shadow-sm shadow-foreground/3"
 						>
 							<div className="flex items-start justify-between gap-4">
-								<span className="grid size-11 place-items-center rounded-xl bg-[#edf3ff] text-primary">
+								<span className="grid size-11 place-items-center rounded-xl bg-accent text-accent-foreground">
 									<Building2 className="size-5" />
 								</span>
 								<span
-									className={`rounded-full px-3 py-1 text-xs font-semibold ${open ? "bg-emerald-50 text-emerald-700" : "bg-slate-100 text-slate-600"}`}
+									className={`rounded-full px-3 py-1 text-xs font-semibold ${open ? "bg-success-muted text-success-foreground" : "bg-muted text-muted-foreground"}`}
 								>
 									{t(open ? "internships.open" : "internships.closed")}
 								</span>
@@ -248,7 +248,7 @@ export function InternshipPage() {
 
 function Skeleton() {
 	return (
-		<div className="h-80 animate-pulse rounded-2xl border bg-white p-6">
+		<div className="h-80 animate-pulse rounded-2xl border bg-card p-6">
 			<div className="size-11 rounded-xl bg-muted" />
 			<div className="mt-6 h-6 w-2/3 rounded bg-muted" />
 			<div className="mt-4 h-20 rounded bg-muted" />

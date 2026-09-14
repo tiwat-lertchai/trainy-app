@@ -47,12 +47,12 @@ export function OnboardingReviewPage() {
 				<p className="mt-8 text-muted-foreground">{t("onboardingReview.loading")}</p>
 			)}
 			{reviews.isError && (
-				<p role="alert" className="mt-8 rounded-xl bg-red-50 p-4 text-destructive">
+				<p role="alert" className="mt-8 rounded-xl bg-destructive-muted p-4 text-destructive">
 					{t("onboardingReview.loadError")}
 				</p>
 			)}
 			{reviews.data?.data.length === 0 && (
-				<div className="mt-8 rounded-2xl border bg-white p-10 text-center">
+				<div className="mt-8 rounded-2xl border bg-card p-10 text-center">
 					<ClipboardCheck className="mx-auto size-10 text-muted-foreground" />
 					<h2 className="mt-4 font-bold">{t("onboardingReview.empty")}</h2>
 				</div>
@@ -61,10 +61,10 @@ export function OnboardingReviewPage() {
 				{reviews.data?.data.map((item) => {
 					const company = item.requestedRole === "company_admin";
 					return (
-						<article key={item.id} className="rounded-2xl border bg-white p-6">
+						<article key={item.id} className="rounded-2xl border bg-card p-6">
 							<div className="flex flex-col justify-between gap-4 sm:flex-row">
 								<div className="flex gap-4">
-									<span className="grid size-11 shrink-0 place-items-center rounded-xl bg-[#edf3ff] text-primary">
+									<span className="grid size-11 shrink-0 place-items-center rounded-xl bg-accent text-accent-foreground">
 										{company ? <Building2 /> : <Clock3 />}
 									</span>
 									<div>
@@ -81,7 +81,7 @@ export function OnboardingReviewPage() {
 										</p>
 									</div>
 								</div>
-								<span className="h-fit rounded-full bg-amber-50 px-3 py-1 text-xs font-semibold text-amber-700">
+								<span className="h-fit rounded-full bg-warning-muted px-3 py-1 text-xs font-semibold text-warning-foreground">
 									{t("onboardingReview.pending")}
 								</span>
 							</div>
@@ -101,7 +101,7 @@ export function OnboardingReviewPage() {
 									))}
 							</dl>
 							{company && (
-								<label className="mt-5 flex items-start gap-3 rounded-xl border border-amber-200 bg-amber-50 p-4 text-sm">
+								<label className="mt-5 flex items-start gap-3 rounded-xl border border-warning/30 bg-warning-muted p-4 text-sm">
 									<input
 										type="checkbox"
 										className="mt-0.5 size-4"
@@ -112,7 +112,7 @@ export function OnboardingReviewPage() {
 									/>
 									<span>
 										<strong>{t("onboardingReview.documentsVerified")}</strong>
-										<span className="mt-1 block text-amber-800">
+										<span className="mt-1 block text-warning-foreground">
 											{t("onboardingReview.documentsDetail")}
 										</span>
 									</span>

@@ -2,6 +2,7 @@ import { useState } from "react";
 import { Link } from "@tanstack/react-router";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { BriefcaseBusiness, CalendarDays, Mail, Plus, Search, UserRound } from "lucide-react";
+import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { ConfirmationDialog } from "@/components/ui/confirmation-dialog";
 import { useLanguage } from "@/i18n/config";
@@ -156,7 +157,7 @@ export function ApplicationPage() {
 			{applications.isError && <Notice message={t("applications.loadError")} destructive />}
 			{applications.data?.data.length === 0 &&
 				(role === "student" ? (
-					<div className="mt-8 rounded-2xl border bg-white p-10 text-center text-muted-foreground">
+					<div className="mt-8 rounded-2xl border bg-card p-10 text-center text-muted-foreground">
 						<p>{t("applications.empty")}</p>
 						<p className="mt-2 text-sm">{t("applications.emptyHint")}</p>
 						<div className="mt-6 flex flex-wrap justify-center gap-3">
@@ -186,10 +187,10 @@ export function ApplicationPage() {
 					const status = application.status as ApplicationStatus;
 					const actions = availableReviewActions(status, role === "company_admin");
 					return (
-						<article key={application.id} className="rounded-2xl border bg-white p-5 sm:p-6">
+						<article key={application.id} className="rounded-2xl border bg-card p-5 sm:p-6">
 							<div className="flex flex-col justify-between gap-4 sm:flex-row sm:items-start">
 								<div className="flex items-center gap-3">
-									<span className="grid size-10 place-items-center rounded-xl bg-[#edf3ff] text-primary">
+									<span className="grid size-10 place-items-center rounded-xl bg-accent text-accent-foreground">
 										<BriefcaseBusiness className="size-5" />
 									</span>
 									<div>
@@ -282,21 +283,21 @@ export function ApplicationPage() {
 }
 
 function StatusBadge({ status, label }: { status: ApplicationStatus; label: string }) {
-	const tone =
+	const variant =
 		status === "accepted"
-			? "bg-emerald-50 text-emerald-700"
-			: status === "rejected" || status === "withdrawn"
-				? "bg-slate-100 text-slate-600"
-				: "bg-amber-50 text-amber-700";
-	return (
-		<span className={`w-fit rounded-full px-3 py-1 text-xs font-semibold ${tone}`}>{label}</span>
-	);
+			? "success"
+			: status === "rejected"
+				? "destructive"
+				: status === "withdrawn"
+					? "neutral"
+					: "warning";
+	return <Badge variant={variant}>{label}</Badge>;
 }
 function Notice({ message, destructive = false }: { message: string; destructive?: boolean }) {
 	return (
 		<div
 			role={destructive ? "alert" : undefined}
-			className={`mt-8 rounded-2xl border bg-white p-10 text-center ${destructive ? "border-destructive/20 text-destructive" : "text-muted-foreground"}`}
+			className={`mt-8 rounded-2xl border bg-card p-10 text-center ${destructive ? "border-destructive/20 text-destructive" : "text-muted-foreground"}`}
 		>
 			{message}
 		</div>

@@ -176,7 +176,7 @@ export function AppDashboard() {
 			const active = destination === "/app" ? pathname === "/app" : destination === pathname;
 			const className = mobile
 				? `flex min-h-14 min-w-[4.5rem] flex-1 flex-col items-center justify-center gap-1 px-1 text-[11px] font-semibold ${active ? "text-primary" : "text-muted-foreground"}`
-				: `flex w-full items-center gap-3 rounded-xl px-3 py-3 text-sm font-medium transition ${active ? "bg-white/12 text-white" : "text-slate-300 hover:bg-white/7 hover:text-white"}`;
+				: `flex w-full items-center gap-3 rounded-xl px-3 py-3 text-sm font-medium transition ${active ? "bg-sidebar-accent text-sidebar-primary" : "text-sidebar-foreground/70 hover:bg-sidebar-accent hover:text-sidebar-foreground"}`;
 			return destination ? (
 				<Link
 					key={key}
@@ -203,7 +203,7 @@ export function AppDashboard() {
 	return (
 		<div className="min-h-screen bg-background lg:grid lg:grid-cols-[260px_1fr]">
 			<aside className="hidden min-h-screen bg-sidebar text-sidebar-foreground lg:flex lg:flex-col">
-				<div className="flex h-20 items-center border-b border-white/10 px-6">
+				<div className="flex h-20 items-center border-b border-sidebar-border px-6">
 					<BrandMark />
 				</div>
 				<nav className="flex-1 space-y-1 p-4" aria-label="Application navigation">
@@ -211,7 +211,7 @@ export function AppDashboard() {
 				</nav>
 			</aside>
 			<div className="min-w-0">
-				<header className="flex h-20 items-center gap-4 border-b bg-white px-5 sm:px-8">
+				<header className="flex h-20 items-center gap-4 border-b bg-card px-5 sm:px-8">
 					<div className="lg:hidden">
 						<BrandMark />
 					</div>
@@ -265,7 +265,7 @@ export function AppDashboard() {
 					)}
 				</main>
 				<nav
-					className="fixed inset-x-0 bottom-0 z-40 flex overflow-x-auto border-t bg-white/95 px-1 pb-[env(safe-area-inset-bottom)] backdrop-blur lg:hidden"
+					className="fixed inset-x-0 bottom-0 z-40 flex overflow-x-auto border-t bg-card/95 px-1 pb-[env(safe-area-inset-bottom)] backdrop-blur lg:hidden"
 					aria-label="Application navigation"
 				>
 					{renderNavItems(primaryNavigation, true)}
@@ -325,7 +325,7 @@ function DashboardOverview({
 			{error && (
 				<p
 					role="alert"
-					className="mt-6 rounded-xl border border-destructive/20 bg-white p-4 text-sm text-destructive"
+					className="mt-6 rounded-xl border border-destructive/20 bg-destructive-muted p-4 text-sm text-destructive"
 				>
 					{t("dashboard.loadError")}
 				</p>
@@ -354,7 +354,7 @@ function DashboardOverview({
 				/>
 			</section>
 			<section className="mt-6 grid gap-6 xl:grid-cols-[1.4fr_0.6fr]">
-				<div className="rounded-2xl border bg-white p-6">
+				<div className="rounded-2xl border bg-card p-6">
 					<h2 className="text-lg font-bold">{t("dashboard.next")}</h2>
 					<p className="mt-1 text-sm text-muted-foreground">{t("dashboard.nextDetail")}</p>
 					<div className="mt-5 divide-y">
@@ -376,16 +376,16 @@ function DashboardOverview({
 						)}
 					</div>
 				</div>
-				<div className="rounded-2xl border bg-white p-6">
+				<div className="rounded-2xl border bg-card p-6">
 					<h2 className="text-lg font-bold">{t("dashboard.myOrganizations")}</h2>
 					{organizations.map((item) => (
 						<button
 							type="button"
 							onClick={() => onWorkspaceChange(item.organization.id)}
 							key={item.organization.id}
-							className={`mt-4 flex w-full items-center gap-3 rounded-xl p-4 text-left transition ${item.organization.id === workspaceId ? "bg-[#edf3ff] ring-1 ring-primary/20" : "bg-muted hover:bg-muted/70"}`}
+							className={`mt-4 flex w-full items-center gap-3 rounded-xl p-4 text-left transition ${item.organization.id === workspaceId ? "bg-accent ring-1 ring-primary/20" : "bg-muted hover:bg-muted/70"}`}
 						>
-							<span className="grid size-10 place-items-center rounded-lg bg-white text-primary">
+							<span className="grid size-10 place-items-center rounded-lg bg-card text-primary">
 								<Building2 className="size-5" />
 							</span>
 							<span className="min-w-0">
@@ -438,7 +438,7 @@ function AccountMenu({
 				ref={triggerRef}
 				variant="ghost"
 				size="icon"
-				className="size-11 rounded-full bg-[#edf3ff] font-bold text-primary"
+				className="size-11 rounded-full bg-accent font-bold text-primary"
 				aria-label={t("dashboard.accountMenu")}
 				aria-haspopup="menu"
 				aria-expanded={open}
@@ -450,7 +450,7 @@ function AccountMenu({
 				<div
 					role="menu"
 					aria-label={t("dashboard.account")}
-					className="absolute right-0 top-13 z-50 w-64 overflow-hidden rounded-2xl border bg-white p-2 shadow-xl"
+					className="absolute right-0 top-13 z-50 w-64 overflow-hidden rounded-2xl border bg-card p-2 shadow-xl"
 				>
 					<div className="border-b px-3 py-2">
 						<p className="truncate text-sm font-semibold">{name}</p>
@@ -502,9 +502,9 @@ function SignedOut() {
 	const { t } = useLanguage();
 	return (
 		<div className="grid min-h-screen place-items-center bg-background p-5">
-			<div className="w-full max-w-md rounded-3xl border bg-white p-8 text-center shadow-xl shadow-slate-900/5">
+			<div className="w-full max-w-md rounded-3xl border bg-card p-8 text-center shadow-xl shadow-foreground/5">
 				<BrandMark className="justify-center" />
-				<div className="mx-auto mt-8 grid size-14 place-items-center rounded-2xl bg-[#edf3ff] text-primary">
+				<div className="mx-auto mt-8 grid size-14 place-items-center rounded-2xl bg-accent text-accent-foreground">
 					<BriefcaseBusiness />
 				</div>
 				<h1 className="mt-5 text-2xl font-black">{t("dashboard.signedOutTitle")}</h1>
@@ -541,9 +541,9 @@ function StatCard({
 	accent?: boolean;
 }) {
 	return (
-		<div className="rounded-2xl border bg-white p-5">
+		<div className="rounded-2xl border bg-card p-5">
 			<div
-				className={`grid size-10 place-items-center rounded-xl ${accent ? "bg-accent/10 text-accent" : "bg-[#edf3ff] text-primary"}`}
+				className={`grid size-10 place-items-center rounded-xl ${accent ? "bg-accent text-accent-foreground" : "bg-secondary text-secondary-foreground"}`}
 			>
 				<Icon className="size-5" />
 			</div>
@@ -563,7 +563,7 @@ function Task({
 }) {
 	return (
 		<Link to={to} className="flex items-center gap-4 py-4">
-			<span className="grid size-10 shrink-0 place-items-center rounded-xl bg-[#edf3ff] text-primary">
+			<span className="grid size-10 shrink-0 place-items-center rounded-xl bg-accent text-accent-foreground">
 				<ClipboardCheck className="size-5" />
 			</span>
 			<p className={`min-w-0 flex-1 truncate font-semibold ${urgent ? "text-destructive" : ""}`}>

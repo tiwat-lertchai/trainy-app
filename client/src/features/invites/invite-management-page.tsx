@@ -30,10 +30,10 @@ const statusKeys: Record<InviteStatus, MessageKey> = {
 	expired: "invites.status.expired",
 };
 const statusStyles: Record<InviteStatus, string> = {
-	pending: "bg-amber-50 text-amber-800",
-	redeemed: "bg-emerald-50 text-emerald-800",
-	revoked: "bg-red-50 text-red-700",
-	expired: "bg-slate-100 text-slate-600",
+	pending: "bg-warning-muted text-warning-foreground",
+	redeemed: "bg-success-muted text-success-foreground",
+	revoked: "bg-destructive-muted text-destructive",
+	expired: "bg-muted text-muted-foreground",
 };
 const roleKeys = {
 	company_admin: "role.company_admin",
@@ -124,7 +124,7 @@ export function InviteManagementPage() {
 			<p className="mt-2 text-muted-foreground">
 				{t("invites.description", { organization: context.organization.name })}
 			</p>
-			<form className="mt-6 rounded-2xl border bg-white p-6" onSubmit={submit}>
+			<form className="mt-6 rounded-2xl border bg-card p-6" onSubmit={submit}>
 				<div className="flex flex-wrap gap-2" role="group" aria-label={t("invites.companyType")}>
 					<Button
 						type="button"
@@ -260,7 +260,7 @@ function InviteList({
 					return (
 						<article
 							key={invite.id}
-							className="rounded-2xl border bg-white p-5 sm:flex sm:items-start sm:justify-between sm:gap-6"
+							className="rounded-2xl border bg-card p-5 sm:flex sm:items-start sm:justify-between sm:gap-6"
 						>
 							<div>
 								<div className="flex flex-wrap items-center gap-2">
@@ -282,7 +282,7 @@ function InviteList({
 							</div>
 							{status === "pending" && (
 								<div className="mt-5 flex flex-wrap items-center gap-3 sm:mt-0">
-									<div className="rounded-xl border bg-white p-2" aria-label={t("invites.qrLabel")}>
+									<div className="rounded-xl border bg-card p-2" aria-label={t("invites.qrLabel")}>
 										<QRCodeSVG value={url} size={96} level="M" />
 									</div>
 									<div className="grid gap-2">
@@ -308,7 +308,7 @@ function InviteList({
 				})}
 			</div>
 			{data.length === 0 && !loading && !error && (
-				<div className="mt-4 rounded-2xl border bg-white p-8 text-center text-muted-foreground">
+				<div className="mt-4 rounded-2xl border bg-card p-8 text-center text-muted-foreground">
 					<QrCode className="mx-auto mb-3" />
 					{t("invites.empty")}
 				</div>
@@ -319,7 +319,7 @@ function InviteList({
 
 function PageMessage({ message }: { message: string }) {
 	return (
-		<div className="mx-auto max-w-xl rounded-3xl border bg-white p-8 text-center text-muted-foreground">
+		<div className="mx-auto max-w-xl rounded-3xl border bg-card p-8 text-center text-muted-foreground">
 			{message}
 		</div>
 	);

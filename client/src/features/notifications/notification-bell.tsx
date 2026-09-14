@@ -40,13 +40,13 @@ export function NotificationBell() {
 			>
 				<Bell />
 				{unread > 0 && (
-					<span className="absolute right-1 top-1 grid size-4 place-items-center rounded-full bg-destructive text-[10px] font-bold text-white">
+					<span className="absolute right-1 top-1 grid size-4 place-items-center rounded-full bg-destructive text-[10px] font-bold text-destructive-foreground">
 						{Math.min(unread, 9)}
 					</span>
 				)}
 			</Button>
 			{open && (
-				<div className="absolute right-0 top-12 z-50 w-[min(22rem,calc(100vw-2rem))] overflow-hidden rounded-2xl border bg-white shadow-xl">
+				<div className="absolute right-0 top-12 z-50 w-[min(22rem,calc(100vw-2rem))] overflow-hidden rounded-2xl border bg-card shadow-xl">
 					<div className="border-b p-4">
 						<h2 className="font-bold">{t("notifications.title")}</h2>
 						<p className="mt-1 text-xs text-muted-foreground">
@@ -68,7 +68,7 @@ export function NotificationBell() {
 						{notifications.data?.data.map((item) => (
 							<div
 								key={item.id}
-								className={`border-b p-4 last:border-0 ${item.readAt ? "bg-white" : "bg-[#f5f8ff]"}`}
+								className={`border-b p-4 last:border-0 ${item.readAt ? "bg-card" : "bg-accent/25"}`}
 							>
 								<div className="flex items-start gap-3">
 									<div className="min-w-0 flex-1">

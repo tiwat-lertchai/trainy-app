@@ -40,7 +40,7 @@ export function StudentInternshipRequestPage() {
 	if (studentProfile.isLoading) return <PageMessage message={t("studentProfile.loading")} />;
 	if (studentProfile.data?.complete === false)
 		return (
-			<div className="rounded-2xl border border-amber-200 bg-amber-50 p-8 text-center text-amber-950">
+			<div className="rounded-2xl border border-warning/30 bg-warning-muted p-8 text-center text-warning-foreground">
 				<h1 className="text-xl font-bold">{t("studentProfile.requiredTitle")}</h1>
 				<p className="mt-2">{t("studentProfile.requiredDetail")}</p>
 				<Button className="mt-5" asChild>
@@ -66,7 +66,7 @@ function PageMessage({ message, destructive = false }: { message: string; destru
 	return (
 		<div
 			role={destructive ? "alert" : undefined}
-			className={`rounded-2xl border bg-white p-8 text-center ${destructive ? "border-destructive/20 text-destructive" : "text-muted-foreground"}`}
+			className={`rounded-2xl border bg-card p-8 text-center ${destructive ? "border-destructive/20 text-destructive" : "text-muted-foreground"}`}
 		>
 			{message}
 		</div>

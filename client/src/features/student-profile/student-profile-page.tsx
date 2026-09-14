@@ -62,7 +62,7 @@ export function StudentProfilePage() {
 		return <p className="text-muted-foreground">{t("studentProfile.loading")}</p>;
 	if (profile.isError)
 		return (
-			<p role="alert" className="rounded-xl bg-red-50 p-4 text-destructive">
+			<p role="alert" className="rounded-xl bg-destructive-muted p-4 text-destructive">
 				{t("studentProfile.loadError")}
 			</p>
 		);
@@ -72,13 +72,13 @@ export function StudentProfilePage() {
 			<p className="text-sm font-semibold text-primary">{t("studentProfile.eyebrow")}</p>
 			<h1 className="mt-2 text-3xl font-black">{t("studentProfile.title")}</h1>
 			<p className="mt-2 text-muted-foreground">{t("studentProfile.description")}</p>
-			<div className="mt-5 flex gap-3 rounded-xl border border-blue-200 bg-blue-50 p-4 text-sm text-blue-900">
+			<div className="mt-5 flex gap-3 rounded-xl border border-info/30 bg-info-muted p-4 text-sm text-info-foreground">
 				<ShieldCheck className="size-5 shrink-0" />
 				<p>{t("studentProfile.privacy")}</p>
 			</div>
 			<form
 				key={current?.updatedAt ?? "empty"}
-				className="mt-6 grid gap-5 rounded-2xl border bg-white p-6 sm:grid-cols-2"
+				className="mt-6 grid gap-5 rounded-2xl border bg-card p-6 sm:grid-cols-2"
 				onSubmit={handleSubmit}
 			>
 				<Field
@@ -146,7 +146,7 @@ export function StudentProfilePage() {
 					</p>
 				)}
 				{saved && (
-					<p role="status" className="text-sm text-emerald-700 sm:col-span-2">
+					<p role="status" className="text-sm text-success-foreground sm:col-span-2">
 						{t("studentProfile.saved")}
 					</p>
 				)}

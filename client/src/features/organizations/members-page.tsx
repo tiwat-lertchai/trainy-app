@@ -110,7 +110,7 @@ export function MembersPage() {
 		);
 	if (!isAdmin)
 		return (
-			<div className="mx-auto max-w-xl rounded-3xl border bg-white p-8 text-center text-muted-foreground">
+			<div className="mx-auto max-w-xl rounded-3xl border bg-card p-8 text-center text-muted-foreground">
 				{t("members.forbidden")}
 			</div>
 		);
@@ -124,7 +124,7 @@ export function MembersPage() {
 			</p>
 
 			<form
-				className="mt-6 grid gap-3 rounded-2xl border bg-white p-6 sm:grid-cols-[1fr_220px_auto] sm:items-end"
+				className="mt-6 grid gap-3 rounded-2xl border bg-card p-6 sm:grid-cols-[1fr_220px_auto] sm:items-end"
 				onSubmit={submitAddMember}
 			>
 				<label className="grid gap-2 text-sm font-semibold">
@@ -156,7 +156,7 @@ export function MembersPage() {
 
 			{members.isLoading && <div className="mt-8 h-32 animate-pulse rounded-2xl bg-muted" />}
 			{members.data?.data.length === 0 && (
-				<div className="mt-8 rounded-2xl border bg-white p-10 text-center text-muted-foreground">
+				<div className="mt-8 rounded-2xl border bg-card p-10 text-center text-muted-foreground">
 					{t("members.empty")}
 				</div>
 			)}
@@ -169,10 +169,10 @@ export function MembersPage() {
 					return (
 						<article
 							key={member.id}
-							className="flex flex-col gap-3 rounded-2xl border bg-white p-5 sm:flex-row sm:items-center sm:justify-between"
+							className="flex flex-col gap-3 rounded-2xl border bg-card p-5 sm:flex-row sm:items-center sm:justify-between"
 						>
 							<div className="flex items-center gap-3">
-								<span className="grid size-11 place-items-center rounded-xl bg-[#edf3ff] text-primary">
+								<span className="grid size-11 place-items-center rounded-xl bg-accent text-accent-foreground">
 									<UsersRound />
 								</span>
 								<div>
@@ -184,7 +184,7 @@ export function MembersPage() {
 							</div>
 							<div className="flex flex-wrap items-center gap-2">
 								<select
-									className="h-10 rounded-lg border bg-white px-3 text-sm"
+									className="h-10 rounded-lg border bg-card px-3 text-sm"
 									value={member.role}
 									disabled={updateMember.isPending}
 									onChange={(event) =>
@@ -201,7 +201,7 @@ export function MembersPage() {
 									))}
 								</select>
 								<span
-									className={`rounded-full px-3 py-1 text-xs font-semibold ${member.status === "active" ? "bg-emerald-50 text-emerald-700" : "bg-slate-100 text-slate-600"}`}
+									className={`rounded-full px-3 py-1 text-xs font-semibold ${member.status === "active" ? "bg-success-muted text-success-foreground" : "bg-muted text-muted-foreground"}`}
 								>
 									{member.status === "active" ? t("members.active") : t("members.suspended")}
 								</span>

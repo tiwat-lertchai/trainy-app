@@ -1,6 +1,7 @@
 import { useState, type FormEvent } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { Download, FileCheck2, FileText, HardDriveUpload } from "lucide-react";
+import { Badge as UiBadge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { ConfirmationDialog } from "@/components/ui/confirmation-dialog";
 import { useLanguage } from "@/i18n/config";
@@ -149,7 +150,7 @@ export function DocumentPage() {
 			<label className="mt-6 grid max-w-xl gap-2 text-sm font-semibold">
 				{t("documents.placement")}
 				<select
-					className="h-11 rounded-xl border bg-white px-3"
+					className="h-11 rounded-xl border bg-card px-3"
 					value={placementId}
 					onChange={(event) => {
 						setSelectedPlacement(event.target.value);
@@ -169,12 +170,12 @@ export function DocumentPage() {
 			</label>
 			{isStudent && placementId && (
 				<form
-					className="mt-6 grid gap-4 rounded-2xl border bg-white p-6 sm:grid-cols-[minmax(0,0.7fr)_minmax(0,1.3fr)_auto] sm:items-end"
+					className="mt-6 grid gap-4 rounded-2xl border bg-card p-6 sm:grid-cols-[minmax(0,0.7fr)_minmax(0,1.3fr)_auto] sm:items-end"
 					onSubmit={submitFile}
 				>
 					<label className="grid gap-2 text-sm font-semibold">
 						{t("documents.typeLabel")}
-						<select name="type" className="h-11 rounded-xl border bg-white px-3 font-normal">
+						<select name="type" className="h-11 rounded-xl border bg-card px-3 font-normal">
 							{Object.entries(documentTypeKeys).map(([value, key]) => (
 								<option key={value} value={value}>
 									{t(key)}
@@ -189,7 +190,7 @@ export function DocumentPage() {
 							type="file"
 							accept="application/pdf,image/jpeg,image/png"
 							required
-							className="h-11 rounded-xl border bg-white px-3 py-2 font-normal file:mr-3 file:rounded-md file:border-0 file:bg-muted file:px-3 file:py-1"
+							className="h-11 rounded-xl border bg-card px-3 py-2 font-normal file:mr-3 file:rounded-md file:border-0 file:bg-muted file:px-3 file:py-1"
 						/>
 					</label>
 					<Button disabled={upload.isPending}>
@@ -213,9 +214,9 @@ export function DocumentPage() {
 			{documents.data?.data.length === 0 && <Notice message={t("documents.empty")} />}
 			<div className="mt-8 grid gap-4">
 				{documents.data?.data.map((document) => (
-					<article key={document.id} className="rounded-2xl border bg-white p-6">
+					<article key={document.id} className="rounded-2xl border bg-card p-6">
 						<div className="flex items-start justify-between gap-4">
-							<span className="grid size-11 place-items-center rounded-xl bg-[#edf3ff] text-primary">
+							<span className="grid size-11 place-items-center rounded-xl bg-accent text-accent-foreground">
 								<FileText />
 							</span>
 							<Badge label={t(documentStatusKeys[document.status as DocumentStatus])} />
@@ -230,7 +231,7 @@ export function DocumentPage() {
 							</span>
 						</div>
 						{document.feedback && (
-							<p className="mt-4 rounded-xl bg-amber-50 p-4 text-sm leading-6">
+							<p className="mt-4 rounded-xl bg-warning-muted p-4 text-sm text-warning-foreground leading-6">
 								{t("documents.feedback", { feedback: document.feedback })}
 							</p>
 						)}
@@ -275,7 +276,7 @@ export function DocumentPage() {
 										minLength={3}
 										maxLength={5000}
 										required
-										className="mt-2 min-h-24 w-full rounded-lg border bg-white p-3 font-normal"
+										className="mt-2 min-h-24 w-full rounded-lg border bg-card p-3 font-normal"
 									/>
 								</label>
 								<Button disabled={review.isPending || feedback.trim().length < 3}>
@@ -308,15 +309,13 @@ async function loadOrganizations() {
 	return response.json();
 }
 function Badge({ label }: { label: string }) {
-	return (
-		<span className="h-fit rounded-full bg-slate-100 px-3 py-1 text-xs font-semibold">{label}</span>
-	);
+	return <UiBadge variant="neutral">{label}</UiBadge>;
 }
 function Notice({ message, error = false }: { message: string; error?: boolean }) {
 	return (
 		<div
 			role={error ? "alert" : undefined}
-			className={`mt-6 rounded-2xl border bg-white p-6 text-center text-sm ${error ? "border-destructive/20 text-destructive" : "text-muted-foreground"}`}
+			className={`mt-6 rounded-2xl border bg-card p-6 text-center text-sm ${error ? "border-destructive/20 text-destructive" : "text-muted-foreground"}`}
 		>
 			{message}
 		</div>

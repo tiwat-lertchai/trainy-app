@@ -99,9 +99,9 @@ states below—not from editing vendored primitives for each screen.
 
 ### CSS token reference
 
-The following is the target palette for `client/src/index.css`. This document defines
-the contract; migrate the implementation in a dedicated UI change with visual and
-regression testing.
+The following palette is implemented in `client/src/index.css`. Treat these semantic
+tokens as the source of truth for new UI, and keep visual and accessibility regression
+tests aligned whenever the palette changes.
 
 ```css
 :root {

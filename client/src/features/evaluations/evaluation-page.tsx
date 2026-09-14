@@ -93,7 +93,7 @@ export function EvaluationPage() {
 			<label className="mt-6 grid max-w-xl gap-2 text-sm font-semibold">
 				{t("evaluations.placement")}
 				<select
-					className="h-11 rounded-xl border bg-white px-3"
+					className="h-11 rounded-xl border bg-card px-3"
 					value={placementId}
 					onChange={(event) => {
 						setSelectedPlacement(event.target.value);
@@ -121,7 +121,7 @@ export function EvaluationPage() {
 					/>
 				)}
 			{ownEvaluation?.status === "draft" && (
-				<div className="mt-4 rounded-2xl border border-amber-200 bg-amber-50 p-5">
+				<div className="mt-4 rounded-2xl border border-warning/30 bg-warning-muted p-5">
 					<h2 className="font-bold">{t("evaluations.draftNotice")}</h2>
 					<p className="mt-1 text-sm text-muted-foreground">{t("evaluations.draftDetail")}</p>
 					{confirmingId === ownEvaluation.id ? (
@@ -155,12 +155,12 @@ export function EvaluationPage() {
 			)}
 			<div className="mt-8 grid gap-4 md:grid-cols-2">
 				{records.map((record) => (
-					<article key={record.id} className="rounded-2xl border bg-white p-6">
+					<article key={record.id} className="rounded-2xl border bg-card p-6">
 						<div className="flex items-start justify-between">
-							<span className="grid size-11 place-items-center rounded-xl bg-[#edf3ff] text-primary">
+							<span className="grid size-11 place-items-center rounded-xl bg-accent text-accent-foreground">
 								<ClipboardCheck />
 							</span>
-							<span className="rounded-full bg-slate-100 px-3 py-1 text-xs font-semibold">
+							<span className="rounded-full bg-muted px-3 py-1 text-xs font-semibold">
 								{t(
 									record.status === "submitted"
 										? "evaluations.status.submitted"
@@ -214,7 +214,7 @@ function EvaluationForm({
 	}
 	return (
 		<form
-			className="mt-6 grid gap-4 rounded-2xl border bg-white p-6 sm:grid-cols-3"
+			className="mt-6 grid gap-4 rounded-2xl border bg-card p-6 sm:grid-cols-3"
 			onSubmit={submit}
 		>
 			<ScoreField
@@ -264,7 +264,7 @@ function ScoreField({ name, label, value }: { name: string; label: string; value
 				name={name}
 				required
 				defaultValue={value ?? 3}
-				className="h-11 rounded-xl border bg-white px-3 font-normal"
+				className="h-11 rounded-xl border bg-card px-3 font-normal"
 			>
 				{[1, 2, 3, 4, 5].map((score) => (
 					<option key={score} value={score}>
@@ -278,7 +278,7 @@ function ScoreField({ name, label, value }: { name: string; label: string; value
 function Score({ label, value }: { label: string; value: number }) {
 	return (
 		<div className="rounded-xl bg-muted p-3 text-center">
-			<Star className="mx-auto size-4 fill-amber-400 text-amber-400" />
+			<Star className="mx-auto size-4 fill-warning text-warning" />
 			<p className="mt-1 text-xl font-black">{value}/5</p>
 			<p className="mt-1 text-xs text-muted-foreground">{label}</p>
 		</div>
@@ -293,7 +293,7 @@ function Notice({ message, error = false }: { message: string; error?: boolean }
 	return (
 		<div
 			role={error ? "alert" : undefined}
-			className={`mt-6 rounded-2xl border bg-white p-6 text-center text-sm ${error ? "border-destructive/20 text-destructive" : "text-muted-foreground"}`}
+			className={`mt-6 rounded-2xl border bg-card p-6 text-center text-sm ${error ? "border-destructive/20 text-destructive" : "text-muted-foreground"}`}
 		>
 			{message}
 		</div>

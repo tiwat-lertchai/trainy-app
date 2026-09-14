@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { BriefcaseBusiness, CalendarDays, UserRound } from "lucide-react";
+import { Badge as UiBadge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { ConfirmationDialog } from "@/components/ui/confirmation-dialog";
 import { useLanguage } from "@/i18n/config";
@@ -128,7 +129,7 @@ export function PlacementPage() {
 				<p className="mt-2 text-muted-foreground">{t("placements.description")}</p>
 			</div>
 			{universityManagers.includes(role ?? "") && acceptedItems.length > 0 && (
-				<section className="mt-8 rounded-2xl border bg-white p-6">
+				<section className="mt-8 rounded-2xl border bg-card p-6">
 					<h2 className="font-bold">{t("placements.createHeading")}</h2>
 					<div className="mt-4 grid gap-3">
 						{acceptedItems.map((application) => (
@@ -172,13 +173,13 @@ export function PlacementPage() {
 			{placements.isError && (
 				<div
 					role="alert"
-					className="mt-8 rounded-2xl border border-destructive/20 bg-white p-6 text-destructive"
+					className="mt-8 rounded-2xl border border-destructive/20 bg-destructive-muted p-6 text-destructive"
 				>
 					{t("placements.loadError")}
 				</div>
 			)}
 			{placements.data?.data.length === 0 && (
-				<div className="mt-8 rounded-2xl border bg-white p-10 text-center text-muted-foreground">
+				<div className="mt-8 rounded-2xl border bg-card p-10 text-center text-muted-foreground">
 					{t("placements.empty")}
 				</div>
 			)}
@@ -193,10 +194,10 @@ export function PlacementPage() {
 					const status = placement.status as PlacementStatus;
 					const canManageStatus = universityManagers.includes(role ?? "");
 					return (
-						<article key={placement.id} className="rounded-2xl border bg-white p-6">
+						<article key={placement.id} className="rounded-2xl border bg-card p-6">
 							<div className="flex flex-col justify-between gap-3 sm:flex-row">
 								<div className="flex gap-3">
-									<span className="grid size-11 place-items-center rounded-xl bg-[#edf3ff] text-primary">
+									<span className="grid size-11 place-items-center rounded-xl bg-accent text-accent-foreground">
 										<BriefcaseBusiness />
 									</span>
 									<div>
@@ -318,7 +319,7 @@ function Assignment({
 	return (
 		<div className="mt-5 flex flex-col gap-2 rounded-xl bg-muted p-4 sm:flex-row">
 			<select
-				className="h-10 flex-1 rounded-lg border bg-white px-3 text-sm"
+				className="h-10 flex-1 rounded-lg border bg-card px-3 text-sm"
 				defaultValue=""
 				onChange={(event) => event.target.value && onAssign(event.target.value)}
 				disabled={pending}
@@ -341,7 +342,7 @@ function DateField({ name, label }: { name: string; label: string }) {
 				type="date"
 				name={name}
 				required
-				className="h-10 rounded-lg border bg-white px-3 text-sm font-normal"
+				className="h-10 rounded-lg border bg-card px-3 text-sm font-normal"
 			/>
 		</label>
 	);
@@ -368,11 +369,9 @@ function Info({
 function Badge({ status }: { status: PlacementStatus }) {
 	const { t } = useLanguage();
 	return (
-		<span
-			className={`h-fit w-fit rounded-full px-3 py-1 text-xs font-semibold ${status === "active" ? "bg-emerald-50 text-emerald-700" : "bg-slate-100 text-slate-600"}`}
-		>
+		<UiBadge variant={status === "active" || status === "completed" ? "success" : "neutral"}>
 			{t(`status.${status}`)}
-		</span>
+		</UiBadge>
 	);
 }
 function formatDate(value: string | Date, locale: string) {

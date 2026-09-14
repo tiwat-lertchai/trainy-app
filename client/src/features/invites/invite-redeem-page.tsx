@@ -18,10 +18,10 @@ export function InviteRedeemPage() {
 		},
 	});
 	return (
-		<div className="mx-auto max-w-xl rounded-3xl border bg-white p-8 text-center shadow-sm">
+		<div className="mx-auto max-w-xl rounded-3xl border bg-card p-8 text-center shadow-sm">
 			{redeem.isSuccess ? (
 				<>
-					<span className="mx-auto grid size-14 place-items-center rounded-2xl bg-emerald-50 text-emerald-700">
+					<span className="mx-auto grid size-14 place-items-center rounded-2xl bg-success-muted text-success-foreground">
 						<BadgeCheck />
 					</span>
 					<h1 className="mt-5 text-2xl font-black">{t("invites.redeem.successTitle")}</h1>
@@ -32,13 +32,16 @@ export function InviteRedeemPage() {
 				</>
 			) : (
 				<>
-					<span className="mx-auto grid size-14 place-items-center rounded-2xl bg-blue-50 text-primary">
+					<span className="mx-auto grid size-14 place-items-center rounded-2xl bg-info-muted text-info-foreground">
 						<TicketCheck />
 					</span>
 					<h1 className="mt-5 text-2xl font-black">{t("invites.redeem.title")}</h1>
 					<p className="mt-2 text-muted-foreground">{t("invites.redeem.detail")}</p>
 					{redeem.isError && (
-						<p role="alert" className="mt-5 rounded-xl bg-red-50 p-4 text-sm text-destructive">
+						<p
+							role="alert"
+							className="mt-5 rounded-xl bg-destructive-muted p-4 text-sm text-destructive"
+						>
 							{t(inviteErrorKey((redeem.error as InviteApiError).code))}
 						</p>
 					)}

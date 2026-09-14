@@ -93,7 +93,7 @@ export function CompanyInternshipPage({
 			{showForm && (
 				<form
 					onSubmit={handleCreate}
-					className="mt-8 grid gap-5 rounded-2xl border bg-white p-6 sm:grid-cols-2"
+					className="mt-8 grid gap-5 rounded-2xl border bg-card p-6 sm:grid-cols-2"
 				>
 					<Field name="title" label={t("companyInternships.titleField")} />
 					<label className="grid gap-2 text-sm font-semibold">
@@ -145,21 +145,21 @@ export function CompanyInternshipPage({
 			{internships.isError && (
 				<div
 					role="alert"
-					className="mt-8 rounded-2xl border border-destructive/20 bg-white p-6 text-destructive"
+					className="mt-8 rounded-2xl border border-destructive/20 bg-destructive-muted p-6 text-destructive"
 				>
 					{t("companyInternships.loadError")}
 				</div>
 			)}
 			{internships.data?.data.length === 0 && (
-				<div className="mt-8 rounded-2xl border bg-white p-10 text-center text-muted-foreground">
+				<div className="mt-8 rounded-2xl border bg-card p-10 text-center text-muted-foreground">
 					{t("companyInternships.empty")}
 				</div>
 			)}
 			<div className="mt-8 grid gap-5 md:grid-cols-2">
 				{internships.data?.data.map((internship) => (
-					<article key={internship.id} className="rounded-2xl border bg-white p-6">
+					<article key={internship.id} className="rounded-2xl border bg-card p-6">
 						<div className="flex items-start justify-between gap-4">
-							<span className="grid size-11 place-items-center rounded-xl bg-[#edf3ff] text-primary">
+							<span className="grid size-11 place-items-center rounded-xl bg-accent text-accent-foreground">
 								<BriefcaseBusiness />
 							</span>
 							<Status
@@ -261,7 +261,7 @@ function Field({
 function Status({ status, label }: { status: "draft" | "published" | "closed"; label: string }) {
 	return (
 		<span
-			className={`rounded-full px-3 py-1 text-xs font-semibold ${status === "published" ? "bg-emerald-50 text-emerald-700" : "bg-slate-100 text-slate-600"}`}
+			className={`rounded-full px-3 py-1 text-xs font-semibold ${status === "published" ? "bg-success-muted text-success-foreground" : "bg-muted text-muted-foreground"}`}
 		>
 			{label}
 		</span>

@@ -1,6 +1,7 @@
 import { useState, type FormEvent } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { BookOpen, CalendarDays, Clock3, Pencil } from "lucide-react";
+import { Badge as UiBadge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { useLanguage } from "@/i18n/config";
 import { apiClient } from "@/lib/api-client";
@@ -112,7 +113,7 @@ export function ProgressPage() {
 			<label className="mt-6 grid max-w-xl gap-2 text-sm font-semibold">
 				{t("progress.placement")}
 				<select
-					className="h-11 rounded-xl border bg-white px-3"
+					className="h-11 rounded-xl border bg-card px-3"
 					value={placementId}
 					onChange={(event) => {
 						setSelectedPlacement(event.target.value);
@@ -147,9 +148,9 @@ export function ProgressPage() {
 			{reports.data?.data.length === 0 && <Notice message={t("progress.empty")} />}
 			<div className="mt-8 grid gap-4">
 				{reports.data?.data.map((report) => (
-					<article key={report.id} className="rounded-2xl border bg-white p-6">
+					<article key={report.id} className="rounded-2xl border bg-card p-6">
 						<div className="flex justify-between gap-4">
-							<span className="grid size-11 place-items-center rounded-xl bg-[#edf3ff] text-primary">
+							<span className="grid size-11 place-items-center rounded-xl bg-accent text-accent-foreground">
 								<BookOpen />
 							</span>
 							<Badge status={report.status} />
@@ -166,7 +167,7 @@ export function ProgressPage() {
 						</div>
 						<p className="mt-4 whitespace-pre-wrap leading-7">{report.summary}</p>
 						{report.feedback && (
-							<p className="mt-4 rounded-xl bg-amber-50 p-4 text-sm">
+							<p className="mt-4 rounded-xl bg-warning-muted p-4 text-sm text-warning-foreground">
 								{t("progress.feedback", { feedback: report.feedback })}
 							</p>
 						)}
@@ -229,7 +230,7 @@ export function ProgressPage() {
 										minLength={3}
 										maxLength={5000}
 										required
-										className="mt-2 min-h-24 w-full rounded-lg border bg-white p-3 font-normal"
+										className="mt-2 min-h-24 w-full rounded-lg border bg-card p-3 font-normal"
 									/>
 								</label>
 								<Button disabled={action.isPending || feedback.trim().length < 3}>
@@ -274,7 +275,7 @@ function ReportForm({
 	}
 	return (
 		<form
-			className="mt-6 grid gap-4 rounded-2xl border bg-white p-6 sm:grid-cols-3"
+			className="mt-6 grid gap-4 rounded-2xl border bg-card p-6 sm:grid-cols-3"
 			onSubmit={submit}
 		>
 			<Field
@@ -352,17 +353,25 @@ function Badge({ status }: { status: string }) {
 		approved: "progress.status.approved",
 		revision_requested: "progress.status.revisionRequested",
 	} as const;
+	const variant =
+		status === "approved"
+			? "success"
+			: status === "revision_requested"
+				? "warning"
+				: status === "submitted"
+					? "info"
+					: "neutral";
 	return (
-		<span className="h-fit rounded-full bg-slate-100 px-3 py-1 text-xs font-semibold">
+		<UiBadge className="h-fit" variant={variant}>
 			{status in keys ? t(keys[status as keyof typeof keys]) : status}
-		</span>
+		</UiBadge>
 	);
 }
 function Notice({ message, error = false }: { message: string; error?: boolean }) {
 	return (
 		<div
 			role={error ? "alert" : undefined}
-			className={`mt-6 rounded-2xl border bg-white p-6 text-center text-sm ${error ? "border-destructive/20 text-destructive" : "text-muted-foreground"}`}
+			className={`mt-6 rounded-2xl border bg-card p-6 text-center text-sm ${error ? "border-destructive/20 text-destructive" : "text-muted-foreground"}`}
 		>
 			{message}
 		</div>

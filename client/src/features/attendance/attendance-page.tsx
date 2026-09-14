@@ -302,7 +302,7 @@ export function AttendancePage() {
 				<label className="mt-6 grid max-w-xl gap-2 text-sm font-semibold">
 					{t("attendance.placement")}
 					<select
-						className="h-11 rounded-xl border bg-white px-3"
+						className="h-11 rounded-xl border bg-card px-3"
 						value={placementId}
 						onChange={(event) => setSelectedPlacement(event.target.value)}
 					>
@@ -317,7 +317,7 @@ export function AttendancePage() {
 			)}
 
 			{canManageSchedule(role) && placementId && (
-				<section className="mt-8 rounded-2xl border bg-white p-6">
+				<section className="mt-8 rounded-2xl border bg-card p-6">
 					<h2 className="font-bold">{t("attendance.schedule")}</h2>
 					<form className="mt-4 grid gap-4" onSubmit={submitSchedule}>
 						<div className="flex flex-wrap gap-4">
@@ -346,7 +346,7 @@ export function AttendancePage() {
 							{t("attendance.locationPolicy")}
 							<select
 								name="locationPolicy"
-								className="h-11 rounded-xl border bg-white px-3 font-normal"
+								className="h-11 rounded-xl border bg-card px-3 font-normal"
 								defaultValue="optional"
 							>
 								<option value="disabled">{t("attendance.location.disabled")}</option>
@@ -372,7 +372,7 @@ export function AttendancePage() {
 			)}
 
 			{canCheckInOut(role) && placementId && (
-				<section className="mt-8 rounded-2xl border bg-white p-6">
+				<section className="mt-8 rounded-2xl border bg-card p-6">
 					<h2 className="font-bold">{t("attendance.today")}</h2>
 					{activePolicy === "required_onsite" && (
 						<p className="mt-2 flex items-center gap-2 text-sm text-muted-foreground">
@@ -443,7 +443,7 @@ export function AttendancePage() {
 			)}
 
 			{canCheckInOut(role) && placementId && (
-				<section className="mt-8 rounded-2xl border bg-white p-6">
+				<section className="mt-8 rounded-2xl border bg-card p-6">
 					<h2 className="font-bold">{t("attendance.leave.title")}</h2>
 					<p className="mt-1 text-sm text-muted-foreground">{t("attendance.leave.description")}</p>
 					<form className="mt-4 grid gap-3 sm:grid-cols-[12rem_1fr_auto]" onSubmit={submitLeave}>
@@ -478,19 +478,19 @@ export function AttendancePage() {
 				<h2 className="font-bold">{t("attendance.history")}</h2>
 				{attendance.isLoading && <div className="mt-4 h-32 animate-pulse rounded-2xl bg-muted" />}
 				{attendance.data?.data.length === 0 && (
-					<div className="mt-4 rounded-2xl border bg-white p-10 text-center text-muted-foreground">
+					<div className="mt-4 rounded-2xl border bg-card p-10 text-center text-muted-foreground">
 						{t("attendance.empty")}
 					</div>
 				)}
 				<div className="mt-4 grid gap-4">
 					{attendance.data?.data.map((record) => (
-						<article key={record.id} className="rounded-2xl border bg-white p-6">
+						<article key={record.id} className="rounded-2xl border bg-card p-6">
 							<div className="flex flex-wrap items-center justify-between gap-3">
 								<span className="flex items-center gap-2 font-semibold">
 									<CalendarClock className="size-4" />
 									{record.workDate}
 								</span>
-								<span className="rounded-full bg-slate-100 px-3 py-1 text-xs font-semibold">
+								<span className="rounded-full bg-muted px-3 py-1 text-xs font-semibold">
 									{attendanceStatusKeys[record.status]
 										? t(attendanceStatusKeys[record.status])
 										: record.status}
@@ -537,7 +537,7 @@ export function AttendancePage() {
 					)}
 					<div className="mt-4 grid gap-4">
 						{adjustments.data?.data.map((item) => (
-							<article key={item.id} className="rounded-2xl border bg-white p-6">
+							<article key={item.id} className="rounded-2xl border bg-card p-6">
 								<p className="font-semibold">
 									{adjustmentStatusKeys[item.status]
 										? t(adjustmentStatusKeys[item.status])
@@ -573,7 +573,7 @@ export function AttendancePage() {
 			)}
 
 			{canViewUniversitySummary(role) && organizationId && (
-				<section className="mt-8 rounded-2xl border bg-white p-6">
+				<section className="mt-8 rounded-2xl border bg-card p-6">
 					<h2 className="font-bold">{t("attendance.universitySummary")}</h2>
 					<div className="mt-4 flex flex-wrap items-end gap-4">
 						<label className="grid gap-2 text-sm font-semibold">
