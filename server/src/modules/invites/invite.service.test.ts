@@ -30,7 +30,7 @@ function invite(values: Partial<InviteRecord> = {}): InviteRecord {
     role: "supervisor",
     targetOrganizationId: company.id,
     proposedOrganizationName: null,
-    expiresAt: new Date(now.getTime() + 1000 * 60 * 60 * 24 * 14),
+    expiresAt: new Date(Date.now() + 1000 * 60 * 60 * 24 * 14),
     redeemedAt: null,
     redeemedByUserId: null,
     revokedAt: null,

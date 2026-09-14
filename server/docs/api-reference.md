@@ -124,10 +124,10 @@ The last active organization admin cannot be demoted or suspended.
 
 Base path: `/api/v1/student-profile`
 
-| Method | Path  | Access                        |
-| ------ | ----- | ----------------------------- |
-| GET    | `/me` | Current authenticated user    |
-| PUT    | `/me` | Current authenticated user    |
+| Method | Path  | Access                     |
+| ------ | ----- | -------------------------- |
+| GET    | `/me` | Current authenticated user |
+| PUT    | `/me` | Current authenticated user |
 
 The profile contains date of birth, current address, emergency contact, blood
 type, medical conditions, allergies, regular medications, and accessibility

@@ -3,6 +3,11 @@ export type OrganizationRole =
 
 export type NavigationKey =
 	| "overview"
+	| "requests"
+	| "internship"
+	| "history"
+	| "approvals"
+	| "students"
 	| "profile"
 	| "internships"
 	| "applications"
@@ -79,4 +84,13 @@ const roleNavigation: Record<OrganizationRole, readonly NavigationKey[]> = {
 
 export function getNavigationForRole(role: OrganizationRole) {
 	return roleNavigation[role];
+}
+
+const primaryRoleNavigation: Partial<Record<OrganizationRole, readonly NavigationKey[]>> = {
+	student: ["overview", "requests", "internship", "history", "evaluations"],
+	advisor: ["overview", "approvals", "students", "evaluations"],
+};
+
+export function getPrimaryNavigationForRole(role: OrganizationRole) {
+	return primaryRoleNavigation[role] ?? roleNavigation[role];
 }

@@ -21,6 +21,8 @@
     "lint": "turbo lint",
     "type-check": "turbo type-check",
     "test": "turbo test",
+    "audit": "bun audit",
+    "verify:fast": "bun run audit && bun run fmt:check && bun run type-check && bun run lint && bun run test && bun run build",
     "fmt": "prettier --write \"**/*.{ts,tsx,js,json,md}\"",
     "fmt:check": "prettier --check \"**/*.{ts,tsx,js,json,md}\"",
     "postinstall": "turbo build --filter=shared --filter=server"

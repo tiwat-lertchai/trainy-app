@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { Link, Outlet, useRouterState } from "@tanstack/react-router";
 import {
@@ -10,16 +10,15 @@ import {
 	FileCheck2,
 	FileText,
 	GraduationCap,
+	HelpCircle,
 	Languages,
 	LayoutDashboard,
 	LogOut,
-	Menu,
 	Search,
 	Settings,
 	TicketCheck,
 	UsersRound,
 	UserRound,
-	X,
 } from "lucide-react";
 import { BrandMark } from "@/components/brand/brand-mark";
 import { Button } from "@/components/ui/button";
@@ -27,6 +26,7 @@ import { authClient, signInWithLine } from "@/lib/auth-client";
 import { apiClient } from "@/lib/api-client";
 import {
 	getNavigationForRole,
+	getPrimaryNavigationForRole,
 	type NavigationKey,
 	type OrganizationRole,
 } from "@/features/organizations/role-navigation";
@@ -50,6 +50,11 @@ const navigationDetails: Record<
 	{ label: MessageKey; icon: typeof LayoutDashboard }
 > = {
 	overview: { label: "nav.overview", icon: LayoutDashboard },
+	requests: { label: "nav.requests", icon: ClipboardCheck },
+	internship: { label: "nav.internship", icon: BriefcaseBusiness },
+	history: { label: "nav.history", icon: FileText },
+	approvals: { label: "nav.approvals", icon: ClipboardCheck },
+	students: { label: "nav.students", icon: UsersRound },
 	profile: { label: "nav.profile", icon: UserRound },
 	internships: { label: "nav.internships", icon: BriefcaseBusiness },
 	applications: { label: "nav.applications", icon: ClipboardCheck },
@@ -86,7 +91,6 @@ export function AppDashboard() {
 	const [storedWorkspaceId, setStoredWorkspaceId] = useState(() =>
 		localStorage.getItem(WORKSPACE_KEY),
 	);
-	const [mobileNavOpen, setMobileNavOpen] = useState(false);
 	const organizations = useQuery({
 		queryKey: ["organizations"],
 		queryFn: loadOrganizations,
@@ -139,6 +143,18 @@ export function AppDashboard() {
 	if (session.isPending) return <FullPageMessage title={t("dashboard.loadingSession")} />;
 	if (!session.data?.user) return <SignedOut />;
 	const navigation = role ? getNavigationForRole(role) : (["overview"] as const);
+	const primaryNavigation = role ? getPrimaryNavigationForRole(role) : (["overview"] as const);
+	const desktopNavigation = [
+		...primaryNavigation,
+		...navigation.filter((key) => {
+			const destination = dashboardNavigationLinks[key as keyof typeof dashboardNavigationLinks];
+			return !primaryNavigation.some(
+				(primaryKey) =>
+					dashboardNavigationLinks[primaryKey as keyof typeof dashboardNavigationLinks] ===
+					destination,
+			);
+		}),
+	];
 	const snapshot = report.data?.data
 		? dashboardFromReport(report.data.data)
 		: role
@@ -153,26 +169,34 @@ export function AppDashboard() {
 		? report.isLoading
 		: placements.isLoading || (role === "student" && applications.isLoading);
 	const dashboardError = isAdmin ? report.isError : placements.isError || applications.isError;
-	const renderNavItems = (onNavigate?: () => void) =>
-		navigation.map((key, index) => {
+	const renderNavItems = (items: readonly NavigationKey[], mobile = false) =>
+		items.map((key) => {
 			const { label, icon: Icon } = navigationDetails[key];
-			const active = pathname === "/app" ? index === 0 : pathname.includes(key);
-			const className = `flex w-full items-center gap-3 rounded-xl px-3 py-3 text-sm font-medium transition ${active ? "bg-white/12 text-white" : "text-slate-300 hover:bg-white/7 hover:text-white"}`;
-			return key in dashboardNavigationLinks ? (
+			const destination = dashboardNavigationLinks[key as keyof typeof dashboardNavigationLinks];
+			const active = destination === "/app" ? pathname === "/app" : destination === pathname;
+			const className = mobile
+				? `flex min-h-14 min-w-[4.5rem] flex-1 flex-col items-center justify-center gap-1 px-1 text-[11px] font-semibold ${active ? "text-primary" : "text-muted-foreground"}`
+				: `flex w-full items-center gap-3 rounded-xl px-3 py-3 text-sm font-medium transition ${active ? "bg-white/12 text-white" : "text-slate-300 hover:bg-white/7 hover:text-white"}`;
+			return destination ? (
 				<Link
 					key={key}
-					to={dashboardNavigationLinks[key as keyof typeof dashboardNavigationLinks]}
+					to={destination}
 					className={className}
-					onClick={onNavigate}
+					aria-current={active ? "page" : undefined}
 				>
-					<Icon className="size-5" />
-					{t(label)}
+					<Icon className={mobile ? "size-5" : "size-5"} />
+					<span className={mobile ? "max-w-full truncate" : undefined}>{t(label)}</span>
 				</Link>
 			) : (
-				<button key={key} className={className} onClick={onNavigate}>
+				<span
+					key={key}
+					className={`${className} cursor-not-allowed opacity-50`}
+					aria-disabled="true"
+					title={`${t(label)} · ${t("dashboard.comingSoon")}`}
+				>
 					<Icon className="size-5" />
-					{t(label)}
-				</button>
+					<span className={mobile ? "max-w-full truncate" : undefined}>{t(label)}</span>
+				</span>
 			);
 		});
 
@@ -183,54 +207,14 @@ export function AppDashboard() {
 					<BrandMark />
 				</div>
 				<nav className="flex-1 space-y-1 p-4" aria-label="Application navigation">
-					{renderNavItems()}
+					{renderNavItems(desktopNavigation)}
 				</nav>
-				<div className="border-t border-white/10 p-4">
-					<button className="flex w-full items-center gap-3 rounded-xl px-3 py-3 text-sm text-slate-300 hover:bg-white/7">
-						<Settings className="size-5" />
-						{t("dashboard.settings")}
-					</button>
-				</div>
 			</aside>
-			{mobileNavOpen && (
-				<div className="fixed inset-0 z-50 lg:hidden">
-					<button
-						className="absolute inset-0 bg-black/50"
-						aria-label={t("dashboard.closeNavigation")}
-						onClick={() => setMobileNavOpen(false)}
-					/>
-					<aside className="relative flex h-full w-72 max-w-[80vw] flex-col bg-sidebar text-sidebar-foreground">
-						<div className="flex h-20 items-center justify-between border-b border-white/10 px-6">
-							<BrandMark />
-							<Button
-								variant="ghost"
-								size="icon"
-								aria-label={t("dashboard.closeNavigation")}
-								onClick={() => setMobileNavOpen(false)}
-							>
-								<X />
-							</Button>
-						</div>
-						<nav
-							className="flex-1 space-y-1 overflow-y-auto p-4"
-							aria-label="Application navigation"
-						>
-							{renderNavItems(() => setMobileNavOpen(false))}
-						</nav>
-					</aside>
-				</div>
-			)}
 			<div className="min-w-0">
 				<header className="flex h-20 items-center gap-4 border-b bg-white px-5 sm:px-8">
-					<Button
-						className="lg:hidden"
-						variant="ghost"
-						size="icon"
-						aria-label={t("dashboard.openNavigation")}
-						onClick={() => setMobileNavOpen(true)}
-					>
-						<Menu />
-					</Button>
+					<div className="lg:hidden">
+						<BrandMark />
+					</div>
 					<div className="hidden max-w-md flex-1 items-center gap-2 rounded-xl bg-muted px-3 py-2.5 text-muted-foreground sm:flex">
 						<Search className="size-4" />
 						<span className="text-sm">{t("dashboard.search")}</span>
@@ -251,16 +235,14 @@ export function AppDashboard() {
 							</Link>
 						</Button>
 						<NotificationBell />
-						<div className="hidden text-right sm:block">
-							<p className="text-sm font-semibold">{session.data.user.name}</p>
-							<p className="text-xs text-muted-foreground">{session.data.user.email}</p>
-						</div>
-						<span className="grid size-10 place-items-center rounded-full bg-[#edf3ff] font-bold text-primary">
-							{session.data.user.name.slice(0, 1).toUpperCase()}
-						</span>
+						<AccountMenu
+							name={session.data.user.name}
+							email={session.data.user.email}
+							profileAvailable={role === "student"}
+						/>
 					</div>
 				</header>
-				<main className="mx-auto max-w-7xl px-5 py-8 sm:px-8 sm:py-10">
+				<main className="mx-auto max-w-7xl px-5 pb-24 pt-8 sm:px-8 sm:py-10 lg:pb-10">
 					{pathname !== "/app" ? (
 						<Outlet />
 					) : !organizations.isLoading && !activeContext ? (
@@ -282,6 +264,12 @@ export function AppDashboard() {
 						/>
 					)}
 				</main>
+				<nav
+					className="fixed inset-x-0 bottom-0 z-40 flex overflow-x-auto border-t bg-white/95 px-1 pb-[env(safe-area-inset-bottom)] backdrop-blur lg:hidden"
+					aria-label="Application navigation"
+				>
+					{renderNavItems(primaryNavigation, true)}
+				</nav>
 			</div>
 		</div>
 	);
@@ -411,6 +399,102 @@ function DashboardOverview({
 				</div>
 			</section>
 		</>
+	);
+}
+
+function AccountMenu({
+	name,
+	email,
+	profileAvailable,
+}: {
+	name: string;
+	email: string;
+	profileAvailable: boolean;
+}) {
+	const { t } = useLanguage();
+	const [open, setOpen] = useState(false);
+	const containerRef = useRef<HTMLDivElement>(null);
+	const triggerRef = useRef<HTMLButtonElement>(null);
+	useEffect(() => {
+		if (!open) return;
+		function onPointerDown(event: PointerEvent) {
+			if (!containerRef.current?.contains(event.target as Node)) setOpen(false);
+		}
+		function onKeyDown(event: KeyboardEvent) {
+			if (event.key !== "Escape") return;
+			setOpen(false);
+			triggerRef.current?.focus();
+		}
+		document.addEventListener("pointerdown", onPointerDown);
+		document.addEventListener("keydown", onKeyDown);
+		return () => {
+			document.removeEventListener("pointerdown", onPointerDown);
+			document.removeEventListener("keydown", onKeyDown);
+		};
+	}, [open]);
+	return (
+		<div className="relative" ref={containerRef}>
+			<Button
+				ref={triggerRef}
+				variant="ghost"
+				size="icon"
+				className="size-11 rounded-full bg-[#edf3ff] font-bold text-primary"
+				aria-label={t("dashboard.accountMenu")}
+				aria-haspopup="menu"
+				aria-expanded={open}
+				onClick={() => setOpen((value) => !value)}
+			>
+				{name.slice(0, 1).toUpperCase()}
+			</Button>
+			{open && (
+				<div
+					role="menu"
+					aria-label={t("dashboard.account")}
+					className="absolute right-0 top-13 z-50 w-64 overflow-hidden rounded-2xl border bg-white p-2 shadow-xl"
+				>
+					<div className="border-b px-3 py-2">
+						<p className="truncate text-sm font-semibold">{name}</p>
+						<p className="truncate text-xs text-muted-foreground">{email}</p>
+					</div>
+					{profileAvailable ? (
+						<Button variant="ghost" className="mt-1 w-full justify-start" asChild>
+							<Link role="menuitem" to="/app/profile" onClick={() => setOpen(false)}>
+								<UserRound />
+								{t("nav.profile")}
+							</Link>
+						</Button>
+					) : (
+						<MenuUnavailable icon={UserRound} label={t("nav.profile")} />
+					)}
+					<MenuUnavailable icon={Settings} label={t("dashboard.settings")} />
+					<MenuUnavailable icon={HelpCircle} label={t("dashboard.help")} />
+					<Button
+						role="menuitem"
+						variant="ghost"
+						className="w-full justify-start text-destructive hover:text-destructive"
+						onClick={() => authClient.signOut()}
+					>
+						<LogOut />
+						{t("dashboard.signOut")}
+					</Button>
+				</div>
+			)}
+		</div>
+	);
+}
+
+function MenuUnavailable({ icon: Icon, label }: { icon: typeof Settings; label: string }) {
+	const { t } = useLanguage();
+	return (
+		<span
+			role="menuitem"
+			aria-disabled="true"
+			className="flex h-9 cursor-not-allowed items-center gap-2 rounded-md px-4 text-sm font-medium opacity-50"
+			title={t("dashboard.comingSoon")}
+		>
+			<Icon className="size-4" />
+			{label}
+		</span>
 	);
 }
 

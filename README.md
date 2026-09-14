@@ -59,15 +59,26 @@ server at [http://localhost:3000](http://localhost:3000).
 ### Verification
 
 ```bash
-bun run type-check
-bun run lint
-bun run test
-bun run build
+# Complete fast, infrastructure-free gate used by CI
+bun run verify:fast
 ```
 
-Every change should pass the relevant tests plus type-check, lint, and
-build before committing. See [`AGENTS.md`](AGENTS.md) for the full set of
-project conventions.
+The fast gate audits the lockfile, checks formatting and TypeScript, lints the
+client, runs unit and API contract tests, and creates production builds. The
+server and shared packages do not currently have ESLint configurations, so the
+lint step covers the client only; TypeScript checks cover all three workspaces.
+
+Database-backed integration tests are a separate gate because they require a
+prepared disposable PostgreSQL database:
+
+```bash
+bun run --cwd server test:integration
+```
+
+Security-relevant changes also require the local OWASP-aligned black-box pass
+documented in [`summarize/localhost-pentest-owasp.md`](summarize/localhost-pentest-owasp.md).
+Every change should pass the relevant gates before committing. See
+[`AGENTS.md`](AGENTS.md) for the full project conventions.
 
 ## License
 

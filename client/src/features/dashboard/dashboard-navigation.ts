@@ -1,5 +1,8 @@
 export const dashboardNavigationLinks = {
 	overview: "/app",
+	requests: "/app/applications",
+	internship: "/app/placements",
+	approvals: "/app/applications",
 	profile: "/app/profile",
 	internships: "/app/internships",
 	applications: "/app/applications",
@@ -13,3 +16,5 @@ export const dashboardNavigationLinks = {
 	members: "/app/members",
 	reports: "/app/reports",
 } as const;
+
+export const unavailableNavigationItems = ["history", "students"] as const;

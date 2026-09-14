@@ -33,6 +33,8 @@ describe("ConfirmationDialog", () => {
 		);
 		expect(html).toContain('role="alertdialog"');
 		expect(html).toContain('aria-modal="true"');
+		expect(html).toContain('class="fixed inset-0 z-50 flex items-end');
+		expect(html).toContain("sm:rounded-2xl");
 		expect(html).toContain("Cannot be undone");
 	});
 });
