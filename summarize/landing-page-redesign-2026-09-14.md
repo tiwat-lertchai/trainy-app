@@ -20,6 +20,8 @@
   of the product foundation rather than an add-on.
 - Renamed the sensitive-data principle to "ความเป็นส่วนตัวในทุกบริบท" /
   "Contextual privacy" for clearer, principle-led language.
+- Replaced the technical-sounding access label with "เข้าถึงอย่างมีขอบเขต"
+  while preserving the role, organization, and responsibility criteria.
 
 ## Files changed
 
