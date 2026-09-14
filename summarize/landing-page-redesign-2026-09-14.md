@@ -15,6 +15,9 @@
 - Refined the progress feature copy to "Track progress at every step" and made
   the Thai/English description explicitly identify the current state, completed
   steps, next step, and responsible party.
+- Reframed the security section as "Secure from the start" / "ปลอดภัย
+  ตั้งแต่เริ่มออกแบบ" to communicate that identity and access controls are part
+  of the product foundation rather than an add-on.
 
 ## Files changed
 

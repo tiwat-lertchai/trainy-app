@@ -64,10 +64,10 @@ export const messages = {
 		"roles.organizationPoint1": "จัดการสิทธิ์ตามขอบเขตองค์กร",
 		"roles.organizationPoint2": "เอกสารและข้อมูลกลางที่เชื่อถือได้",
 		"roles.organizationPoint3": "รายงานจากข้อมูลการทำงานจริง",
-		"security.eyebrow": "ความปลอดภัยเป็นพื้นฐาน",
-		"security.title": "เปิดเผยข้อมูลเท่าที่จำเป็น",
+		"security.eyebrow": "ปลอดภัย ตั้งแต่เริ่มออกแบบ",
+		"security.title": "ข้อมูลของคุณ เห็นเท่าที่จำเป็น",
 		"security.description":
-			"Trainy แยกการยืนยันตัวตนออกจากสิทธิ์ในแต่ละองค์กร และบังคับใช้สิทธิ์จากฝั่งเซิร์ฟเวอร์",
+			"Trainy ออกแบบการยืนยันตัวตนและสิทธิ์การเข้าถึงไว้ตั้งแต่ต้น เพื่อให้แต่ละคนเข้าถึงเฉพาะข้อมูลที่เกี่ยวข้องกับหน้าที่ของตน",
 		"security.identity": "ตัวตนที่เชื่อถือได้",
 		"security.identityDetail": "รองรับบัญชีภายนอกโดยไม่ใช้ชื่อแสดงผลเป็นตัวระบุ",
 		"security.access": "สิทธิ์ตามขอบเขต",
@@ -780,10 +780,10 @@ export const messages = {
 		"roles.organizationPoint1": "Organization-scoped permissions",
 		"roles.organizationPoint2": "Reliable shared records and documents",
 		"roles.organizationPoint3": "Reports from operational data",
-		"security.eyebrow": "Security by foundation",
-		"security.title": "Reveal only what is necessary",
+		"security.eyebrow": "Secure from the start",
+		"security.title": "Your data. Only where it belongs.",
 		"security.description":
-			"Trainy separates authentication from organization permissions and enforces access on the server.",
+			"Trainy designs identity and access into the foundation, so each person can reach only the information relevant to their role.",
 		"security.identity": "Trusted identity",
 		"security.identityDetail":
 			"External accounts are supported without treating display names as identifiers.",
