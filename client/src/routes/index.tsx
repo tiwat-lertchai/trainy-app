@@ -4,16 +4,12 @@ import { createFileRoute } from "@tanstack/react-router";
 import {
 	ArrowRight,
 	BellRing,
-	Building2,
 	Check,
-	CheckCircle2,
 	ChevronDown,
-	GraduationCap,
 	Languages,
+	LineChart,
 	Menu,
-	ShieldCheck,
 	Sparkles,
-	UsersRound,
 	X,
 } from "lucide-react";
 import { BrandMark } from "@/components/brand/brand-mark";
@@ -23,12 +19,108 @@ import type { MessageKey } from "@/i18n/messages";
 import { signInWithLine } from "@/lib/auth-client";
 
 export const Route = createFileRoute("/")({ component: LandingPage });
-export const landingSections = ["features", "workflow", "roles", "security"] as const;
+export const landingSections = ["features", "workflow"] as const;
 
 function LandingPage() {
 	const { locale, setLocale, t } = useLanguage();
 	const [menuOpen, setMenuOpen] = useState(false);
 	const [signingIn, setSigningIn] = useState(false);
+	const editorial =
+		locale === "th"
+			? {
+					heroEyebrow: "เพื่อนคู่คิดตลอดการฝึกงาน",
+					heroTitle: "ทุกวันที่ลงมือทำ มีค่าให้จดจำ",
+					heroDescription:
+						"Trainy เปลี่ยนการเขียนบันทึกฝึกงานให้เป็นเรื่องง่าย ช่วยจัดลำดับสิ่งที่ควรทำ และทำให้คุณมองเห็นว่าตัวเองเติบโตมาไกลแค่ไหน",
+					primary: "ดู Trainy ในหนึ่งวัน",
+					secondary: "รู้จักแนวคิด",
+					note: "ใช้เวลาเริ่มบันทึกได้เพียงเล็กน้อย",
+					whyEyebrow: "ออกแบบเพื่อชีวิตจริง",
+					whyTitle: "ไม่ใช่ฟอร์มที่ต้องส่ง แต่คือเรื่องราวที่อยากเก็บ",
+					cards: [
+						[
+							"01 — เริ่มได้ทันที",
+							"เริ่มเขียนได้ทันที",
+							"หนึ่งคำถาม หนึ่งข้อความสั้น ไม่ต้องเผชิญแบบฟอร์มยาวก่อนจะได้เล่าเรื่องของวันนี้",
+						],
+						[
+							"02 — ต่อเนื่องอย่างชัดเจน",
+							"รู้ว่าควรทำอะไรต่อ",
+							"Trainy จัดลำดับขั้นตอนให้เอง ตั้งแต่ลงเวลา บันทึกงาน ไปจนถึงทบทวนสิ่งที่ได้เรียนรู้",
+						],
+						[
+							"03 — เห็นสิ่งที่มองข้าม",
+							"เห็นความก้าวหน้าจริง",
+							"ชั่วโมง ทักษะ และเรื่องเล่า ถูกทยอยสะสม ค่อย ๆ กลายเป็นภาพการเติบโตของคุณ",
+						],
+					],
+					flowTitle: "หนึ่งวันของการฝึกงาน จบได้ในสามจังหวะ",
+					flowDescription: "Trainy พาไปทีละขั้น โดยไม่ทำให้การบันทึกกลายเป็นภาระอีกชิ้นหนึ่ง",
+					steps: [
+						["ตอนเริ่มวัน", "เช็กอิน", "ลงเวลาและเห็นสิ่งสำคัญที่ควรทำในวันนี้"],
+						[
+							"ระหว่างวันหรือก่อนกลับ",
+							"เก็บสิ่งที่ได้ทำ",
+							"พิมพ์งานที่ทำ รูปภาพ หรือไอเดีย ๆ ได้ทันที",
+						],
+						[
+							"เมื่อพร้อมทบทวน",
+							"มองเห็นการเติบโต",
+							"ย้อนดูชั่วโมง ทักษะ และเรื่องราวที่สะสมมาตลอดการฝึกงาน",
+						],
+					],
+					quote: "Trainy ไม่ได้เตือนให้คุณทำรายงาน แต่ชวนให้คุณกลับมาเห็นตัวเองเติบโต",
+					ready: "พร้อมเก็บวันแรกของคุณหรือยัง?",
+					footer: "บันทึกการฝึกงาน © 2026",
+				}
+			: {
+					heroEyebrow: "Your companion throughout the internship",
+					heroTitle: "Every day you show up is worth remembering",
+					heroDescription:
+						"Trainy makes internship journaling effortless, guides what comes next, and helps you see how far you have grown.",
+					primary: "A day with Trainy",
+					secondary: "The idea",
+					note: "Start a journal entry in moments",
+					whyEyebrow: "Designed for real life",
+					whyTitle: "Not another form to submit, but a story worth keeping",
+					cards: [
+						[
+							"01 — Start instantly",
+							"Write right away",
+							"One prompt and one short note. No long form standing between you and today's story.",
+						],
+						[
+							"02 — Clear continuity",
+							"Know what comes next",
+							"Trainy orders the journey—from checking in and capturing work to reflecting on what you learned.",
+						],
+						[
+							"03 — Notice the unseen",
+							"See real progress",
+							"Hours, skills, and stories quietly accumulate into a picture of your growth.",
+						],
+					],
+					flowTitle: "An internship day in three simple rhythms",
+					flowDescription:
+						"Trainy guides you one step at a time, without turning reflection into another chore.",
+					steps: [
+						["At the start", "Check in", "Log your arrival and see what matters today."],
+						[
+							"During the day",
+							"Capture the work",
+							"Save a task, photo, or idea the moment it happens.",
+						],
+						[
+							"When you reflect",
+							"See your growth",
+							"Look back on the hours, skills, and stories gathered throughout your internship.",
+						],
+					],
+					quote:
+						"Trainy does not remind you to file a report. It invites you back to see yourself grow.",
+					ready: "Ready to keep your first day?",
+					footer: "Internship journal © 2026",
+				};
 
 	useEffect(() => {
 		if (!menuOpen) return;
@@ -117,13 +209,13 @@ function LandingPage() {
 								<span className="grid size-6 place-items-center rounded-full bg-accent text-accent-foreground">
 									<Sparkles className="size-3.5" />
 								</span>
-								{t("hero.eyebrow")}
+								{editorial.heroEyebrow}
 							</div>
 							<h1 className="max-w-[700px] text-balance text-[3.35rem] font-semibold leading-[0.97] tracking-[-0.07em] text-foreground sm:text-7xl lg:text-[5.35rem]">
-								{t("hero.title")}
+								{editorial.heroTitle}
 							</h1>
 							<p className="mt-7 max-w-[550px] text-pretty text-lg leading-8 text-muted-foreground">
-								{t("hero.description")}
+								{editorial.heroDescription}
 							</p>
 							<div className="mt-9 flex flex-col gap-3 sm:flex-row">
 								<Button
@@ -132,7 +224,7 @@ function LandingPage() {
 									onClick={handleSignIn}
 									disabled={signingIn}
 								>
-									{t("hero.primary")}
+									{editorial.primary}
 									<ArrowRight />
 								</Button>
 								<Button
@@ -141,12 +233,11 @@ function LandingPage() {
 									className="h-13 rounded-full border-border bg-card/20 px-6 text-base"
 									asChild
 								>
-									<a href="#workflow">{t("hero.secondary")}</a>
+									<a href="#why">{editorial.secondary}</a>
 								</Button>
 							</div>
 							<div className="mt-5 flex flex-wrap gap-x-6 gap-y-2 text-xs font-medium text-muted-foreground">
-								<MiniCheck text={t("hero.note")} />
-								<MiniCheck text={t("hero.responsive")} />
+								<MiniCheck text={editorial.note} />
 							</div>
 						</div>
 						<DashboardPreview />
@@ -168,31 +259,22 @@ function LandingPage() {
 					<div id="why" className="mx-auto max-w-[1180px] scroll-mt-8 px-5 sm:px-8">
 						<div className="grid items-start gap-6 lg:grid-cols-[0.85fr_1.15fr] lg:gap-16">
 							<p className="pt-2 text-xs font-bold uppercase tracking-[0.14em] text-muted-foreground">
-								{t("features.eyebrow")}
+								{editorial.whyEyebrow}
 							</p>
 							<h2 className="text-balance text-4xl font-semibold leading-[1.08] tracking-[-0.055em] sm:text-6xl">
-								{t("features.title")}
+								{editorial.whyTitle}
 							</h2>
 						</div>
 						<div className="mt-16 grid gap-4 md:grid-cols-3">
-							<FeatureCard
-								number="01"
-								icon={GraduationCap}
-								title={t("roles.student")}
-								detail={t("roles.studentDetail")}
-							/>
-							<FeatureCard
-								number="02"
-								icon={UsersRound}
-								title={t("roles.advisor")}
-								detail={t("roles.advisorDetail")}
-							/>
-							<FeatureCard
-								number="03"
-								icon={Building2}
-								title={t("roles.organization")}
-								detail={t("roles.organizationDetail")}
-							/>
+							{editorial.cards.map(([number, title, detail], index) => (
+								<FeatureCard
+									key={number}
+									number={number}
+									icon={[ArrowRight, Menu, LineChart][index]}
+									title={title}
+									detail={detail}
+								/>
+							))}
 						</div>
 					</div>
 				</section>
@@ -201,143 +283,57 @@ function LandingPage() {
 					id="workflow"
 					className="scroll-mt-18 border-y border-sidebar-border bg-sidebar py-22 text-sidebar-foreground sm:py-28"
 				>
-					<div className="mx-auto max-w-7xl px-5 sm:px-8">
-						<SectionHeading
-							dark
-							eyebrow={t("workflow.eyebrow")}
-							title={t("workflow.title")}
-							description={t("workflow.description")}
-						/>
-						<div className="mt-14 grid gap-8 md:grid-cols-4">
-							<WorkflowStep
-								number="01"
-								title={t("workflow.step1")}
-								detail={t("workflow.step1Detail")}
-							/>
-							<WorkflowStep
-								number="02"
-								title={t("workflow.step2")}
-								detail={t("workflow.step2Detail")}
-							/>
-							<WorkflowStep
-								number="03"
-								title={t("workflow.step3")}
-								detail={t("workflow.step3Detail")}
-							/>
-							<WorkflowStep
-								number="04"
-								title={t("workflow.step4")}
-								detail={t("workflow.step4Detail")}
-							/>
+					<div className="mx-auto max-w-[1180px] px-5 sm:px-8">
+						<div className="flex flex-col justify-between gap-6 lg:flex-row lg:items-end">
+							<h2 className="max-w-3xl text-balance text-4xl font-semibold leading-[1.08] tracking-[-0.055em] sm:text-6xl">
+								{editorial.flowTitle}
+							</h2>
+							<p className="max-w-xs text-sm leading-6 text-sidebar-foreground/55">
+								{editorial.flowDescription}
+							</p>
 						</div>
-					</div>
-				</section>
-
-				<section id="roles" className="scroll-mt-18 bg-background py-22 sm:py-28">
-					<div className="mx-auto max-w-7xl px-5 sm:px-8">
-						<SectionHeading
-							eyebrow={t("roles.eyebrow")}
-							title={t("roles.title")}
-							description={t("roles.description")}
-						/>
-						<div className="mt-12 grid gap-5 md:grid-cols-3">
-							<RoleCard
-								icon={GraduationCap}
-								title={t("roles.student")}
-								detail={t("roles.studentDetail")}
-								points={[
-									t("roles.studentPoint1"),
-									t("roles.studentPoint2"),
-									t("roles.studentPoint3"),
-								]}
-							/>
-							<RoleCard
-								icon={UsersRound}
-								title={t("roles.advisor")}
-								detail={t("roles.advisorDetail")}
-								points={[
-									t("roles.advisorPoint1"),
-									t("roles.advisorPoint2"),
-									t("roles.advisorPoint3"),
-								]}
-								featured
-							/>
-							<RoleCard
-								icon={Building2}
-								title={t("roles.organization")}
-								detail={t("roles.organizationDetail")}
-								points={[
-									t("roles.organizationPoint1"),
-									t("roles.organizationPoint2"),
-									t("roles.organizationPoint3"),
-								]}
-							/>
-						</div>
-					</div>
-				</section>
-
-				<section id="security" className="scroll-mt-18 bg-card py-22 sm:py-28">
-					<div className="mx-auto grid max-w-7xl items-center gap-12 px-5 sm:px-8 lg:grid-cols-2">
-						<div>
-							<SectionHeading
-								eyebrow={t("security.eyebrow")}
-								title={t("security.title")}
-								description={t("security.description")}
-							/>
-							<div className="mt-8 grid gap-4 sm:grid-cols-2">
-								<SecurityPoint
-									title={t("security.identity")}
-									detail={t("security.identityDetail")}
+						<div className="mt-16 grid gap-8 md:grid-cols-3">
+							{editorial.steps.map(([eyebrow, title, detail], index) => (
+								<WorkflowStep
+									key={title}
+									number={`0${index + 1}`}
+									eyebrow={eyebrow}
+									title={title}
+									detail={detail}
 								/>
-								<SecurityPoint title={t("security.access")} detail={t("security.accessDetail")} />
-								<SecurityPoint title={t("security.audit")} detail={t("security.auditDetail")} />
-								<SecurityPoint title={t("security.privacy")} detail={t("security.privacyDetail")} />
-							</div>
-						</div>
-						<div className="relative overflow-hidden rounded-[2rem] bg-sidebar p-8 text-sidebar-foreground shadow-2xl shadow-foreground/15 sm:p-11">
-							<div className="absolute -right-20 -top-20 size-64 rounded-full border-[44px] border-sidebar-border" />
-							<ShieldCheck className="relative size-12" />
-							<p className="relative mt-10 text-sm font-bold uppercase tracking-[0.18em] text-sidebar-primary">
-								{t("security.cardEyebrow")}
-							</p>
-							<p className="relative mt-3 text-3xl font-black leading-tight sm:text-4xl">
-								{t("security.cardTitle")}
-							</p>
-							<p className="relative mt-5 leading-7 text-sidebar-foreground/70">
-								{t("security.cardDetail")}
-							</p>
+							))}
 						</div>
 					</div>
 				</section>
 
-				<section className="px-5 pb-8 sm:px-8 sm:pb-12">
-					<div className="mx-auto max-w-7xl overflow-hidden rounded-[2rem] bg-sidebar px-6 py-12 text-center text-sidebar-foreground sm:px-12 sm:py-16">
-						<p className="text-sm font-bold uppercase tracking-[0.2em] text-sidebar-primary">
-							{t("cta.eyebrow")}
-						</p>
-						<h2 className="mx-auto mt-4 max-w-3xl text-balance text-3xl font-black tracking-tight sm:text-5xl">
-							{t("cta.title")}
-						</h2>
-						<p className="mx-auto mt-5 max-w-2xl text-lg leading-8 text-sidebar-foreground/70">
-							{t("cta.description")}
-						</p>
-						<Button
-							size="lg"
-							className="mt-8 h-13 rounded-xl px-8 text-base"
-							onClick={handleSignIn}
-							disabled={signingIn}
-						>
-							{t("hero.primary")}
-							<ArrowRight />
-						</Button>
+				<section className="bg-accent py-24 text-accent-foreground sm:py-32">
+					<div className="mx-auto max-w-[1180px] px-5 sm:px-8">
+						<blockquote className="max-w-5xl text-balance text-4xl font-semibold leading-[1.08] tracking-[-0.055em] sm:text-6xl">
+							{editorial.quote}
+						</blockquote>
+						<p className="mt-10 text-right text-sm font-bold">— Trainy design concept</p>
 					</div>
 				</section>
 			</main>
-			<footer className="border-t border-border bg-card">
-				<div className="mx-auto flex max-w-7xl flex-col gap-5 px-5 py-8 sm:flex-row sm:items-center sm:justify-between sm:px-8">
-					<BrandMark />
-					<p className="text-sm text-muted-foreground">{t("footer.description")}</p>
-					<LanguageToggle locale={locale} onChange={setLocale} />
+			<footer className="bg-sidebar py-20 text-sidebar-foreground sm:py-24">
+				<div className="mx-auto max-w-[1180px] px-5 sm:px-8">
+					<div className="flex flex-col justify-between gap-8 sm:flex-row sm:items-end">
+						<h2 className="max-w-2xl text-balance text-4xl font-semibold leading-tight tracking-[-0.045em] sm:text-6xl">
+							{editorial.ready}
+						</h2>
+						<Button
+							className="h-12 rounded-full bg-sidebar-primary px-7 text-sidebar-primary-foreground"
+							onClick={handleSignIn}
+							disabled={signingIn}
+						>
+							{t("auth.signIn")}
+							<ArrowRight />
+						</Button>
+					</div>
+					<div className="mt-20 flex items-center justify-between border-t border-sidebar-border pt-6">
+						<BrandMark className="text-sidebar-foreground" />
+						<p className="text-xs text-sidebar-foreground/45">{editorial.footer}</p>
+					</div>
 				</div>
 			</footer>
 		</div>
@@ -442,49 +438,6 @@ function DashboardPreview() {
 		</div>
 	);
 }
-function SectionHeading({
-	eyebrow,
-	title,
-	description,
-	dark = false,
-}: {
-	eyebrow: string;
-	title: string;
-	description: string;
-	dark?: boolean;
-}) {
-	return (
-		<div className="max-w-3xl">
-			<p
-				className={
-					dark
-						? "text-sm font-black uppercase tracking-[0.18em] text-sidebar-primary"
-						: "text-sm font-black uppercase tracking-[0.18em] text-primary"
-				}
-			>
-				{eyebrow}
-			</p>
-			<h2
-				className={
-					dark
-						? "mt-4 text-balance text-3xl font-black tracking-tight text-sidebar-foreground sm:text-5xl"
-						: "mt-4 text-balance text-3xl font-black tracking-tight text-foreground sm:text-5xl"
-				}
-			>
-				{title}
-			</h2>
-			<p
-				className={
-					dark
-						? "mt-5 text-lg leading-8 text-sidebar-foreground/70"
-						: "mt-5 text-lg leading-8 text-muted-foreground"
-				}
-			>
-				{description}
-			</p>
-		</div>
-	);
-}
 function FeatureCard({
 	number,
 	icon: Icon,
@@ -511,10 +464,12 @@ function FeatureCard({
 }
 function WorkflowStep({
 	number,
+	eyebrow,
 	title,
 	detail,
 }: {
 	number: string;
+	eyebrow: string;
 	title: string;
 	detail: string;
 }) {
@@ -523,76 +478,9 @@ function WorkflowStep({
 			<span className="absolute -left-3 top-0 grid size-6 place-items-center rounded-full bg-sidebar-primary text-[9px] font-black text-sidebar-primary-foreground md:-top-3 md:left-0">
 				{number}
 			</span>
+			<p className="mb-2 text-xs text-sidebar-foreground/45">{eyebrow}</p>
 			<h3 className="text-lg font-black">{title}</h3>
 			<p className="mt-3 text-sm leading-6 text-sidebar-foreground/60">{detail}</p>
 		</article>
-	);
-}
-function RoleCard({
-	icon: Icon,
-	title,
-	detail,
-	points,
-	featured = false,
-}: {
-	icon: typeof GraduationCap;
-	title: string;
-	detail: string;
-	points: string[];
-	featured?: boolean;
-}) {
-	return (
-		<article
-			className={
-				featured
-					? "rounded-[1.75rem] border border-sidebar-border bg-sidebar p-7 text-sidebar-foreground shadow-xl shadow-foreground/15 sm:p-8"
-					: "rounded-[1.75rem] border border-border bg-card p-7 text-foreground sm:p-8"
-			}
-		>
-			<span
-				className={
-					featured
-						? "grid size-12 place-items-center rounded-2xl bg-sidebar-primary text-sidebar-primary-foreground"
-						: "grid size-12 place-items-center rounded-2xl bg-accent text-accent-foreground"
-				}
-			>
-				<Icon className="size-6" />
-			</span>
-			<h3 className="mt-7 text-2xl font-black">{title}</h3>
-			<p
-				className={
-					featured
-						? "mt-3 leading-7 text-sidebar-foreground/70"
-						: "mt-3 leading-7 text-muted-foreground"
-				}
-			>
-				{detail}
-			</p>
-			<ul className="mt-7 space-y-3">
-				{points.map((point) => (
-					<li key={point} className="flex gap-3 text-sm font-semibold">
-						<Check
-							className={
-								featured
-									? "mt-0.5 size-4 shrink-0 text-sidebar-primary"
-									: "mt-0.5 size-4 shrink-0 text-success"
-							}
-						/>
-						{point}
-					</li>
-				))}
-			</ul>
-		</article>
-	);
-}
-function SecurityPoint({ title, detail }: { title: string; detail: string }) {
-	return (
-		<div className="rounded-2xl border border-border bg-muted p-5">
-			<div className="flex items-center gap-2 font-black text-foreground">
-				<CheckCircle2 className="size-5 text-success" />
-				{title}
-			</div>
-			<p className="mt-2 text-sm leading-6 text-muted-foreground">{detail}</p>
-		</div>
 	);
 }
