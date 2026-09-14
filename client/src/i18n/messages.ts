@@ -74,7 +74,7 @@ export const messages = {
 		"security.accessDetail": "แต่ละคำขอตรวจบทบาท องค์กร และความสัมพันธ์กับข้อมูล",
 		"security.audit": "การเปลี่ยนแปลงตรวจสอบได้",
 		"security.auditDetail": "เก็บเหตุการณ์สำคัญเพื่อย้อนดูที่มาและผู้ดำเนินการ",
-		"security.privacy": "ข้อมูลส่วนตัวมีบริบท",
+		"security.privacy": "ความเป็นส่วนตัวในทุกบริบท",
 		"security.privacyDetail": "ข้อมูลอ่อนไหวไม่ปะปนกับรายการงานทั่วไป",
 		"security.cardEyebrow": "Deny by default",
 		"security.cardTitle": "มีบัญชี ไม่ได้แปลว่าเห็นทุกอย่าง",

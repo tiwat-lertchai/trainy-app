@@ -18,6 +18,8 @@
 - Reframed the security section as "Secure from the start" / "ปลอดภัย
   ตั้งแต่เริ่มออกแบบ" to communicate that identity and access controls are part
   of the product foundation rather than an add-on.
+- Renamed the sensitive-data principle to "ความเป็นส่วนตัวในทุกบริบท" /
+  "Contextual privacy" for clearer, principle-led language.
 
 ## Files changed
 
