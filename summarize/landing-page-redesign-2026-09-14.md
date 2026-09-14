@@ -22,6 +22,8 @@
   "Contextual privacy" for clearer, principle-led language.
 - Replaced the technical-sounding access label with "เข้าถึงอย่างมีขอบเขต"
   while preserving the role, organization, and responsibility criteria.
+- Reframed the role section around the human-facing promise "แต่ละคน
+  เห็นเท่าที่ต้องใช้" / "Everyone sees what they need".
 
 ## Files changed
 

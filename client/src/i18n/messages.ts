@@ -46,9 +46,9 @@ export const messages = {
 		"workflow.step4": "ประเมินและสรุปผล",
 		"workflow.step4Detail": "จัดการแบบประเมิน กำหนดเวลา และผลลัพธ์ตามสิทธิ์การเปิดเผย",
 		"roles.eyebrow": "พื้นที่ทำงานตามบทบาท",
-		"roles.title": "แต่ละคนเห็นสิ่งที่สำคัญกับตน",
+		"roles.title": "แต่ละคน เห็นเท่าที่ต้องใช้",
 		"roles.description":
-			"หน้าจอและสิทธิ์ถูกออกแบบจากหน้าที่จริง ไม่ใช่ dashboard แบบเดียวสำหรับทุกคน",
+			"หน้าจอ ข้อมูล และเครื่องมือปรับตามหน้าที่ของแต่ละคน เพื่อให้เห็นเฉพาะสิ่งที่เกี่ยวข้องกับงานของตน",
 		"roles.student": "นักศึกษา",
 		"roles.studentDetail": "เดินหน้าการฝึกงานด้วยขั้นตอนและงานถัดไปที่ชัดเจน",
 		"roles.studentPoint1": "คำขอและสถานะการอนุมัติ",
@@ -760,9 +760,9 @@ export const messages = {
 		"workflow.step4Detail":
 			"Manage evaluation rounds, deadlines, and results under the correct disclosure policy.",
 		"roles.eyebrow": "Role-shaped workspaces",
-		"roles.title": "Everyone sees what matters to them",
+		"roles.title": "Everyone sees what they need",
 		"roles.description":
-			"Screens and permissions follow real responsibilities instead of forcing every user into the same dashboard.",
+			"Screens, information, and tools adapt to each role, keeping every workspace focused on the work that matters.",
 		"roles.student": "Students",
 		"roles.studentDetail":
 			"Move through the internship with a clear process and visible next action.",
