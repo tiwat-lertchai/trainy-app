@@ -25,7 +25,10 @@ The product home page must be action-oriented rather than a generic analytics da
 - **Workplace Supervisor:** confirms workplace information and submits assigned evaluations.
 - **System Administrator:** manages permissions, reference data, security policy, and system operation.
 
-Selecting a role during registration is a request only. It must never grant access by itself. Staff or another trusted institutional source must approve the requested role.
+Selecting a role during registration is a request only. A student request may be
+approved automatically after the required email and student evidence checks
+succeed. Staff or another trusted institutional source must approve every other
+requested role. Client-supplied role data must never grant access by itself.
 
 ## 3. Version 0.2 Scope
 
@@ -83,7 +86,8 @@ The identity model must remain provider-independent so Google Login may be added
 - **AUTH-01:** The sign-in page must offer LINE Login and Email/Password without requiring a role selection first.
 - **AUTH-02:** The LINE Login button must follow the official LINE Login button guidelines for logo, color, text, spacing, and interaction states.
 - **AUTH-03:** Better Auth is the intended authentication layer. User identity must be stored separately from authentication accounts so one user can safely have multiple sign-in methods.
-- **AUTH-04:** Email/Password registration must require email verification before the role request is submitted for approval.
+- **AUTH-04:** Email/Password registration must require email verification before
+  the role request enters automatic student approval or the manual approval queue.
 - **AUTH-05:** The system must support forgotten password, one-time password-reset tokens, and authenticated password changes.
 - **AUTH-06:** Passwords must be hashed by the authentication library and must never be stored, logged, or compared as plaintext.
 - **AUTH-07:** LINE Login must use an OpenID Connect Authorization Code flow and validate `state`, `nonce`, redirect URI, and PKCE on the server.
@@ -93,7 +97,10 @@ The identity model must remain provider-independent so Google Login may be added
 - **AUTH-11:** Verification data changes by type: student ID for students, personnel ID for institutional personnel, and invitation code for workplace supervisors.
 - **AUTH-12:** Required account states are `pending_email`, `pending_approval`, `active`, `rejected`, and `suspended`.
 - **AUTH-13:** Any account that is not `active` may access only its account-status page and actions necessary to complete verification or resolve rejection.
-- **AUTH-14:** Staff must be able to approve, reject with a reason, or suspend a registration request. Every transition must create an audit event.
+- **AUTH-14:** Verified student requests may be approved automatically. Staff must
+  be able to approve or reject other registration requests with a reason and to
+  suspend an account. Every automatic or manual transition must create an audit
+  event.
 - **AUTH-15:** On the first active sign-in, the user must see one readable onboarding page explaining required data use before completing their profile.
 - **AUTH-16:** Policy version, timestamp, and user ID must be recorded. Optional consent must be separate from required processing acknowledgement.
 - **AUTH-17:** Account linking must require authentication to the existing account or a secure recovery flow. Matching email alone is insufficient.
@@ -252,21 +259,21 @@ Every data-driven view must support:
 
 ## 11. Data Ownership and Visibility
 
-| Data                                | Owner/source                          | User-editable                     |
-| ----------------------------------- | ------------------------------------- | --------------------------------- |
-| User identity and account state     | System and authorized staff           | No                                |
-| Authentication credentials/accounts | User and Better Auth                  | Through authentication flows only |
-| Requested and approved roles        | Applicant, staff, or trusted registry | Request only; approval required   |
-| Privacy acknowledgement             | System                                | No                                |
-| Student institutional identity      | Student registry                      | No                                |
-| Advisor institutional identity      | Personnel registry                    | No                                |
-| Contact and emergency information   | Relevant user                         | Yes, subject to policy            |
-| Internship request content          | Student and approval workflow         | While editable or returned        |
-| Approval state and decision         | Authorized advisor/staff              | Authorized decision only          |
-| Official documents                  | Authorized staff                      | No                                |
-| Internship logs                     | Student and reviewers                 | According to state and role       |
-| Evaluation content                  | Assigned evaluator                    | According to evaluation state     |
-| Activity and audit history          | System                                | No                                |
+| Data                                | Owner/source                          | User-editable                                        |
+| ----------------------------------- | ------------------------------------- | ---------------------------------------------------- |
+| User identity and account state     | System and authorized staff           | No                                                   |
+| Authentication credentials/accounts | User and Better Auth                  | Through authentication flows only                    |
+| Requested and approved roles        | Applicant, staff, or trusted registry | Request only; verified students may be auto-approved |
+| Privacy acknowledgement             | System                                | No                                                   |
+| Student institutional identity      | Student registry                      | No                                                   |
+| Advisor institutional identity      | Personnel registry                    | No                                                   |
+| Contact and emergency information   | Relevant user                         | Yes, subject to policy                               |
+| Internship request content          | Student and approval workflow         | While editable or returned                           |
+| Approval state and decision         | Authorized advisor/staff              | Authorized decision only                             |
+| Official documents                  | Authorized staff                      | No                                                   |
+| Internship logs                     | Student and reviewers                 | According to state and role                          |
+| Evaluation content                  | Assigned evaluator                    | According to evaluation state                        |
+| Activity and audit history          | System                                | No                                                   |
 
 An advisor may access a student only when the advisor's role and academic scope permit it. Access control must be enforced on the server, including list, search, export, and detail endpoints.
 
@@ -320,7 +327,9 @@ An advisor may access a student only when the advisor's role and academic scope 
 ## 13. Version 0.2 Acceptance Criteria
 
 1. Existing users can sign in with Email/Password or a securely linked LINE account.
-2. A new applicant from either sign-in method enters the same role-request and approval flow.
+2. A new applicant from either sign-in method enters the same role-request flow;
+   verified students may be auto-approved, while other roles require authorized
+   approval.
 3. Non-active accounts cannot access protected data, including through direct API calls.
 4. Editing a requested role in a client request cannot grant additional permissions.
 5. Authorized staff can approve or reject a registration request with actor and timestamp recorded.

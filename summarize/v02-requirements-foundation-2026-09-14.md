@@ -55,8 +55,8 @@
 
 - Version 0.2 is not complete. Highest-priority runtime work is the
   provider-independent account state and active-account gate, followed by
-  verified email/password recovery, non-automatic role approval, and privacy
-  acknowledgement.
+  verified email/password recovery, audited student auto-approval, manual
+  approval for other roles, and privacy acknowledgement.
 - Advisor Students, role-specific home read models, History, profile expansion,
   request drafts/idempotency/downloads, evaluation rounds/disclosure, and
   notification deep links still require implementation.
