@@ -25,8 +25,9 @@ export const messages = {
 			"Trainy จัดลำดับงานตามสถานะจริง ลดการตามงานซ้ำ และเก็บข้อมูลทุกฝ่ายไว้ในบริบทเดียวกัน",
 		"features.actionTitle": "หน้าหลักที่เน้นการลงมือทำ",
 		"features.actionDetail": "เห็นงานที่ต้องทำ ผู้รับผิดชอบ และกำหนดเวลา ก่อนข้อมูลรองทั้งหมด",
-		"features.progressTitle": "ความคืบหน้าแบบติดตามพัสดุ",
-		"features.progressDetail": "ทุกคนเห็นว่างานอยู่ขั้นตอนไหน ผ่านอะไรแล้ว และกำลังรอใครอยู่",
+		"features.progressTitle": "ติดตามความคืบหน้าได้ทุกขั้นตอน",
+		"features.progressDetail":
+			"ทุกฝ่ายเห็นว่างานดำเนินถึงขั้นตอนไหน ผ่านอะไรแล้ว ขั้นตอนถัดไปคืออะไร และขณะนี้กำลังรอใครดำเนินการ",
 		"features.documentsTitle": "เอกสารอยู่กับเหตุการณ์",
 		"features.documentsDetail": "ค้นคำขอ เอกสาร การอนุมัติ และประวัติย้อนหลังได้จากบริบทเดิม",
 		"features.rolesTitle": "ข้อมูลพอดีกับหน้าที่",
@@ -733,9 +734,9 @@ export const messages = {
 		"features.actionTitle": "An action-first home",
 		"features.actionDetail":
 			"See the required action, owner, and deadline before secondary information.",
-		"features.progressTitle": "Trackable step-by-step progress",
+		"features.progressTitle": "Track progress at every step",
 		"features.progressDetail":
-			"Everyone can see what has passed, what comes next, and who currently owns the step.",
+			"Everyone can see the current status, what has been completed, what comes next, and who currently owns the step.",
 		"features.documentsTitle": "Documents stay in context",
 		"features.documentsDetail":
 			"Find requests, documents, decisions, and history together instead of in a disconnected file dump.",

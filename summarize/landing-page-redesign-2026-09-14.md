@@ -12,6 +12,9 @@
 - Added an accessible responsive menu with expanded state and Escape handling.
 - Added reduced-motion behavior and fixed anchor scroll spacing below the
   persistent header.
+- Refined the progress feature copy to "Track progress at every step" and made
+  the Thai/English description explicitly identify the current state, completed
+  steps, next step, and responsible party.
 
 ## Files changed
 
