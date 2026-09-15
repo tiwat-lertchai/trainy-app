@@ -21,7 +21,7 @@ bun install
 cp server/.env.example server/.env
 ```
 
-ห้ามนำ Better Auth secret, LINE secret หรือข้อมูลเชื่อมต่อ Neon database ขึ้น
+ห้ามนำ Better Auth secret, LINE/SMTP credentials หรือข้อมูลเชื่อมต่อ Neon database ขึ้น
 Git
 
 ## การพัฒนา

@@ -33,12 +33,14 @@
     "better-auth": "^1.7.2",
     "drizzle-orm": "^0.45.2",
     "hono": "^4.13.5",
+    "nodemailer": "10.0.9",
     "postgres": "^3.4.9",
     "shared": "workspace:*",
     "zod": "^4.4.3"
   },
   "devDependencies": {
     "@types/bun": "^1.4.0",
+    "@types/nodemailer": "^8.0.1",
     "drizzle-kit": "^0.31.10"
   }
 }

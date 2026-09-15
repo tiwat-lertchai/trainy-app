@@ -14,7 +14,7 @@ documented in [`server/docs/api-reference.md`](server/docs/api-reference.md).
 - [Bun](https://bun.sh) — JavaScript runtime and package manager
 - [Hono](https://hono.dev) — backend API framework
 - [Drizzle ORM](https://orm.drizzle.team) + [Neon](https://neon.tech) PostgreSQL — data layer
-- [Better Auth](https://www.better-auth.com) with LINE Login — authentication
+- [Better Auth](https://www.better-auth.com) with verified email/password and LINE Login — authentication
 - [Vite](https://vitejs.dev) + [React](https://react.dev) — frontend
 - [Turbo](https://turbo.build) — monorepo build orchestration
 

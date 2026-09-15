@@ -29,6 +29,18 @@ function readPort(value: string | undefined): number {
   return port;
 }
 
+function readSmtpPort(value: string | undefined): number {
+  const port = Number(value ?? 587);
+  if (!Number.isInteger(port) || port < 1 || port > 65_535) {
+    throw new Error("SMTP_PORT must be an integer between 1 and 65535");
+  }
+  return port;
+}
+
+function readBoolean(value: string | undefined): boolean {
+  return value === "true" || value === "1";
+}
+
 function readRequired(name: string, value: string | undefined): string {
   if (!value?.trim()) {
     throw new Error(`${name} is required`);
@@ -82,6 +94,25 @@ export const env = Object.freeze({
   BETTER_AUTH_URL: readUrl("BETTER_AUTH_URL", process.env.BETTER_AUTH_URL),
   LINE_CHANNEL_ID: readRequired("LINE_CHANNEL_ID", process.env.LINE_CHANNEL_ID),
   LINE_CHANNEL_SECRET: readRequired("LINE_CHANNEL_SECRET", process.env.LINE_CHANNEL_SECRET),
+  SMTP_HOST: readRequired(
+    "SMTP_HOST",
+    process.env.SMTP_HOST ?? (process.env.NODE_ENV === "test" ? "smtp.test.invalid" : undefined),
+  ),
+  SMTP_PORT: readSmtpPort(process.env.SMTP_PORT),
+  SMTP_SECURE: readBoolean(process.env.SMTP_SECURE),
+  SMTP_USER: readRequired(
+    "SMTP_USER",
+    process.env.SMTP_USER ?? (process.env.NODE_ENV === "test" ? "test" : undefined),
+  ),
+  SMTP_PASSWORD: readRequired(
+    "SMTP_PASSWORD",
+    process.env.SMTP_PASSWORD ?? (process.env.NODE_ENV === "test" ? "test" : undefined),
+  ),
+  SMTP_FROM: readRequired(
+    "SMTP_FROM",
+    process.env.SMTP_FROM ??
+      (process.env.NODE_ENV === "test" ? "Trainy <test@example.invalid>" : undefined),
+  ),
   UPLOAD_DIR: resolve(process.env.UPLOAD_DIR ?? "uploads"),
 });
 import { resolve } from "node:path";

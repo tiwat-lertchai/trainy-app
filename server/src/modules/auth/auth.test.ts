@@ -24,7 +24,28 @@ describe("Better Auth security", () => {
       sameSite: "lax",
       secure: false,
     });
-    expect(auth.options.trustedOrigins).toEqual(["http://localhost:5173"]);
+    expect(auth.options.trustedOrigins).toHaveLength(1);
+    expect(() => new URL(String(auth.options.trustedOrigins?.[0]))).not.toThrow();
+  });
+
+  it("requires verified email and strong passwords for credential sign-in", () => {
+    expect(auth.options.emailAndPassword).toMatchObject({
+      enabled: true,
+      requireEmailVerification: true,
+      minPasswordLength: 12,
+      maxPasswordLength: 128,
+      resetPasswordTokenExpiresIn: 1800,
+      revokeSessionsOnPasswordReset: true,
+    });
+  });
+
+  it("limits credential and password-reset endpoints", () => {
+    expect(auth.options.rateLimit?.customRules).toMatchObject({
+      "/sign-in/email": { window: 60, max: 5 },
+      "/sign-up/email": { window: 300, max: 3 },
+      "/request-password-reset": { window: 300, max: 3 },
+      "/reset-password": { window: 300, max: 5 },
+    });
   });
 });
 

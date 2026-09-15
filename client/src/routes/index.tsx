@@ -16,7 +16,6 @@ import { BrandMark } from "@/components/brand/brand-mark";
 import { Button } from "@/components/ui/button";
 import { useLanguage } from "@/i18n/config";
 import type { MessageKey } from "@/i18n/messages";
-import { signInWithLine } from "@/lib/auth-client";
 
 export const Route = createFileRoute("/")({ component: LandingPage });
 export const landingSections = ["features", "workflow"] as const;
@@ -24,7 +23,6 @@ export const landingSections = ["features", "workflow"] as const;
 function LandingPage() {
 	const { locale, setLocale, t } = useLanguage();
 	const [menuOpen, setMenuOpen] = useState(false);
-	const [signingIn, setSigningIn] = useState(false);
 	const editorial =
 		locale === "th"
 			? {
@@ -129,13 +127,8 @@ function LandingPage() {
 		return () => window.removeEventListener("keydown", close);
 	}, [menuOpen]);
 
-	async function handleSignIn() {
-		setSigningIn(true);
-		try {
-			await signInWithLine();
-		} finally {
-			setSigningIn(false);
-		}
+	function handleSignIn() {
+		window.location.assign("/auth");
 	}
 
 	return (
@@ -145,24 +138,24 @@ function LandingPage() {
 					<a href="#top" aria-label="Trainy home">
 						<BrandMark />
 					</a>
-					<nav
-						className="hidden items-center gap-7 text-sm font-semibold text-muted-foreground lg:flex"
-						aria-label="Primary navigation"
-					>
-						{landingSections.map((section) => (
-							<a
-								key={section}
-								className="transition-colors hover:text-primary"
-								href={`#${section}`}
-							>
-								{t(`nav.${section}` as MessageKey)}
-							</a>
-						))}
-					</nav>
 					<div className="hidden items-center gap-3 md:flex">
+						<nav
+							className="mr-4 hidden items-center gap-7 text-sm font-semibold text-muted-foreground lg:flex"
+							aria-label="Primary navigation"
+						>
+							{landingSections.map((section) => (
+								<a
+									key={section}
+									className="transition-colors hover:text-primary"
+									href={`#${section}`}
+								>
+									{t(`nav.${section}` as MessageKey)}
+								</a>
+							))}
+						</nav>
 						<LanguageToggle locale={locale} onChange={setLocale} />
-						<Button className="h-10 rounded-full px-5" onClick={handleSignIn} disabled={signingIn}>
-							{signingIn ? t("auth.signingIn") : t("auth.signIn")}
+						<Button className="h-10 rounded-full px-5" onClick={handleSignIn}>
+							{t("auth.signIn")}
 						</Button>
 					</div>
 					<Button
@@ -193,8 +186,8 @@ function LandingPage() {
 						</nav>
 						<div className="mt-4 grid grid-cols-[auto_1fr] gap-3 border-t pt-4">
 							<LanguageToggle locale={locale} onChange={setLocale} />
-							<Button className="h-11 rounded-xl" onClick={handleSignIn} disabled={signingIn}>
-								{signingIn ? t("auth.signingIn") : t("auth.signIn")}
+							<Button className="h-11 rounded-xl" onClick={handleSignIn}>
+								{t("auth.signIn")}
 							</Button>
 						</div>
 					</div>
@@ -222,7 +215,6 @@ function LandingPage() {
 									size="lg"
 									className="h-13 rounded-full px-6 text-base"
 									onClick={handleSignIn}
-									disabled={signingIn}
 								>
 									{editorial.primary}
 									<ArrowRight />
@@ -324,7 +316,6 @@ function LandingPage() {
 						<Button
 							className="h-12 rounded-full bg-sidebar-primary px-7 text-sidebar-primary-foreground hover:bg-sidebar-primary/88 hover:text-sidebar-primary-foreground active:bg-sidebar-primary/80 focus-visible:ring-sidebar-primary/55"
 							onClick={handleSignIn}
-							disabled={signingIn}
 						>
 							{t("auth.signIn")}
 							<ArrowRight />

@@ -30,6 +30,12 @@ services:
       BETTER_AUTH_URL: ${BETTER_AUTH_URL:-http://localhost:8081}
       LINE_CHANNEL_ID: ${LINE_CHANNEL_ID:?set LINE_CHANNEL_ID in .env}
       LINE_CHANNEL_SECRET: ${LINE_CHANNEL_SECRET:?set LINE_CHANNEL_SECRET in .env}
+      SMTP_HOST: ${SMTP_HOST:?set SMTP_HOST in .env}
+      SMTP_PORT: ${SMTP_PORT:-587}
+      SMTP_SECURE: ${SMTP_SECURE:-false}
+      SMTP_USER: ${SMTP_USER:?set SMTP_USER in .env}
+      SMTP_PASSWORD: ${SMTP_PASSWORD:?set SMTP_PASSWORD in .env}
+      SMTP_FROM: ${SMTP_FROM:?set SMTP_FROM in .env}
       UPLOAD_DIR: /app/server/uploads
     volumes:
       - uploads:/app/server/uploads
