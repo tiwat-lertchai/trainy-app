@@ -92,7 +92,7 @@ function AuthPage() {
 							onClick={() => void signInWithLine()}
 							disabled={pending}
 						>
-							เข้าสู่ระบบด้วย LINE
+							เข้าสู่ระบบ
 						</Button>
 					)}
 					{mode !== "forgot" && (
