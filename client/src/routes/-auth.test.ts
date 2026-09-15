@@ -1,4 +1,5 @@
 import { describe, expect, it } from "bun:test";
+import { LINE_CALLBACK_URL } from "@/lib/auth-client";
 import { authErrorMessage, type AuthMode } from "./auth";
 
 describe("email authentication UI", () => {
@@ -15,5 +16,10 @@ describe("email authentication UI", () => {
 	it("keeps all intended auth modes in the public contract", () => {
 		const modes: AuthMode[] = ["sign-in", "sign-up", "forgot"];
 		expect(modes).toHaveLength(3);
+	});
+
+	it("keeps the LINE completion redirect origin-relative", () => {
+		expect(LINE_CALLBACK_URL).toBe("/app");
+		expect(() => new URL(LINE_CALLBACK_URL)).toThrow();
 	});
 });
