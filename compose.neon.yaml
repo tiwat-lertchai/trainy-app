@@ -6,10 +6,10 @@ services:
     environment:
       NODE_ENV: production
       PORT: 3000
-      CORS_ORIGINS: ${CORS_ORIGINS:-http://localhost:8081}
+      CORS_ORIGINS: ${CORS_ORIGINS:?set CORS_ORIGINS to the public app origin}
       DATABASE_URL: ${DATABASE_URL:?set DATABASE_URL in .env}
       BETTER_AUTH_SECRET: ${BETTER_AUTH_SECRET:?set BETTER_AUTH_SECRET in .env}
-      BETTER_AUTH_URL: ${BETTER_AUTH_URL:-http://localhost:8081}
+      BETTER_AUTH_URL: ${BETTER_AUTH_URL:?set BETTER_AUTH_URL to the public app origin}
       LINE_CHANNEL_ID: ${LINE_CHANNEL_ID:?set LINE_CHANNEL_ID in .env}
       LINE_CHANNEL_SECRET: ${LINE_CHANNEL_SECRET:?set LINE_CHANNEL_SECRET in .env}
       SMTP_HOST: ${SMTP_HOST:?set SMTP_HOST in .env}
