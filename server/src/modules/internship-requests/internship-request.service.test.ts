@@ -46,14 +46,17 @@ function request(overrides: Partial<RequestWithApprovals> = {}): RequestWithAppr
     companyOrganizationId: "company",
     companyNameProposed: null,
     companyContactName: null,
+    companyContactPosition: null,
     companyContactEmail: null,
     companyContactPhone: null,
+    companyAddress: null,
     positionTitle: "Frontend Intern",
     description: "Build things.",
     proposedStartDate: new Date("2026-10-01"),
     proposedEndDate: new Date("2027-01-31"),
     advisorUserId: "advisor-1",
     status: "submitted",
+    submissionVersion: 1,
     revisionNote: null,
     createdAt: now,
     updatedAt: now,
@@ -71,6 +74,7 @@ class FakeRepository implements InternshipRequestRepository {
   organizations = new Map<string, OrgRow>([
     ["company", { id: "company", type: "company", status: "active" }],
   ]);
+  submissions = new Map<string, string>();
 
   key(organizationId: string, userId: string) {
     return `${organizationId}:${userId}`;
@@ -114,20 +118,50 @@ class FakeRepository implements InternshipRequestRepository {
       ["submitted", "revision_requested"].includes(item.status),
     );
   }
+  async countByStatuses(studentUserId: string, statuses: RequestWithApprovals["status"][]) {
+    return this.requests.filter(
+      (item) => item.studentUserId === studentUserId && statuses.includes(item.status),
+    ).length;
+  }
   async create(input: Parameters<InternshipRequestRepository["create"]>[0]) {
     const record = request({
       ...(input.request as RequestInsert),
-      approvals: internshipRequestSteps.map((step): ApprovalRecord => ({
-        id: `${step}-approval`,
-        requestId: "request-1",
-        step,
-        reviewerUserId: input.reviewers[step] ?? null,
-        decision: "pending",
-        note: null,
-        decidedAt: null,
-      })),
+      status: "draft",
+      submissionVersion: 0,
+      approvals: [],
     });
     this.requests.push(record);
+    return record;
+  }
+  async submit(input: Parameters<InternshipRequestRepository["submit"]>[0]) {
+    const replayRequestId = this.submissions.get(`${input.actorUserId}:${input.idempotencyKey}`);
+    if (replayRequestId) {
+      if (replayRequestId !== input.requestId) throw new Error("IDEMPOTENCY_KEY_REUSED");
+      return this.requests.find((item) => item.id === replayRequestId)!;
+    }
+    const record = this.requests.find((item) => item.id === input.requestId);
+    if (!record || record.status !== "draft") throw new Error("REQUEST_NOT_SUBMITTABLE");
+    record.status = "submitted";
+    record.submissionVersion += 1;
+    record.approvals = internshipRequestSteps.map((step): ApprovalRecord => ({
+      id: `${step}-approval`,
+      requestId: "request-1",
+      step,
+      reviewerUserId: input.reviewers[step] ?? null,
+      decision: "pending",
+      note: null,
+      decidedAt: null,
+    }));
+    this.submissions.set(`${input.actorUserId}:${input.idempotencyKey}`, input.requestId);
+    return record;
+  }
+  async updateDraft(
+    requestId: string,
+    updates: Parameters<InternshipRequestRepository["updateDraft"]>[1],
+  ) {
+    const record = this.requests.find((item) => item.id === requestId);
+    if (!record || record.status !== "draft") throw new Error("Not editable");
+    Object.assign(record, updates);
     return record;
   }
   async decideStep(input: Parameters<InternshipRequestRepository["decideStep"]>[0]) {
@@ -211,6 +245,7 @@ describe("resubmitInternshipRequestSchema", () => {
       resubmitInternshipRequestSchema.safeParse({
         ...resubmitUpdates,
         companyOrganizationId: "00000000-0000-4000-8000-000000000001",
+        idempotencyKey: "00000000-0000-4000-8000-000000000002",
       }).success,
     ).toBe(true);
   });
@@ -228,6 +263,26 @@ describe("resubmitInternshipRequestSchema", () => {
 });
 
 describe("InternshipRequestService.createRequest", () => {
+  test("keeps approvals absent until a draft is formally submitted", async () => {
+    const { service: svc } = service();
+    const draft = await svc.createDraft(baseCreateInput);
+    expect(draft).toMatchObject({ status: "draft", submissionVersion: 0, approvals: [] });
+    const submitted = await svc.submit("student-1", draft.id, crypto.randomUUID());
+    expect(submitted).toMatchObject({ status: "submitted", submissionVersion: 1 });
+    expect(submitted.approvals).toHaveLength(3);
+  });
+
+  test("replays the same submission without creating another approval set", async () => {
+    const { service: svc } = service();
+    const draft = await svc.createDraft(baseCreateInput);
+    const key = crypto.randomUUID();
+    const first = await svc.submit("student-1", draft.id, key);
+    const replay = await svc.submit("student-1", draft.id, key);
+    expect(replay.id).toBe(first.id);
+    expect(replay.submissionVersion).toBe(1);
+    expect(replay.approvals).toHaveLength(3);
+  });
+
   test("creates a request with all three approval steps resolved up front", async () => {
     const { service: svc } = service();
     const record = await svc.createRequest(baseCreateInput);

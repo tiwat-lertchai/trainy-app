@@ -6,6 +6,7 @@ let database: Database;
 let closeDatabase: () => Promise<void>;
 let repository: import("./internship-request.repository").DrizzleInternshipRequestRepository;
 let requestId: string;
+const submissionKey = crypto.randomUUID();
 const ids = { university: "", faculty: "", major: "" };
 
 beforeAll(async () => {
@@ -76,13 +77,19 @@ beforeAll(async () => {
       proposedEndDate: new Date("2027-04-01"),
       advisorUserId: "request-advisor",
     },
+  });
+  const submitted = await repository.submit({
+    requestId: created.id,
+    actorUserId: "request-student",
+    idempotencyKey: submissionKey,
+    maxActive: 2,
     reviewers: {
       advisor: "request-advisor",
       program_chair: "request-chair",
       center: null,
     },
   });
-  requestId = created.id;
+  requestId = submitted.id;
   await repository.decideStep({
     requestId,
     step: "advisor",
@@ -105,17 +112,39 @@ afterAll(async () => {
 });
 
 describe("DrizzleInternshipRequestRepository.resubmit", () => {
-  test("updates editable values and resets approvals in one transaction", async () => {
-    const record = await repository.resubmit(requestId, {
-      positionTitle: "Revised Internship",
-      description: "Revised internship request with corrected responsibilities.",
-      proposedStartDate: new Date("2027-01-15"),
-      proposedEndDate: new Date("2027-04-15"),
-      companyNameProposed: "Revised Company",
-      companyContactName: "Revised Contact",
-      companyContactEmail: "revised@example.test",
-      companyContactPhone: "0898765432",
+  test("replays an accepted submission key without duplicating approvals", async () => {
+    const record = await repository.submit({
+      requestId,
+      actorUserId: "request-student",
+      idempotencyKey: submissionKey,
+      maxActive: 2,
+      reviewers: {},
     });
+    expect(record.submissionVersion).toBe(1);
+    expect(record.approvals).toHaveLength(3);
+  });
+
+  test("updates editable values and resets approvals in one transaction", async () => {
+    const record = await repository.resubmit(
+      requestId,
+      {
+        positionTitle: "Revised Internship",
+        description: "Revised internship request with corrected responsibilities.",
+        proposedStartDate: new Date("2027-01-15"),
+        proposedEndDate: new Date("2027-04-15"),
+        companyNameProposed: "Revised Company",
+        companyContactName: "Revised Contact",
+        companyContactPosition: "HR Manager",
+        companyContactEmail: "revised@example.test",
+        companyContactPhone: "0898765432",
+        companyAddress: "123 Integration Road, Bangkok",
+      },
+      {
+        actorUserId: "request-student",
+        idempotencyKey: crypto.randomUUID(),
+        reviewers: {},
+      },
+    );
 
     expect(record).toMatchObject({
       status: "submitted",

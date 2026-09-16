@@ -17,6 +17,7 @@ import { organization } from "./organization";
 export const internshipRequestType = pgEnum("internship_request_type", ["regular", "cooperative"]);
 
 export const internshipRequestStatus = pgEnum("internship_request_status", [
+  "draft",
   "submitted",
   "revision_requested",
   "approved",
@@ -66,8 +67,10 @@ export const internshipRequest = pgTable(
     }),
     companyNameProposed: text("company_name_proposed"),
     companyContactName: text("company_contact_name"),
+    companyContactPosition: text("company_contact_position"),
     companyContactEmail: text("company_contact_email"),
     companyContactPhone: text("company_contact_phone"),
+    companyAddress: text("company_address"),
     positionTitle: text("position_title").notNull(),
     description: text("description").notNull(),
     proposedStartDate: timestamp("proposed_start_date", { withTimezone: true }).notNull(),
@@ -75,7 +78,8 @@ export const internshipRequest = pgTable(
     advisorUserId: text("advisor_user_id")
       .notNull()
       .references(() => user.id, { onDelete: "restrict" }),
-    status: internshipRequestStatus("status").default("submitted").notNull(),
+    status: internshipRequestStatus("status").default("draft").notNull(),
+    submissionVersion: integer("submission_version").default(0).notNull(),
     revisionNote: text("revision_note"),
     createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
     updatedAt: timestamp("updated_at", { withTimezone: true })
@@ -117,6 +121,32 @@ export const internshipRequestApproval = pgTable(
   },
   (table) => [
     uniqueIndex("internship_request_approval_request_step_uidx").on(table.requestId, table.step),
+  ],
+);
+
+export const internshipRequestSubmission = pgTable(
+  "internship_request_submission",
+  {
+    id: uuid("id").defaultRandom().primaryKey(),
+    requestId: uuid("request_id")
+      .notNull()
+      .references(() => internshipRequest.id, { onDelete: "cascade" }),
+    actorUserId: text("actor_user_id")
+      .notNull()
+      .references(() => user.id, { onDelete: "restrict" }),
+    idempotencyKey: text("idempotency_key").notNull(),
+    version: integer("version").notNull(),
+    submittedAt: timestamp("submitted_at", { withTimezone: true }).defaultNow().notNull(),
+  },
+  (table) => [
+    uniqueIndex("internship_request_submission_actor_key_uidx").on(
+      table.actorUserId,
+      table.idempotencyKey,
+    ),
+    uniqueIndex("internship_request_submission_request_version_uidx").on(
+      table.requestId,
+      table.version,
+    ),
   ],
 );
 
@@ -168,6 +198,7 @@ export const internshipRequestRelations = relations(internshipRequest, ({ one, m
     relationName: "internshipRequestAdvisor",
   }),
   approvals: many(internshipRequestApproval),
+  submissions: many(internshipRequestSubmission),
   documents: many(internshipRequestDocument),
 }));
 
@@ -180,6 +211,20 @@ export const internshipRequestApprovalRelations = relations(
     }),
     reviewer: one(user, {
       fields: [internshipRequestApproval.reviewerUserId],
+      references: [user.id],
+    }),
+  }),
+);
+
+export const internshipRequestSubmissionRelations = relations(
+  internshipRequestSubmission,
+  ({ one }) => ({
+    request: one(internshipRequest, {
+      fields: [internshipRequestSubmission.requestId],
+      references: [internshipRequest.id],
+    }),
+    actor: one(user, {
+      fields: [internshipRequestSubmission.actorUserId],
       references: [user.id],
     }),
   }),

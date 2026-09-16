@@ -1,9 +1,10 @@
 export type InternshipRequestStatus =
-	"submitted" | "revision_requested" | "approved" | "rejected" | "cancelled";
+	"draft" | "submitted" | "revision_requested" | "approved" | "rejected" | "cancelled";
 
 export type InternshipRequestStep = "advisor" | "program_chair" | "center";
 
 export const requestStatusKeys: Record<InternshipRequestStatus, MessageKey> = {
+	draft: "internshipRequests.status.draft",
 	submitted: "internshipRequests.status.submitted",
 	revision_requested: "internshipRequests.status.revisionRequested",
 	approved: "internshipRequests.status.approved",
@@ -18,10 +19,14 @@ export const requestStepKeys: Record<InternshipRequestStep, MessageKey> = {
 };
 
 export function canCancelRequest(status: InternshipRequestStatus) {
-	return status === "submitted" || status === "revision_requested";
+	return status === "draft" || status === "submitted" || status === "revision_requested";
 }
 
 export function canResubmitRequest(status: InternshipRequestStatus) {
 	return status === "revision_requested";
+}
+
+export function canEditRequest(status: InternshipRequestStatus) {
+	return status === "draft" || status === "revision_requested";
 }
 import type { MessageKey } from "@/i18n/messages";

@@ -1,4 +1,4 @@
-import { and, eq, inArray } from "drizzle-orm";
+import { and, count, eq, inArray, sql } from "drizzle-orm";
 import type { Database } from "../../db";
 import {
   academicFaculty,
@@ -6,6 +6,7 @@ import {
   internshipRequest,
   internshipRequestApproval,
   internshipRequestDocument,
+  internshipRequestSubmission,
   organization,
   organizationMembership,
   user,
@@ -35,10 +36,24 @@ export interface InternshipRequestRepository {
   findById(id: string): Promise<RequestWithApprovals | undefined>;
   listMine(studentUserId: string): Promise<RequestWithApprovals[]>;
   listActive(): Promise<RequestWithApprovals[]>;
+  countByStatuses(studentUserId: string, statuses: RequestRecord["status"][]): Promise<number>;
   create(input: {
-    request: Omit<RequestInsert, "id" | "status" | "revisionNote" | "createdAt" | "updatedAt">;
+    request: Omit<
+      RequestInsert,
+      "id" | "status" | "submissionVersion" | "revisionNote" | "createdAt" | "updatedAt"
+    >;
+  }): Promise<RequestWithApprovals>;
+  submit(input: {
+    requestId: string;
+    actorUserId: string;
+    idempotencyKey: string;
+    maxActive: number;
     reviewers: Partial<Record<InternshipRequestStep, string | null>>;
   }): Promise<RequestWithApprovals>;
+  updateDraft(
+    requestId: string,
+    updates: Parameters<InternshipRequestRepository["resubmit"]>[1],
+  ): Promise<RequestWithApprovals>;
   decideStep(input: {
     requestId: string;
     step: InternshipRequestStep;
@@ -57,9 +72,16 @@ export interface InternshipRequestRepository {
       | "companyOrganizationId"
       | "companyNameProposed"
       | "companyContactName"
+      | "companyContactPosition"
       | "companyContactEmail"
       | "companyContactPhone"
+      | "companyAddress"
     >,
+    submission: {
+      actorUserId: string;
+      idempotencyKey: string;
+      reviewers: Partial<Record<InternshipRequestStep, string | null>>;
+    },
   ): Promise<RequestWithApprovals>;
   cancel(requestId: string): Promise<RequestRecord>;
 }
@@ -135,13 +157,91 @@ export class DrizzleInternshipRequestRepository implements InternshipRequestRepo
     });
   }
 
+  async countByStatuses(studentUserId: string, statuses: RequestRecord["status"][]) {
+    const [result] = await this.database
+      .select({ value: count() })
+      .from(internshipRequest)
+      .where(
+        and(
+          eq(internshipRequest.studentUserId, studentUserId),
+          inArray(internshipRequest.status, statuses),
+        ),
+      );
+    return result?.value ?? 0;
+  }
+
   async create(input: Parameters<InternshipRequestRepository["create"]>[0]) {
+    const [record] = await this.database
+      .insert(internshipRequest)
+      .values(input.request)
+      .returning();
+    if (!record) throw new Error("Database did not return the internship request");
+    return { ...record, approvals: [] };
+  }
+
+  async submit(input: Parameters<InternshipRequestRepository["submit"]>[0]) {
     return this.database.transaction(async (transaction) => {
+      await transaction.execute(
+        sql`select pg_advisory_xact_lock(hashtextextended(${input.actorUserId}, 0))`,
+      );
+      const existing = await transaction.query.internshipRequestSubmission.findFirst({
+        where: and(
+          eq(internshipRequestSubmission.actorUserId, input.actorUserId),
+          eq(internshipRequestSubmission.idempotencyKey, input.idempotencyKey),
+        ),
+      });
+      if (existing) {
+        if (existing.requestId !== input.requestId) throw new Error("IDEMPOTENCY_KEY_REUSED");
+        const replay = await transaction.query.internshipRequest.findFirst({
+          where: eq(internshipRequest.id, input.requestId),
+          with: { approvals: true },
+        });
+        if (!replay) throw new Error("Request not found");
+        return replay;
+      }
+
+      const [activeCount] = await transaction
+        .select({ value: count() })
+        .from(internshipRequest)
+        .where(
+          and(
+            eq(internshipRequest.studentUserId, input.actorUserId),
+            inArray(internshipRequest.status, ["submitted", "revision_requested"]),
+          ),
+        );
+      if ((activeCount?.value ?? 0) >= input.maxActive) throw new Error("ACTIVE_LIMIT_REACHED");
+
       const [record] = await transaction
-        .insert(internshipRequest)
-        .values(input.request)
+        .update(internshipRequest)
+        .set({
+          status: "submitted",
+          revisionNote: null,
+          submissionVersion: sql`${internshipRequest.submissionVersion} + 1`,
+        })
+        .where(
+          and(
+            eq(internshipRequest.id, input.requestId),
+            eq(internshipRequest.studentUserId, input.actorUserId),
+            eq(internshipRequest.status, "draft"),
+          ),
+        )
         .returning();
-      if (!record) throw new Error("Database did not return the internship request");
+      if (!record) {
+        const replayAttempt = await transaction.query.internshipRequestSubmission.findFirst({
+          where: and(
+            eq(internshipRequestSubmission.actorUserId, input.actorUserId),
+            eq(internshipRequestSubmission.idempotencyKey, input.idempotencyKey),
+          ),
+        });
+        if (replayAttempt?.requestId === input.requestId) {
+          const replay = await transaction.query.internshipRequest.findFirst({
+            where: eq(internshipRequest.id, input.requestId),
+            with: { approvals: true },
+          });
+          if (replay) return replay;
+        }
+        throw new Error("REQUEST_NOT_SUBMITTABLE");
+      }
       await transaction.insert(internshipRequestApproval).values(
         STEP_ORDER.map((step) => ({
           requestId: record.id,
@@ -149,11 +249,39 @@ export class DrizzleInternshipRequestRepository implements InternshipRequestRepo
           reviewerUserId: input.reviewers[step] ?? null,
         })),
       );
+      await transaction.insert(internshipRequestSubmission).values({
+        requestId: record.id,
+        actorUserId: input.actorUserId,
+        idempotencyKey: input.idempotencyKey,
+        version: record.submissionVersion,
+      });
       const approvals = await transaction.query.internshipRequestApproval.findMany({
         where: eq(internshipRequestApproval.requestId, record.id),
       });
       return { ...record, approvals };
     });
+  }
+
+  async updateDraft(
+    requestId: string,
+    updates: Parameters<InternshipRequestRepository["updateDraft"]>[1],
+  ) {
+    const [record] = await this.database
+      .update(internshipRequest)
+      .set({
+        ...updates,
+        companyOrganizationId: updates.companyOrganizationId ?? null,
+        companyNameProposed: updates.companyNameProposed ?? null,
+        companyContactName: updates.companyContactName ?? null,
+        companyContactPosition: updates.companyContactPosition ?? null,
+        companyContactEmail: updates.companyContactEmail ?? null,
+        companyContactPhone: updates.companyContactPhone ?? null,
+        companyAddress: updates.companyAddress ?? null,
+      })
+      .where(and(eq(internshipRequest.id, requestId), eq(internshipRequest.status, "draft")))
+      .returning();
+    if (!record) throw new Error("Request is not editable");
+    return { ...record, approvals: [] };
   }
 
   async decideStep(input: Parameters<InternshipRequestRepository["decideStep"]>[0]) {
@@ -210,8 +338,24 @@ export class DrizzleInternshipRequestRepository implements InternshipRequestRepo
   async resubmit(
     requestId: string,
     updates: Parameters<InternshipRequestRepository["resubmit"]>[1],
+    submission: Parameters<InternshipRequestRepository["resubmit"]>[2],
   ) {
     return this.database.transaction(async (transaction) => {
+      const existing = await transaction.query.internshipRequestSubmission.findFirst({
+        where: and(
+          eq(internshipRequestSubmission.actorUserId, submission.actorUserId),
+          eq(internshipRequestSubmission.idempotencyKey, submission.idempotencyKey),
+        ),
+      });
+      if (existing) {
+        if (existing.requestId !== requestId) throw new Error("IDEMPOTENCY_KEY_REUSED");
+        const replay = await transaction.query.internshipRequest.findFirst({
+          where: eq(internshipRequest.id, requestId),
+          with: { approvals: true },
+        });
+        if (!replay) throw new Error("Request not found");
+        return replay;
+      }
       const [record] = await transaction
         .update(internshipRequest)
         .set({
@@ -219,9 +363,12 @@ export class DrizzleInternshipRequestRepository implements InternshipRequestRepo
           companyOrganizationId: updates.companyOrganizationId ?? null,
           companyNameProposed: updates.companyNameProposed ?? null,
           companyContactName: updates.companyContactName ?? null,
+          companyContactPosition: updates.companyContactPosition ?? null,
           companyContactEmail: updates.companyContactEmail ?? null,
           companyContactPhone: updates.companyContactPhone ?? null,
+          companyAddress: updates.companyAddress ?? null,
           status: "submitted",
+          submissionVersion: sql`${internshipRequest.submissionVersion} + 1`,
           revisionNote: null,
         })
         .where(
@@ -231,7 +378,22 @@ export class DrizzleInternshipRequestRepository implements InternshipRequestRepo
           ),
         )
         .returning();
-      if (!record) throw new Error("Request is not awaiting resubmission");
+      if (!record) {
+        const replayAttempt = await transaction.query.internshipRequestSubmission.findFirst({
+          where: and(
+            eq(internshipRequestSubmission.actorUserId, submission.actorUserId),
+            eq(internshipRequestSubmission.idempotencyKey, submission.idempotencyKey),
+          ),
+        });
+        if (replayAttempt?.requestId === requestId) {
+          const replay = await transaction.query.internshipRequest.findFirst({
+            where: eq(internshipRequest.id, requestId),
+            with: { approvals: true },
+          });
+          if (replay) return replay;
+        }
+        throw new Error("Request is not awaiting resubmission");
+      }
       await transaction
         .update(internshipRequestApproval)
         .set({ decision: "pending", note: null, decidedAt: null })
@@ -246,6 +408,12 @@ export class DrizzleInternshipRequestRepository implements InternshipRequestRepo
             eq(internshipRequestApproval.step, "center"),
           ),
         );
+      await transaction.insert(internshipRequestSubmission).values({
+        requestId,
+        actorUserId: submission.actorUserId,
+        idempotencyKey: submission.idempotencyKey,
+        version: record.submissionVersion,
+      });
       const approvals = await transaction.query.internshipRequestApproval.findMany({
         where: eq(internshipRequestApproval.requestId, requestId),
       });
@@ -260,7 +428,7 @@ export class DrizzleInternshipRequestRepository implements InternshipRequestRepo
       .where(
         and(
           eq(internshipRequest.id, requestId),
-          inArray(internshipRequest.status, ["submitted", "revision_requested"]),
+          inArray(internshipRequest.status, ["draft", "submitted", "revision_requested"]),
         ),
       )
       .returning();

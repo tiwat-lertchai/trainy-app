@@ -14,8 +14,10 @@ const editableRequestFields = {
   companyOrganizationId: z.string().uuid().optional(),
   companyNameProposed: requiredText.optional(),
   companyContactName: requiredText.optional(),
+  companyContactPosition: requiredText.optional(),
   companyContactEmail: z.string().trim().email().max(320).optional(),
   companyContactPhone: z.string().trim().min(8).max(30).optional(),
+  companyAddress: z.string().trim().min(5).max(1000).optional(),
 };
 
 const editableInternshipRequestSchema = z.object(editableRequestFields);
@@ -40,10 +42,16 @@ function validateEditableRequest(
     });
   }
   if (!hasCompanyOrg) {
-    if (!value.companyContactName || !value.companyContactEmail || !value.companyContactPhone) {
+    if (
+      !value.companyContactName ||
+      !value.companyContactPosition ||
+      !value.companyContactEmail ||
+      !value.companyContactPhone ||
+      !value.companyAddress
+    ) {
       context.addIssue({
         code: "custom",
-        message: "Contact name, email, and phone are required when proposing a new company",
+        message: "Complete company contact and address details are required for a new company",
       });
     }
   }
@@ -61,8 +69,14 @@ export const createInternshipRequestSchema = z
   })
   .superRefine(validateEditableRequest);
 
-export const resubmitInternshipRequestSchema =
+export const resubmitInternshipRequestSchema = editableInternshipRequestSchema
+  .extend({ idempotencyKey: z.string().uuid() })
+  .superRefine(validateEditableRequest);
+
+export const updateDraftInternshipRequestSchema =
   editableInternshipRequestSchema.superRefine(validateEditableRequest);
+
+export const submitInternshipRequestSchema = z.object({ idempotencyKey: z.string().uuid() });
 
 export const reviewStepSchema = z
   .object({

@@ -7,7 +7,7 @@ import { apiClient } from "@/lib/api-client";
 import type { OrganizationRole } from "@/features/organizations/role-navigation";
 import {
 	canCancelRequest,
-	canResubmitRequest,
+	canEditRequest,
 	requestStatusKeys,
 	requestStepKeys,
 	type InternshipRequestStatus,
@@ -74,7 +74,7 @@ function StudentRequests({ organizationId }: { organizationId?: string }) {
 		},
 	});
 	const create = useMutation({
-		mutationFn: async (form: HTMLFormElement) => {
+		mutationFn: async ({ form, submitNow }: { form: HTMLFormElement; submitNow: boolean }) => {
 			const data = new FormData(form);
 			const response = await apiClient.api.v1["internship-requests"].$post({
 				json: {
@@ -90,12 +90,21 @@ function StudentRequests({ organizationId }: { organizationId?: string }) {
 					advisorUserId: String(data.get("advisorUserId")),
 					companyNameProposed: String(data.get("companyNameProposed")),
 					companyContactName: String(data.get("companyContactName")),
+					companyContactPosition: String(data.get("companyContactPosition")),
 					companyContactEmail: String(data.get("companyContactEmail")),
 					companyContactPhone: String(data.get("companyContactPhone")),
+					companyAddress: String(data.get("companyAddress")),
 				},
 			});
 			if (!response.ok) throw new Error(`REQUEST_${response.status}`);
-			return response.json();
+			const draft = await response.json();
+			if (!submitNow) return draft;
+			const submitted = await apiClient.api.v1["internship-requests"][":requestId"].submit.$post({
+				param: { requestId: draft.data.id },
+				json: { idempotencyKey: crypto.randomUUID() },
+			});
+			if (!submitted.ok) throw new Error(`SUBMIT_${submitted.status}`);
+			return submitted.json();
 		},
 		onSuccess: async () => {
 			await queryClient.invalidateQueries({ queryKey: ["internship-requests", "me"] });
@@ -119,19 +128,28 @@ function StudentRequests({ organizationId }: { organizationId?: string }) {
 				: {
 						companyNameProposed: String(data.get("companyNameProposed")),
 						companyContactName: String(data.get("companyContactName")),
+						companyContactPosition: String(data.get("companyContactPosition")),
 						companyContactEmail: String(data.get("companyContactEmail")),
 						companyContactPhone: String(data.get("companyContactPhone")),
+						companyAddress: String(data.get("companyAddress")),
 					};
-			const response = await apiClient.api.v1["internship-requests"][":requestId"].resubmit.$post({
-				param: { requestId: request.id },
-				json: {
-					positionTitle: String(data.get("positionTitle")),
-					description: String(data.get("description")),
-					proposedStartDate: String(data.get("proposedStartDate")),
-					proposedEndDate: String(data.get("proposedEndDate")),
-					...company,
-				},
-			});
+			const editable = {
+				positionTitle: String(data.get("positionTitle")),
+				description: String(data.get("description")),
+				proposedStartDate: String(data.get("proposedStartDate")),
+				proposedEndDate: String(data.get("proposedEndDate")),
+				...company,
+			};
+			const response =
+				(request as EditableRequest & { status: string }).status === "draft"
+					? await apiClient.api.v1["internship-requests"][":requestId"].$patch({
+							param: { requestId: request.id },
+							json: editable,
+						})
+					: await apiClient.api.v1["internship-requests"][":requestId"].resubmit.$post({
+							param: { requestId: request.id },
+							json: { ...editable, idempotencyKey: crypto.randomUUID() },
+						});
 			if (!response.ok) throw new Error(`REQUEST_${response.status}`);
 			return response.json();
 		},
@@ -140,11 +158,26 @@ function StudentRequests({ organizationId }: { organizationId?: string }) {
 			await queryClient.invalidateQueries({ queryKey: ["internship-requests", "me"] });
 		},
 	});
+	const submitDraft = useMutation({
+		mutationFn: async (id: string) => {
+			const response = await apiClient.api.v1["internship-requests"][":requestId"].submit.$post({
+				param: { requestId: id },
+				json: { idempotencyKey: crypto.randomUUID() },
+			});
+			if (!response.ok) throw new Error(`SUBMIT_${response.status}`);
+			return response.json();
+		},
+		onSuccess: () => queryClient.invalidateQueries({ queryKey: ["internship-requests", "me"] }),
+	});
 
 	function submit(event: FormEvent<HTMLFormElement>) {
 		event.preventDefault();
 		const form = event.currentTarget;
-		create.mutate(form, { onSuccess: () => form.reset() });
+		const submitter = (event.nativeEvent as SubmitEvent).submitter as HTMLButtonElement | null;
+		create.mutate(
+			{ form, submitNow: submitter?.value !== "draft" },
+			{ onSuccess: () => form.reset() },
+		);
 	}
 
 	return (
@@ -255,6 +288,15 @@ function StudentRequests({ organizationId }: { organizationId?: string }) {
 						className={controlClass}
 					/>
 				</Field>
+				<Field label={t("internshipRequests.contactPosition")}>
+					<input
+						name="companyContactPosition"
+						minLength={2}
+						maxLength={200}
+						required
+						className={controlClass}
+					/>
+				</Field>
 				<Field label={t("internshipRequests.contactEmail")}>
 					<input name="companyContactEmail" type="email" required className={controlClass} />
 				</Field>
@@ -265,6 +307,15 @@ function StudentRequests({ organizationId }: { organizationId?: string }) {
 						maxLength={30}
 						required
 						className={controlClass}
+					/>
+				</Field>
+				<Field label={t("internshipRequests.companyAddress")} wide>
+					<textarea
+						name="companyAddress"
+						minLength={5}
+						maxLength={1000}
+						required
+						className={`${controlClass} min-h-20 py-3`}
 					/>
 				</Field>
 				<Field label={t("internshipRequests.details")} wide>
@@ -282,8 +333,23 @@ function StudentRequests({ organizationId }: { organizationId?: string }) {
 							{t("internshipRequests.createError")}
 						</p>
 					)}
-					<Button disabled={create.isPending || !majorId}>
+					<Button
+						type="submit"
+						name="intent"
+						value="submit"
+						disabled={create.isPending || !majorId}
+					>
 						{t(create.isPending ? "internshipRequests.sending" : "internshipRequests.send")}
+					</Button>
+					<Button
+						type="submit"
+						name="intent"
+						value="draft"
+						variant="outline"
+						className="ml-2"
+						disabled={create.isPending || !majorId}
+					>
+						{t("internshipRequests.saveDraft")}
 					</Button>
 				</div>
 			</form>
@@ -306,9 +372,18 @@ function StudentRequests({ organizationId }: { organizationId?: string }) {
 									/>
 								) : (
 									<div className="flex gap-2">
-										{canResubmitRequest(status) && (
+										{canEditRequest(status) && (
 											<Button size="sm" onClick={() => setEditingRequestId(request.id)}>
 												{t("internshipRequests.editResubmit")}
+											</Button>
+										)}
+										{status === "draft" && (
+											<Button
+												size="sm"
+												disabled={submitDraft.isPending}
+												onClick={() => submitDraft.mutate(request.id)}
+											>
+												{t("internshipRequests.submitDraft")}
 											</Button>
 										)}
 										{canCancelRequest(status) && (
@@ -334,6 +409,7 @@ function StudentRequests({ organizationId }: { organizationId?: string }) {
 
 type EditableRequest = {
 	id: string;
+	status: string;
 	positionTitle: string;
 	description: string;
 	proposedStartDate: string | Date;
@@ -341,8 +417,10 @@ type EditableRequest = {
 	companyOrganizationId: string | null;
 	companyNameProposed: string | null;
 	companyContactName: string | null;
+	companyContactPosition: string | null;
 	companyContactEmail: string | null;
 	companyContactPhone: string | null;
+	companyAddress: string | null;
 };
 
 function RevisionForm({
@@ -399,6 +477,16 @@ function RevisionForm({
 							className={controlClass}
 						/>
 					</Field>
+					<Field label={t("internshipRequests.contactPosition")}>
+						<input
+							name="companyContactPosition"
+							defaultValue={request.companyContactPosition ?? ""}
+							minLength={2}
+							maxLength={200}
+							required
+							className={controlClass}
+						/>
+					</Field>
 					<Field label={t("internshipRequests.contactEmail")}>
 						<input
 							name="companyContactEmail"
@@ -416,6 +504,16 @@ function RevisionForm({
 							maxLength={30}
 							required
 							className={controlClass}
+						/>
+					</Field>
+					<Field label={t("internshipRequests.companyAddress")} wide>
+						<textarea
+							name="companyAddress"
+							defaultValue={request.companyAddress ?? ""}
+							minLength={5}
+							maxLength={1000}
+							required
+							className={`${controlClass} min-h-20 py-3`}
 						/>
 					</Field>
 				</>

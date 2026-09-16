@@ -261,14 +261,23 @@ name and email after role and tenant access checks succeed.
 
 Base path: `/api/v1/internship-requests`
 
-| Method | Path                             | Access                                     |
-| ------ | -------------------------------- | ------------------------------------------ |
-| POST   | `/`                              | Student                                    |
-| GET    | `/me`                            | Current student                            |
-| GET    | `/reviews`                       | Assigned/eligible reviewer                 |
-| POST   | `/:requestId/steps/:step/review` | Reviewer for the currently active step     |
-| POST   | `/:requestId/resubmit`           | Request owner; `revision_requested` only   |
-| POST   | `/:requestId/cancel`             | Request owner; open or revision state only |
+| Method | Path                             | Access                                        |
+| ------ | -------------------------------- | --------------------------------------------- |
+| POST   | `/`                              | Student; creates a draft                      |
+| GET    | `/me`                            | Current student                               |
+| PATCH  | `/:requestId`                    | Request owner; `draft` only                   |
+| POST   | `/:requestId/submit`             | Request owner; `draft` only                   |
+| GET    | `/reviews`                       | Assigned/eligible reviewer                    |
+| POST   | `/:requestId/steps/:step/review` | Reviewer for the currently active step        |
+| POST   | `/:requestId/resubmit`           | Request owner; `revision_requested` only      |
+| POST   | `/:requestId/cancel`             | Request owner; draft, open, or revision state |
+
+Drafts do not create approval rows. Formal submission creates the ordered
+approval steps atomically and requires a client-generated UUID
+`idempotencyKey`. Repeating the same key for the same request returns the prior
+result without advancing its submission version or duplicating approvals. A
+student may keep up to five drafts and two active (`submitted` or
+`revision_requested`) requests.
 
 Resubmission requires the complete set of editable values. The academic major,
 internship type, advisor, program chair, and approval assignments cannot be
@@ -276,10 +285,12 @@ changed through this endpoint. The body accepts `positionTitle`, `description`,
 `proposedStartDate`, `proposedEndDate`, and exactly one company source:
 
 - `companyOrganizationId` for an active company already in Trainy; or
-- `companyNameProposed`, `companyContactName`, `companyContactEmail`, and
-  `companyContactPhone` for a proposed company.
+- `companyNameProposed`, `companyContactName`, `companyContactPosition`,
+  `companyContactEmail`, `companyContactPhone`, and `companyAddress` for a
+  proposed company.
 
-The end date must be after the start date. A successful resubmission updates the
+The end date must be after the start date. Resubmission also requires a fresh
+`idempotencyKey`. A successful resubmission updates the
 editable values and resets all approval decisions atomically while retaining the
 same request and assigned advisor/program chair.
 

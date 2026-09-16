@@ -139,6 +139,16 @@ export function AppDashboard() {
 		enabled: role === "student" && pathname === "/app",
 		...liveDashboardQueryOptions,
 	});
+	const internshipRequests = useQuery({
+		queryKey: ["internship-requests", "me", "dashboard"],
+		queryFn: async () => {
+			const response = await apiClient.api.v1["internship-requests"].me.$get();
+			if (!response.ok) throw new Error("INTERNSHIP_REQUESTS_FAILED");
+			return response.json();
+		},
+		enabled: role === "student" && pathname === "/app",
+		...liveDashboardQueryOptions,
+	});
 
 	if (session.isPending) return <FullPageMessage title={t("dashboard.loadingSession")} />;
 	if (!session.data?.user) return <SignedOut />;
@@ -162,13 +172,17 @@ export function AppDashboard() {
 					role,
 					placements: placements.data?.data ?? [],
 					applications: applications.data?.data,
+					requests: internshipRequests.data?.data,
 					organizationCount: organizations.data?.data.length ?? 0,
 				})
 			: undefined;
 	const dashboardLoading = isAdmin
 		? report.isLoading
-		: placements.isLoading || (role === "student" && applications.isLoading);
-	const dashboardError = isAdmin ? report.isError : placements.isError || applications.isError;
+		: placements.isLoading ||
+			(role === "student" && (applications.isLoading || internshipRequests.isLoading));
+	const dashboardError = isAdmin
+		? report.isError
+		: placements.isError || applications.isError || internshipRequests.isError;
 	const renderNavItems = (items: readonly NavigationKey[], mobile = false) =>
 		items.map((key) => {
 			const { label, icon: Icon } = navigationDetails[key];
@@ -362,10 +376,21 @@ function DashboardOverview({
 							<Task
 								title={
 									role === "student"
-										? t("dashboard.pendingApplications")
+										? snapshot?.nextAction === "editRequest"
+											? t("dashboard.editInternshipRequest")
+											: snapshot?.nextAction === "awaitRequestReview"
+												? t("dashboard.awaitInternshipRequestReview")
+												: t("dashboard.pendingApplications")
 										: t("dashboard.pendingPlacements")
 								}
-								to={role === "student" ? "/app/applications" : "/app/placements"}
+								to={
+									role === "student" &&
+									["editRequest", "awaitRequestReview"].includes(snapshot?.nextAction ?? "")
+										? "/app/internship-request"
+										: role === "student"
+											? "/app/applications"
+											: "/app/placements"
+								}
 								urgent
 							/>
 						) : (
@@ -558,7 +583,7 @@ function Task({
 	urgent = false,
 }: {
 	title: string;
-	to: "/app/applications" | "/app/placements";
+	to: "/app/applications" | "/app/internship-request" | "/app/placements";
 	urgent?: boolean;
 }) {
 	return (

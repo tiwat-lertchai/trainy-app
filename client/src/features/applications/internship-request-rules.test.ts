@@ -1,6 +1,7 @@
 import { describe, expect, test } from "bun:test";
 import {
 	canCancelRequest,
+	canEditRequest,
 	canResubmitRequest,
 	requestStatusKeys,
 	requestStepKeys,
@@ -9,9 +10,16 @@ import {
 describe("internship request presentation rules", () => {
 	test("allows cancellation only while a request remains open", () => {
 		expect(canCancelRequest("submitted")).toBe(true);
+		expect(canCancelRequest("draft")).toBe(true);
 		expect(canCancelRequest("revision_requested")).toBe(true);
 		expect(canCancelRequest("approved")).toBe(false);
 		expect(canCancelRequest("rejected")).toBe(false);
+	});
+
+	test("allows editing drafts and returned requests", () => {
+		expect(canEditRequest("draft")).toBe(true);
+		expect(canEditRequest("revision_requested")).toBe(true);
+		expect(canEditRequest("submitted")).toBe(false);
 	});
 
 	test("allows resubmission only after a revision request", () => {

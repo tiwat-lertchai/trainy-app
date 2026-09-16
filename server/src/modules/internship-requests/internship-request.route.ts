@@ -10,6 +10,8 @@ import {
   requestStepParamSchema,
   resubmitInternshipRequestSchema,
   reviewStepSchema,
+  submitInternshipRequestSchema,
+  updateDraftInternshipRequestSchema,
 } from "./internship-request.schema";
 import { InternshipRequestService } from "./internship-request.service";
 import { DrizzleStudentProfileRepository } from "../student-profile/student-profile.repository";
@@ -24,7 +26,7 @@ export const internshipRequestRoute = new Hono<{ Variables: AuthVariables }>()
   .post("/", zValidator("json", createInternshipRequestSchema), async (c) =>
     c.json(
       {
-        data: await service.createRequest({
+        data: await service.createDraft({
           actorUserId: c.get("authUser").id,
           ...c.req.valid("json"),
         }),
@@ -32,7 +34,33 @@ export const internshipRequestRoute = new Hono<{ Variables: AuthVariables }>()
       201,
     ),
   )
+  .post(
+    "/:requestId/submit",
+    zValidator("param", requestIdParamSchema),
+    zValidator("json", submitInternshipRequestSchema),
+    async (c) =>
+      c.json({
+        data: await service.submit(
+          c.get("authUser").id,
+          c.req.valid("param").requestId,
+          c.req.valid("json").idempotencyKey,
+        ),
+      }),
+  )
   .get("/me", async (c) => c.json({ data: await service.getMine(c.get("authUser").id) }))
+  .patch(
+    "/:requestId",
+    zValidator("param", requestIdParamSchema),
+    zValidator("json", updateDraftInternshipRequestSchema),
+    async (c) =>
+      c.json({
+        data: await service.updateDraft(
+          c.get("authUser").id,
+          c.req.valid("param").requestId,
+          c.req.valid("json"),
+        ),
+      }),
+  )
   .get("/options/advisors", zValidator("query", advisorOptionsQuerySchema), async (c) =>
     c.json({
       data: await service.listAdvisorOptions(
@@ -64,14 +92,18 @@ export const internshipRequestRoute = new Hono<{ Variables: AuthVariables }>()
     "/:requestId/resubmit",
     zValidator("param", requestIdParamSchema),
     zValidator("json", resubmitInternshipRequestSchema),
-    async (c) =>
-      c.json({
+    async (c) => {
+      const body = c.req.valid("json");
+      const { idempotencyKey, ...updates } = body;
+      return c.json({
         data: await service.resubmit(
           c.get("authUser").id,
           c.req.valid("param").requestId,
-          c.req.valid("json"),
+          updates,
+          idempotencyKey,
         ),
-      }),
+      });
+    },
   )
   .post("/:requestId/cancel", zValidator("param", requestIdParamSchema), async (c) =>
     c.json({

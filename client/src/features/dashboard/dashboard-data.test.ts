@@ -53,6 +53,7 @@ describe("dashboard data", () => {
 			completedItems: 1,
 			secondaryValue: 1,
 			secondaryLabel: "organizations",
+			nextAction: "applications",
 		});
 	});
 });

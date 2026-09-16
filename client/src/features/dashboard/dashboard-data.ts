@@ -9,6 +9,7 @@ export type DashboardSnapshot = {
 	completedItems: number;
 	secondaryValue: number;
 	secondaryLabel: "internships" | "organizations" | "members";
+	nextAction?: "editRequest" | "awaitRequestReview" | "applications" | "placements";
 };
 
 export const liveDashboardQueryOptions = {
@@ -39,20 +40,39 @@ export function dashboardFromWorkflow(input: {
 	role: OrganizationRole;
 	placements: Array<{ status: string }>;
 	applications?: Array<{ status: string }>;
+	requests?: Array<{ status: string }>;
 	organizationCount: number;
 }): DashboardSnapshot {
 	const pendingApplications =
 		input.applications?.filter((item) => ["submitted", "under_review"].includes(item.status))
 			.length ?? 0;
+	const returnedRequests =
+		input.requests?.filter((item) => item.status === "revision_requested").length ?? 0;
+	const draftRequests = input.requests?.filter((item) => item.status === "draft").length ?? 0;
+	const submittedRequests =
+		input.requests?.filter((item) => item.status === "submitted").length ?? 0;
 	return {
 		primaryValue:
 			input.role === "student" ? (input.applications?.length ?? 0) : input.placements.length,
 		primaryLabel: input.role === "student" ? "applications" : "placements",
 		actionItems:
-			input.placements.filter((item) => item.status === "pending").length + pendingApplications,
+			input.placements.filter((item) => item.status === "pending").length +
+			pendingApplications +
+			returnedRequests +
+			draftRequests,
 		completedItems: input.placements.filter((item) => item.status === "completed").length,
 		secondaryValue: input.organizationCount,
 		secondaryLabel: "organizations",
+		nextAction:
+			returnedRequests + draftRequests > 0
+				? "editRequest"
+				: submittedRequests > 0
+					? "awaitRequestReview"
+					: pendingApplications > 0
+						? "applications"
+						: input.placements.some((item) => item.status === "pending")
+							? "placements"
+							: undefined,
 	};
 }
 
