@@ -5,7 +5,9 @@ import {
 	BriefcaseBusiness,
 	Building2,
 	CalendarClock,
+	Check,
 	ChevronRight,
+	CircleDot,
 	ClipboardCheck,
 	FileCheck2,
 	FileText,
@@ -14,7 +16,6 @@ import {
 	Languages,
 	LayoutDashboard,
 	LogOut,
-	Search,
 	Settings,
 	TicketCheck,
 	UsersRound,
@@ -38,6 +39,7 @@ import type { MessageKey } from "@/i18n/messages";
 import {
 	dashboardFromReport,
 	dashboardFromWorkflow,
+	dashboardProgressIndex,
 	liveDashboardQueryOptions,
 	type DashboardSnapshot,
 } from "./dashboard-data";
@@ -215,23 +217,37 @@ export function AppDashboard() {
 		});
 
 	return (
-		<div className="min-h-screen bg-background lg:grid lg:grid-cols-[260px_1fr]">
-			<aside className="hidden min-h-screen bg-sidebar text-sidebar-foreground lg:flex lg:flex-col">
-				<div className="flex h-20 items-center border-b border-sidebar-border px-6">
-					<BrandMark />
+		<div className="min-h-screen bg-background lg:grid lg:grid-cols-[276px_1fr]">
+			<aside className="sticky top-0 hidden h-screen p-4 pr-0 lg:block">
+				<div className="flex h-full flex-col overflow-hidden rounded-[28px] border border-sidebar-border bg-sidebar text-sidebar-foreground shadow-[0_18px_48px_rgb(16_17_15_/_0.14)]">
+					<div className="flex h-20 items-center border-b border-sidebar-border px-6">
+						<BrandMark />
+					</div>
+					<nav className="flex-1 space-y-1 overflow-y-auto p-4" aria-label="Application navigation">
+						{renderNavItems(desktopNavigation)}
+					</nav>
+					{activeContext && (
+						<div className="border-t border-sidebar-border p-4">
+							<p className="truncate text-sm font-semibold">{activeContext.organization.name}</p>
+							<p className="mt-1 text-xs text-sidebar-foreground/50">
+								{role ? t(roleLabels[role]) : t("dashboard.workspace")}
+							</p>
+						</div>
+					)}
 				</div>
-				<nav className="flex-1 space-y-1 p-4" aria-label="Application navigation">
-					{renderNavItems(desktopNavigation)}
-				</nav>
 			</aside>
 			<div className="min-w-0">
-				<header className="flex h-20 items-center gap-4 border-b bg-card px-5 sm:px-8">
+				<header className="sticky top-0 z-30 flex h-20 items-center gap-4 border-b bg-background/88 px-5 backdrop-blur-xl sm:px-8">
 					<div className="lg:hidden">
 						<BrandMark />
 					</div>
-					<div className="hidden max-w-md flex-1 items-center gap-2 rounded-xl bg-muted px-3 py-2.5 text-muted-foreground sm:flex">
-						<Search className="size-4" />
-						<span className="text-sm">{t("dashboard.search")}</span>
+					<div className="hidden min-w-0 flex-1 sm:block">
+						<p className="truncate text-sm font-semibold">
+							{activeContext?.organization.name ?? t("dashboard.workspace")}
+						</p>
+						<p className="mt-0.5 text-xs text-muted-foreground">
+							{pathname === "/app" ? t("nav.overview") : t("dashboard.workspace")}
+						</p>
 					</div>
 					<div className="ml-auto flex items-center gap-2">
 						<Button
@@ -256,7 +272,7 @@ export function AppDashboard() {
 						/>
 					</div>
 				</header>
-				<main className="mx-auto max-w-7xl px-5 pb-24 pt-8 sm:px-8 sm:py-10 lg:pb-10">
+				<main className="mx-auto max-w-[1280px] px-5 pb-24 pt-7 sm:px-8 sm:py-9 lg:pb-12">
 					{pathname !== "/app" ? (
 						<Outlet />
 					) : !organizations.isLoading && !activeContext ? (
@@ -314,37 +330,94 @@ function DashboardOverview({
 	workspaceId: string | undefined;
 	onWorkspaceChange: (id: string) => void;
 }) {
-	const { t } = useLanguage();
+	const { locale, t } = useLanguage();
 	const label = (key: DashboardSnapshot["primaryLabel"] | DashboardSnapshot["secondaryLabel"]) =>
 		`dashboard.stat.${key}` as MessageKey;
+	const currentStage = dashboardProgressIndex(snapshot, role);
+	const journeyLabels = [0, 1, 2, 3].map((index) =>
+		t(`dashboard.journey.${role === "student" ? "student" : "staff"}.${index + 1}` as MessageKey),
+	);
+	const today = new Intl.DateTimeFormat(locale === "th" ? "th-TH" : "en-GB", {
+		weekday: "long",
+		day: "numeric",
+		month: "long",
+	}).format(new Date());
+	const nextActionTitle =
+		role === "student"
+			? snapshot?.nextAction === "editRequest"
+				? t("dashboard.editInternshipRequest")
+				: snapshot?.nextAction === "awaitRequestReview"
+					? t("dashboard.awaitInternshipRequestReview")
+					: t("dashboard.pendingApplications")
+			: t("dashboard.pendingPlacements");
+	const nextActionDestination =
+		role === "student" && ["editRequest", "awaitRequestReview"].includes(snapshot?.nextAction ?? "")
+			? "/app/internship-request"
+			: role === "student"
+				? "/app/applications"
+				: "/app/placements";
 	return (
-		<>
-			<div className="flex flex-col justify-between gap-4 sm:flex-row sm:items-end">
+		<div className="space-y-6">
+			<div className="flex flex-col justify-between gap-4 sm:flex-row sm:items-start">
 				<div>
-					<p className="text-sm font-semibold text-primary">
-						{activeContext
-							? `${activeContext.organization.name} · ${role ? t(roleLabels[role]) : ""}`
-							: t("dashboard.workspace")}
-					</p>
-					<h1 className="mt-2 text-3xl font-black tracking-tight">
+					<p className="text-sm text-muted-foreground">{today}</p>
+					<h1 className="mt-1.5 text-3xl font-black tracking-[-0.035em] sm:text-4xl">
 						{t("dashboard.greeting")}, {userName}
 					</h1>
-					<p className="mt-2 text-muted-foreground">{t("dashboard.subtitle")}</p>
+					<p className="mt-2 text-sm text-muted-foreground sm:text-base">
+						{activeContext
+							? `${activeContext.organization.name} · ${role ? t(roleLabels[role]) : ""}`
+							: t("dashboard.subtitle")}
+					</p>
 				</div>
-				<Button variant="outline" onClick={() => authClient.signOut()}>
-					<LogOut />
-					{t("dashboard.signOut")}
-				</Button>
+				<span className="w-fit rounded-full border border-border bg-card px-3 py-1.5 text-xs font-bold text-muted-foreground shadow-sm">
+					{loading ? t("dashboard.organizationsLoading") : t("dashboard.liveStatus")}
+				</span>
 			</div>
 			{error && (
 				<p
 					role="alert"
-					className="mt-6 rounded-xl border border-destructive/20 bg-destructive-muted p-4 text-sm text-destructive"
+					className="rounded-xl border border-destructive/20 bg-destructive-muted p-4 text-sm text-destructive"
 				>
 					{t("dashboard.loadError")}
 				</p>
 			)}
-			<section className="mt-8 grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
+			<section className="rounded-[24px] border bg-card p-5 shadow-[0_8px_30px_rgb(16_17_15_/_0.045)] sm:p-7">
+				<div className="flex flex-col justify-between gap-4 sm:flex-row sm:items-start">
+					<div>
+						<p className="text-xs font-bold uppercase tracking-[0.12em] text-muted-foreground">
+							{t("dashboard.currentStatus")}
+						</p>
+						<h2 className="mt-2 text-xl font-bold sm:text-2xl">
+							{loading ? t("dashboard.organizationsLoading") : journeyLabels[currentStage]}
+						</h2>
+					</div>
+					<span className="w-fit rounded-full bg-warning-muted px-3 py-1.5 text-xs font-bold text-warning-foreground">
+						{(snapshot?.actionItems ?? 0) > 0
+							? `${snapshot?.actionItems ?? 0} ${t("dashboard.actionCount")}`
+							: t("dashboard.onTrack")}
+					</span>
+				</div>
+				<DashboardJourney labels={journeyLabels} currentStage={currentStage} loading={loading} />
+				<div className="mt-6 flex flex-col gap-4 rounded-2xl bg-muted/70 p-4 sm:flex-row sm:items-center sm:justify-between">
+					<div>
+						<p className="font-semibold">
+							{(snapshot?.actionItems ?? 0) > 0 ? nextActionTitle : t("dashboard.noActions")}
+						</p>
+						<p className="mt-1 text-sm text-muted-foreground">{t("dashboard.nextDetail")}</p>
+					</div>
+					{(snapshot?.actionItems ?? 0) > 0 && (
+						<Button asChild className="shrink-0">
+							<Link to={nextActionDestination}>
+								{t("dashboard.openTask")}
+								<ChevronRight />
+							</Link>
+						</Button>
+					)}
+				</div>
+			</section>
+
+			<section className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
 				<StatCard
 					label={snapshot ? t(label(snapshot.primaryLabel)) : "—"}
 					value={loading ? "—" : (snapshot?.primaryValue ?? 0)}
@@ -367,32 +440,21 @@ function DashboardOverview({
 					icon={UsersRound}
 				/>
 			</section>
-			<section className="mt-6 grid gap-6 xl:grid-cols-[1.4fr_0.6fr]">
-				<div className="rounded-2xl border bg-card p-6">
-					<h2 className="text-lg font-bold">{t("dashboard.next")}</h2>
-					<p className="mt-1 text-sm text-muted-foreground">{t("dashboard.nextDetail")}</p>
-					<div className="mt-5 divide-y">
+
+			<section className="grid gap-6 xl:grid-cols-[1.4fr_0.6fr]">
+				<div className="rounded-[22px] border bg-card p-6">
+					<div className="flex items-center justify-between gap-4">
+						<div>
+							<h2 className="text-lg font-bold">{t("dashboard.next")}</h2>
+							<p className="mt-1 text-sm text-muted-foreground">{t("dashboard.nextDetail")}</p>
+						</div>
+						<span className="rounded-full bg-accent px-2.5 py-1 text-xs font-bold text-accent-foreground">
+							{snapshot?.actionItems ?? 0}
+						</span>
+					</div>
+					<div className="mt-4 divide-y">
 						{(snapshot?.actionItems ?? 0) > 0 ? (
-							<Task
-								title={
-									role === "student"
-										? snapshot?.nextAction === "editRequest"
-											? t("dashboard.editInternshipRequest")
-											: snapshot?.nextAction === "awaitRequestReview"
-												? t("dashboard.awaitInternshipRequestReview")
-												: t("dashboard.pendingApplications")
-										: t("dashboard.pendingPlacements")
-								}
-								to={
-									role === "student" &&
-									["editRequest", "awaitRequestReview"].includes(snapshot?.nextAction ?? "")
-										? "/app/internship-request"
-										: role === "student"
-											? "/app/applications"
-											: "/app/placements"
-								}
-								urgent
-							/>
+							<Task title={nextActionTitle} to={nextActionDestination} urgent />
 						) : (
 							<p className="py-5 text-sm text-muted-foreground">{t("dashboard.noActions")}</p>
 						)}
@@ -401,7 +463,7 @@ function DashboardOverview({
 						)}
 					</div>
 				</div>
-				<div className="rounded-2xl border bg-card p-6">
+				<div className="rounded-[22px] border bg-card p-6">
 					<h2 className="text-lg font-bold">{t("dashboard.myOrganizations")}</h2>
 					{organizations.map((item) => (
 						<button
@@ -423,7 +485,47 @@ function DashboardOverview({
 					))}
 				</div>
 			</section>
-		</>
+		</div>
+	);
+}
+
+function DashboardJourney({
+	labels,
+	currentStage,
+	loading,
+}: {
+	labels: string[];
+	currentStage: number;
+	loading: boolean;
+}) {
+	return (
+		<ol className="mt-7 grid gap-3 sm:grid-cols-4 sm:gap-0" aria-label="Workflow progress">
+			{labels.map((label, index) => {
+				const complete = !loading && index < currentStage;
+				const current = !loading && index === currentStage;
+				return (
+					<li key={label} className="relative flex items-center gap-3 sm:block sm:pt-8">
+						<div
+							className={`hidden sm:absolute sm:left-0 sm:right-0 sm:top-[9px] sm:block sm:h-0.5 ${index <= currentStage && !loading ? "bg-accent" : "bg-border"}`}
+						/>
+						<span
+							className={`relative z-10 grid size-6 shrink-0 place-items-center rounded-full border-2 sm:absolute sm:left-0 sm:top-0 ${complete ? "border-success bg-success text-white" : current ? "border-primary bg-card ring-4 ring-accent/40" : "border-border bg-card"}`}
+						>
+							{complete ? (
+								<Check className="size-3.5" />
+							) : current ? (
+								<CircleDot className="size-3" />
+							) : null}
+						</span>
+						<span
+							className={`text-xs sm:pr-4 ${current ? "font-bold text-foreground" : "text-muted-foreground"}`}
+						>
+							{label}
+						</span>
+					</li>
+				);
+			})}
+		</ol>
 	);
 }
 

@@ -12,6 +12,21 @@ export type DashboardSnapshot = {
 	nextAction?: "editRequest" | "awaitRequestReview" | "applications" | "placements";
 };
 
+export function dashboardProgressIndex(
+	snapshot: DashboardSnapshot | undefined,
+	role: OrganizationRole | undefined,
+) {
+	if (!snapshot || !role) return 0;
+	if (role !== "student") return snapshot.actionItems > 0 ? 1 : snapshot.completedItems > 0 ? 3 : 0;
+	if (snapshot.nextAction === "editRequest") return 0;
+	if (snapshot.nextAction === "awaitRequestReview" || snapshot.nextAction === "applications")
+		return 1;
+	if (snapshot.nextAction === "placements") return 2;
+	if (snapshot.completedItems > 0) return 3;
+	if (snapshot.primaryValue > 0) return 2;
+	return 0;
+}
+
 export const liveDashboardQueryOptions = {
 	refetchOnMount: "always" as const,
 	refetchOnWindowFocus: true,

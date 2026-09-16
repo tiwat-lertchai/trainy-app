@@ -1,5 +1,6 @@
 import { describe, expect, test } from "bun:test";
 import {
+	dashboardProgressIndex,
 	dashboardFromReport,
 	dashboardFromWorkflow,
 	liveDashboardQueryOptions,
@@ -55,5 +56,34 @@ describe("dashboard data", () => {
 			secondaryLabel: "organizations",
 			nextAction: "applications",
 		});
+	});
+
+	test("maps the student's real next action to the visible journey stage", () => {
+		const base = {
+			primaryValue: 1,
+			primaryLabel: "applications" as const,
+			actionItems: 1,
+			completedItems: 0,
+			secondaryValue: 1,
+			secondaryLabel: "organizations" as const,
+		};
+
+		expect(dashboardProgressIndex({ ...base, nextAction: "editRequest" }, "student")).toBe(0);
+		expect(dashboardProgressIndex({ ...base, nextAction: "awaitRequestReview" }, "student")).toBe(
+			1,
+		);
+		expect(dashboardProgressIndex({ ...base, nextAction: "placements" }, "student")).toBe(2);
+		expect(dashboardProgressIndex({ ...base, actionItems: 0, completedItems: 1 }, "student")).toBe(
+			3,
+		);
+	});
+
+	test("uses a compact queue stage for staff dashboards", () => {
+		const snapshot = dashboardFromReport({
+			activeMembers: 9,
+			applications: [{ status: "submitted", count: 2 }],
+			placements: [],
+		});
+		expect(dashboardProgressIndex(snapshot, "advisor")).toBe(1);
 	});
 });
