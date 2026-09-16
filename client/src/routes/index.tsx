@@ -4,17 +4,12 @@ import { createFileRoute } from "@tanstack/react-router";
 import {
 	ArrowRight,
 	BellRing,
-	BookOpenText,
-	CalendarDays,
 	Check,
 	ChevronDown,
-	Clock3,
 	Languages,
 	LineChart,
-	ListChecks,
 	Menu,
 	Sparkles,
-	TrendingUp,
 	X,
 } from "lucide-react";
 import { BrandMark } from "@/components/brand/brand-mark";
@@ -138,7 +133,7 @@ function LandingPage() {
 
 	return (
 		<div className="min-h-screen overflow-hidden bg-background">
-			<header className="relative z-50 border-b border-border/70 bg-background/90 backdrop-blur-xl">
+			<header className="relative z-50 bg-background">
 				<div className="mx-auto flex h-[78px] max-w-[1180px] items-center justify-between px-5 sm:px-8">
 					<a href="#top" aria-label="Trainy home">
 						<BrandMark />
@@ -200,8 +195,8 @@ function LandingPage() {
 			</header>
 
 			<main id="top">
-				<section className="hero-grid relative isolate overflow-hidden">
-					<div className="relative mx-auto grid min-h-[720px] max-w-[1240px] items-center gap-12 px-5 pb-20 pt-12 sm:px-8 lg:grid-cols-[0.82fr_1.18fr] lg:gap-12 lg:py-20">
+				<section className="relative isolate overflow-hidden">
+					<div className="relative mx-auto grid min-h-[710px] max-w-[1180px] items-center gap-10 px-5 pb-24 pt-12 sm:px-8 lg:grid-cols-[1.04fr_0.96fr] lg:gap-14 lg:pb-24 lg:pt-16">
 						<div className="max-w-2xl">
 							<div className="mb-6 inline-flex items-center gap-2 rounded-full border border-border bg-card/30 py-1.5 pl-2 pr-3 text-sm font-medium text-muted-foreground">
 								<span className="grid size-6 place-items-center rounded-full bg-accent text-accent-foreground">
@@ -209,7 +204,7 @@ function LandingPage() {
 								</span>
 								{editorial.heroEyebrow}
 							</div>
-							<h1 className="max-w-[650px] text-balance text-[3.1rem] font-semibold leading-[1.02] tracking-[-0.06em] text-foreground sm:text-7xl lg:text-[4.7rem]">
+							<h1 className="max-w-[700px] text-balance text-[3.35rem] font-semibold leading-[0.97] tracking-[-0.07em] text-foreground sm:text-7xl lg:text-[5.35rem]">
 								{editorial.heroTitle}
 							</h1>
 							<p className="mt-7 max-w-[550px] text-pretty text-lg leading-8 text-muted-foreground">
@@ -237,7 +232,7 @@ function LandingPage() {
 								<MiniCheck text={editorial.note} />
 							</div>
 						</div>
-						<WorkspacePreview />
+						<DashboardPreview />
 					</div>
 					<div className="border-y border-border bg-card/20 py-6">
 						<div className="mx-auto flex max-w-[1180px] flex-wrap items-center justify-center gap-x-8 gap-y-3 px-5 text-sm font-semibold text-muted-foreground sm:px-8">
@@ -252,7 +247,7 @@ function LandingPage() {
 					</div>
 				</section>
 
-				<section id="features" className="scroll-mt-18 py-24 sm:py-28">
+				<section id="features" className="scroll-mt-18 py-28 sm:py-32">
 					<div id="why" className="mx-auto max-w-[1180px] scroll-mt-8 px-5 sm:px-8">
 						<div className="grid items-start gap-6 lg:grid-cols-[0.85fr_1.15fr] lg:gap-16">
 							<p className="pt-2 text-xs font-bold uppercase tracking-[0.14em] text-muted-foreground">
@@ -262,7 +257,7 @@ function LandingPage() {
 								{editorial.whyTitle}
 							</h2>
 						</div>
-						<div className="mt-14 grid gap-4 md:grid-cols-3">
+						<div className="mt-16 grid gap-4 md:grid-cols-3">
 							{editorial.cards.map(([number, title, detail], index) => (
 								<FeatureCard
 									key={number}
@@ -278,14 +273,14 @@ function LandingPage() {
 
 				<section
 					id="workflow"
-					className="scroll-mt-18 border-y border-border bg-muted/60 py-22 sm:py-28"
+					className="scroll-mt-18 border-y border-sidebar-border bg-sidebar py-22 text-sidebar-foreground sm:py-28"
 				>
 					<div className="mx-auto max-w-[1180px] px-5 sm:px-8">
 						<div className="flex flex-col justify-between gap-6 lg:flex-row lg:items-end">
 							<h2 className="max-w-3xl text-balance text-4xl font-semibold leading-[1.08] tracking-[-0.055em] sm:text-6xl">
 								{editorial.flowTitle}
 							</h2>
-							<p className="max-w-xs text-sm leading-6 text-muted-foreground">
+							<p className="max-w-xs text-sm leading-6 text-sidebar-foreground/55">
 								{editorial.flowDescription}
 							</p>
 						</div>
@@ -366,120 +361,71 @@ function MiniCheck({ text }: { text: string }) {
 		</span>
 	);
 }
-function WorkspacePreview() {
+function DashboardPreview() {
 	const { t } = useLanguage();
 	return (
-		<div className="relative mx-auto min-h-[570px] w-full max-w-[700px]">
-			<div className="absolute -right-12 top-0 size-64 rounded-full bg-accent/75 blur-[1px] sm:size-80" />
-			<div className="absolute -bottom-4 left-0 size-48 rounded-full border border-border bg-card/70" />
-			<div className="absolute inset-x-0 top-7 overflow-hidden rounded-[28px] border border-border bg-card shadow-[0_28px_80px_rgb(16_17_15_/_0.16)]">
-				<div className="grid min-h-[520px] grid-cols-[74px_1fr] sm:grid-cols-[170px_1fr]">
-					<aside className="flex flex-col border-r border-sidebar-border bg-sidebar p-3 text-sidebar-foreground sm:p-4">
-						<BrandMark className="mb-8 text-sidebar-foreground [&_span:last-child]:hidden sm:[&_span:last-child]:inline" />
-						<div className="space-y-2">
-							<PreviewNav icon={TrendingUp} label={t("nav.overview")} active />
-							<PreviewNav icon={ListChecks} label={t("nav.requests")} />
-							<PreviewNav icon={BookOpenText} label={t("nav.progress")} />
-							<PreviewNav icon={CalendarDays} label={t("nav.history")} />
-						</div>
-						<div className="mt-auto hidden border-t border-sidebar-border pt-4 text-xs text-sidebar-foreground/60 sm:block">
-							{t("preview.workspace")}
-						</div>
-					</aside>
-					<div className="min-w-0 bg-background/55 p-4 sm:p-6">
-						<div className="mb-6 flex items-start justify-between gap-3">
-							<div>
-								<p className="text-xs text-muted-foreground">{t("preview.workspace")}</p>
-								<h2 className="mt-1 text-xl font-semibold tracking-tight sm:text-2xl">
-									{t("preview.heading")}
-								</h2>
-							</div>
-							<span className="grid size-9 shrink-0 place-items-center rounded-full bg-muted text-xs font-bold">
-								KT
+		<div className="relative mx-auto grid min-h-[560px] w-full place-items-center">
+			<div className="absolute size-[430px] rounded-full bg-accent sm:size-[520px] lg:-right-8" />
+			<div className="absolute right-0 top-4 hidden size-28 animate-[spin_18s_linear_infinite] place-items-center rounded-full border border-foreground/25 text-center text-[10px] font-bold tracking-[0.18em] lg:grid">
+				LEARN · RECORD
+				<br />
+				GROW · REPEAT
+			</div>
+			<div className="relative w-[min(390px,90%)] rotate-[2.2deg] rounded-[42px] bg-sidebar p-3 text-sidebar-foreground shadow-[0_35px_70px_rgb(16_17_15_/_0.28)] transition duration-500 hover:-translate-y-1.5 hover:rotate-0">
+				<div className="min-h-[560px] overflow-hidden rounded-[32px] bg-[#171914] p-5 sm:p-6">
+					<div className="mb-7 flex justify-between px-1 text-xs text-sidebar-foreground/60">
+						<span>09:41</span>
+						<span>● ●● 100%</span>
+					</div>
+					<div className="mb-5">
+						<p className="text-sm text-sidebar-foreground/65">{t("preview.workspace")}</p>
+						<h2 className="mt-1 text-2xl font-semibold tracking-tight">{t("preview.heading")}</h2>
+					</div>
+					<div className="rounded-[23px] border border-sidebar-border bg-sidebar-accent p-5">
+						<div className="flex items-start justify-between gap-4">
+							<p className="font-semibold">{t("preview.next")}</p>
+							<span className="rounded-full bg-sidebar-primary px-2.5 py-1 text-xs font-bold text-sidebar-primary-foreground">
+								{t("preview.today")}
 							</span>
 						</div>
-						<div className="rounded-2xl border border-border bg-card p-4 shadow-sm sm:p-5">
-							<div className="flex items-start justify-between gap-3">
-								<div>
-									<p className="text-xs font-bold uppercase tracking-[0.1em] text-muted-foreground">
-										{t("preview.onTrack")}
-									</p>
-									<p className="mt-2 font-semibold">{t("preview.active")}</p>
-								</div>
-								<span className="rounded-full bg-warning-muted px-2.5 py-1 text-[11px] font-bold text-warning-foreground">
-									64%
-								</span>
-							</div>
-							<div className="mt-5 grid grid-cols-4 gap-1.5" aria-hidden="true">
-								{[0, 1, 2, 3].map((step) => (
-									<div
-										key={step}
-										className={`h-1.5 rounded-full ${step < 3 ? "bg-accent" : "bg-muted"}`}
-									/>
-								))}
-							</div>
+						<p className="mt-6 text-xl font-medium leading-snug">{t("preview.task1")}</p>
+						<p className="mt-2 text-xs leading-5 text-sidebar-foreground/55">
+							{t("preview.subheading")}
+						</p>
+						<div className="mt-5 rounded-xl bg-sidebar-primary py-3 text-center text-sm font-bold text-sidebar-primary-foreground">
+							{t("hero.primary")} →
 						</div>
-						<div className="mt-4 grid gap-4 sm:grid-cols-[1.25fr_0.75fr]">
-							<div className="rounded-2xl border border-border bg-card p-4 shadow-sm sm:p-5">
-								<div className="flex items-center justify-between gap-3">
-									<p className="text-sm font-semibold">{t("preview.next")}</p>
-									<span className="rounded-full bg-accent px-2.5 py-1 text-[11px] font-bold text-accent-foreground">
-										{t("preview.today")}
-									</span>
-								</div>
-								<p className="mt-5 text-lg font-semibold leading-snug">{t("preview.task1")}</p>
-								<p className="mt-2 line-clamp-2 text-xs leading-5 text-muted-foreground">
-									{t("preview.subheading")}
-								</p>
-								<div className="mt-5 flex h-10 items-center justify-center rounded-xl bg-primary text-sm font-bold text-primary-foreground">
-									{t("hero.primary")} →
-								</div>
-							</div>
-							<div className="grid gap-4">
-								<PreviewMetric icon={Clock3} value="128" label={t("preview.hours")} />
-								<PreviewMetric icon={LineChart} value="5/7" label={t("preview.journey")} />
-							</div>
+					</div>
+					<div className="mt-4 flex items-end justify-between rounded-[18px] bg-[#1d1f1a] p-4">
+						<div>
+							<p className="text-xs text-sidebar-foreground/55">{t("preview.hours")}</p>
+							<strong className="text-xl">128</strong>
+						</div>
+						<div className="flex gap-1.5">
+							{[0, 1, 2, 3, 4, 5, 6].map((day) => (
+								<i
+									key={day}
+									className={`size-2 rounded-full ${day < 5 ? "bg-sidebar-primary" : "bg-sidebar-border"}`}
+								/>
+							))}
+						</div>
+					</div>
+					<p className="mb-1 mt-5 px-1 text-[11px] font-medium uppercase tracking-[0.13em] text-sidebar-foreground/50">
+						{t("preview.onTrack")}
+					</p>
+					<div className="flex gap-3 border-t border-sidebar-border px-1 py-3">
+						<span className="grid size-9 shrink-0 place-items-center rounded-xl bg-sidebar-accent text-sidebar-primary">
+							<ArrowRight className="size-4" />
+						</span>
+						<div>
+							<strong className="block text-sm">{t("preview.active")}</strong>
+							<small className="text-xs text-sidebar-foreground/50">
+								{t("preview.journey")} · 64%
+							</small>
 						</div>
 					</div>
 				</div>
 			</div>
-		</div>
-	);
-}
-
-function PreviewNav({
-	icon: Icon,
-	label,
-	active = false,
-}: {
-	icon: typeof BellRing;
-	label: string;
-	active?: boolean;
-}) {
-	return (
-		<div
-			className={`flex items-center gap-2.5 rounded-xl px-3 py-2.5 text-xs font-semibold ${active ? "bg-sidebar-accent text-sidebar-primary" : "text-sidebar-foreground/60"}`}
-		>
-			<Icon className="size-4 shrink-0" />
-			<span className="hidden truncate sm:block">{label}</span>
-		</div>
-	);
-}
-
-function PreviewMetric({
-	icon: Icon,
-	value,
-	label,
-}: {
-	icon: typeof BellRing;
-	value: string;
-	label: string;
-}) {
-	return (
-		<div className="rounded-2xl border border-border bg-card p-4 shadow-sm">
-			<Icon className="size-4 text-muted-foreground" />
-			<strong className="mt-3 block text-xl tracking-tight">{value}</strong>
-			<span className="mt-1 block text-[11px] leading-4 text-muted-foreground">{label}</span>
 		</div>
 	);
 }
@@ -495,10 +441,10 @@ function FeatureCard({
 	detail: string;
 }) {
 	return (
-		<article className="group flex min-h-[300px] flex-col justify-between rounded-[22px] border border-border bg-card p-7 shadow-[0_5px_20px_rgb(16_17_15_/_0.035)] transition duration-300 hover:-translate-y-1 hover:shadow-[0_18px_45px_rgb(16_17_15_/_0.09)]">
+		<article className="group flex min-h-[320px] flex-col justify-between rounded-[22px] border border-border bg-card/30 p-7 transition duration-300 hover:-translate-y-1 hover:bg-card">
 			<span className="text-xs text-muted-foreground">{number}</span>
 			<div>
-				<span className="mb-6 grid size-13 place-items-center rounded-2xl bg-muted text-foreground transition group-hover:bg-accent group-hover:text-accent-foreground">
+				<span className="mb-6 grid size-13 place-items-center rounded-2xl bg-primary text-accent">
 					<Icon className="size-6" />
 				</span>
 				<h3 className="text-xl font-semibold tracking-tight text-foreground">{title}</h3>
@@ -519,13 +465,13 @@ function WorkflowStep({
 	detail: string;
 }) {
 	return (
-		<article className="relative border-l border-border pl-6 md:border-l-0 md:border-t md:pl-0 md:pt-8">
-			<span className="absolute -left-3 top-0 grid size-6 place-items-center rounded-full bg-accent text-[9px] font-black text-accent-foreground md:-top-3 md:left-0">
+		<article className="relative border-l border-sidebar-border pl-6 md:border-l-0 md:border-t md:pl-0 md:pt-8">
+			<span className="absolute -left-3 top-0 grid size-6 place-items-center rounded-full bg-sidebar-primary text-[9px] font-black text-sidebar-primary-foreground md:-top-3 md:left-0">
 				{number}
 			</span>
-			<p className="mb-2 text-xs text-muted-foreground">{eyebrow}</p>
+			<p className="mb-2 text-xs text-sidebar-foreground/45">{eyebrow}</p>
 			<h3 className="text-lg font-black">{title}</h3>
-			<p className="mt-3 text-sm leading-6 text-muted-foreground">{detail}</p>
+			<p className="mt-3 text-sm leading-6 text-sidebar-foreground/60">{detail}</p>
 		</article>
 	);
 }
