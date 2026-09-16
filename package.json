@@ -36,15 +36,15 @@
     "turbo"
   ],
   "devDependencies": {
-    "bun-types": "^1.4.0",
-    "prettier": "^3.9.6",
-    "turbo": "^2.10.12"
+    "bun-types": "^1.4.2",
+    "prettier": "^3.9.7",
+    "turbo": "^2.10.13"
   },
   "peerDependencies": {
     "typescript": "^5.9.3"
   },
   "dependencies": {
-    "hono": "^4.13.5"
+    "hono": "^4.13.8"
   },
   "overrides": {
     "esbuild": "0.25.12"
