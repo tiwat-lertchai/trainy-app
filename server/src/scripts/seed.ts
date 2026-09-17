@@ -1,5 +1,6 @@
 // One-time/idempotent seed data for local and staging environments. Every
 // insert uses onConflictDoNothing so the script can be re-run safely.
+import { and, eq, inArray } from "drizzle-orm";
 import { closeDatabase, db } from "../db";
 import {
   academicFaculty,
@@ -9,6 +10,42 @@ import {
   evaluationScheme,
   organization,
 } from "../db/schema";
+import { universities } from "./seed-academic-data";
+
+const legacyChandrakasemMajors = ["วิทยาการคอมพิวเตอร์", "เทคโนโลยีสารสนเทศ", "บริหารธุรกิจ"];
+
+async function migrateLegacyChandrakasemSeed(organizationId: string) {
+  const legacyFaculty = await db.query.academicFaculty.findFirst({
+    where: (table, { and, eq }) =>
+      and(eq(table.organizationId, organizationId), eq(table.name, "คณะครุศาสตร์")),
+  });
+  const currentFaculty = await db.query.academicFaculty.findFirst({
+    where: (table, { and, eq }) =>
+      and(eq(table.organizationId, organizationId), eq(table.name, "คณะศึกษาศาสตร์")),
+  });
+
+  if (legacyFaculty && !currentFaculty) {
+    await db
+      .update(academicFaculty)
+      .set({ name: "คณะศึกษาศาสตร์" })
+      .where(eq(academicFaculty.id, legacyFaculty.id));
+  }
+
+  await db
+    .delete(academicMajor)
+    .where(
+      and(
+        inArray(academicMajor.name, legacyChandrakasemMajors),
+        inArray(
+          academicMajor.facultyId,
+          db
+            .select({ id: academicFaculty.id })
+            .from(academicFaculty)
+            .where(eq(academicFaculty.organizationId, organizationId)),
+        ),
+      ),
+    );
+}
 
 const cwie14SupervisorCriteria = [
   "Quantity of work",
@@ -108,20 +145,6 @@ async function seedEvaluationScheme(organizationId: string, track: "regular" | "
   }
 }
 
-const universities = [
-  {
-    name: "มหาวิทยาลัยราชภัฏจันทรเกษม",
-    slug: "chandrakasem-rajabhat-university",
-    faculties: [
-      { name: "คณะครุศาสตร์", majors: [] as string[] },
-      { name: "คณะมนุษยศาสตร์และสังคมศาสตร์", majors: [] as string[] },
-      { name: "คณะวิทยาศาสตร์", majors: ["วิทยาการคอมพิวเตอร์", "เทคโนโลยีสารสนเทศ"] },
-      { name: "คณะวิทยาการจัดการ", majors: ["บริหารธุรกิจ"] },
-      { name: "คณะเกษตรและชีวภาพ", majors: [] as string[] },
-    ],
-  },
-];
-
 async function seed() {
   for (const university of universities) {
     const [org] = await db
@@ -138,6 +161,10 @@ async function seed() {
       )?.id;
     if (!organizationId)
       throw new Error(`Could not resolve organization id for ${university.slug}`);
+
+    if (university.slug === "chandrakasem-rajabhat-university") {
+      await migrateLegacyChandrakasemSeed(organizationId);
+    }
 
     for (const facultyEntry of university.faculties) {
       const [inserted] = await db
