@@ -52,7 +52,7 @@ class FakeRepository implements OnboardingRepository {
       id: string;
       organizationId: string;
       userId: string;
-      role: "university_admin" | "company_admin";
+      role: "university_admin" | "coordinator" | "company_admin";
       status: "active";
       createdAt: Date;
       updatedAt: Date;
@@ -74,6 +74,14 @@ class FakeRepository implements OnboardingRepository {
   }
   async isPlatformStaff(userId: string) {
     return this.staff.has(userId);
+  }
+  async isActiveUniversityAdmin(userId: string) {
+    return [...this.memberships.values()].some(
+      (membership) =>
+        membership.userId === userId &&
+        membership.role === "university_admin" &&
+        membership.status === "active",
+    );
   }
   async listPending() {
     return this.requests
@@ -213,13 +221,13 @@ describe("OnboardingService", () => {
     ).resolves.toMatchObject({ status: "approved" });
   });
 
-  it("requires CWIE staff and verified documents for a company", async () => {
+  it("allows platform staff to review a verified company request", async () => {
     const repository = new FakeRepository();
     repository.staff.add("cwie");
     repository.requests.push(
       request({
         requestedRole: "company_admin",
-        targetOrganizationId: null,
+        targetOrganizationId: university.id,
         proposedOrganization: {
           name: "New Company",
           slug: "new-company",
@@ -237,6 +245,90 @@ describe("OnboardingService", () => {
     await expect(
       service.review("cwie", request().id, { decision: "approved", documentsVerified: true }),
     ).resolves.toMatchObject({ status: "approved" });
+  });
+
+  it("allows an active university admin to review a verified company request", async () => {
+    const repository = new FakeRepository();
+    repository.memberships.set(`${university.id}:university-admin`, {
+      id: "university-admin-membership",
+      organizationId: university.id,
+      userId: "university-admin",
+      role: "university_admin",
+      status: "active",
+      createdAt: now,
+      updatedAt: now,
+    });
+    repository.requests.push(
+      request({
+        requestedRole: "company_admin",
+        targetOrganizationId: university.id,
+        proposedOrganization: {
+          name: "Urgent Company",
+          slug: "urgent-company",
+          registrationNumber: "0102",
+        },
+      }),
+    );
+
+    await expect(
+      new OnboardingService(repository).review("university-admin", request().id, {
+        decision: "approved",
+        documentsVerified: true,
+      }),
+    ).resolves.toMatchObject({ status: "approved", reviewerUserId: "university-admin" });
+  });
+
+  it("lets a coordinator review only company requests referred to their university", async () => {
+    const repository = new FakeRepository();
+    const otherUniversityId = "44444444-4444-4444-8444-444444444444";
+    repository.memberships.set(`${university.id}:coordinator`, {
+      id: "coordinator-membership",
+      organizationId: university.id,
+      userId: "coordinator",
+      role: "coordinator",
+      status: "active",
+      createdAt: now,
+      updatedAt: now,
+    });
+    repository.requests.push(
+      request({
+        id: "55555555-5555-4555-8555-555555555555",
+        requestedRole: "company_admin",
+        targetOrganizationId: university.id,
+      }),
+      request({
+        id: "66666666-6666-4666-8666-666666666666",
+        requestedRole: "company_admin",
+        targetOrganizationId: otherUniversityId,
+      }),
+    );
+
+    await expect(new OnboardingService(repository).listReviews("coordinator")).resolves.toEqual([
+      expect.objectContaining({ id: "55555555-5555-4555-8555-555555555555" }),
+    ]);
+    await expect(
+      new OnboardingService(repository).review(
+        "coordinator",
+        "66666666-6666-4666-8666-666666666666",
+        { decision: "approved", documentsVerified: true },
+      ),
+    ).rejects.toMatchObject({ code: "ONBOARDING_REVIEW_FORBIDDEN" });
+  });
+
+  it("keeps company onboarding requests hidden from users without an admin role", async () => {
+    const repository = new FakeRepository();
+    repository.requests.push(
+      request({ requestedRole: "company_admin", targetOrganizationId: null }),
+    );
+    const service = new OnboardingService(repository);
+
+    await expect(
+      service.review("outsider", request().id, {
+        decision: "approved",
+        documentsVerified: true,
+      }),
+    ).rejects.toMatchObject({ code: "ONBOARDING_REVIEW_FORBIDDEN" });
+    await expect(service.listReviews("outsider")).resolves.toEqual([]);
   });
 
   it("requires a note when requesting revision", async () => {

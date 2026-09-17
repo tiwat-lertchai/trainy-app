@@ -5,6 +5,7 @@ services:
       dockerfile: server/Dockerfile
     environment:
       NODE_ENV: production
+      LEGAL_INSTALLATION_ID: ${LEGAL_INSTALLATION_ID:-}
       PORT: 3000
       CORS_ORIGINS: ${CORS_ORIGINS:?set CORS_ORIGINS to the public app origin}
       DATABASE_URL: ${DATABASE_URL:?set DATABASE_URL in .env}

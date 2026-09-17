@@ -120,6 +120,20 @@
       "when": 1789548653741,
       "tag": "0016_flippant_tigra",
       "breakpoints": true
+    },
+    {
+      "idx": 17,
+      "version": "7",
+      "when": 1789622734082,
+      "tag": "0017_new_nightmare",
+      "breakpoints": true
+    },
+    {
+      "idx": 18,
+      "version": "7",
+      "when": 1789625609271,
+      "tag": "0018_equal_morlun",
+      "breakpoints": true
     }
   ]
 }

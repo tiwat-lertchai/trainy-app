@@ -4,13 +4,24 @@ export type StatusCount = { status: string; count: number };
 
 export type DashboardSnapshot = {
 	primaryValue: number;
-	primaryLabel: "placements" | "applications" | "members";
+	primaryLabel: "placements" | "applications" | "requests" | "members";
 	actionItems: number;
 	completedItems: number;
 	secondaryValue: number;
 	secondaryLabel: "internships" | "organizations" | "members";
 	nextAction?: "editRequest" | "awaitRequestReview" | "applications" | "placements";
 };
+
+export type DashboardExperience = "student" | "advisor" | "university_operations" | "company";
+
+export function dashboardExperienceForRole(
+	role: OrganizationRole | undefined,
+): DashboardExperience {
+	if (role === "student") return "student";
+	if (role === "advisor") return "advisor";
+	if (role === "coordinator" || role === "university_admin") return "university_operations";
+	return "company";
+}
 
 export function dashboardProgressIndex(
 	snapshot: DashboardSnapshot | undefined,
@@ -68,8 +79,10 @@ export function dashboardFromWorkflow(input: {
 		input.requests?.filter((item) => item.status === "submitted").length ?? 0;
 	return {
 		primaryValue:
-			input.role === "student" ? (input.applications?.length ?? 0) : input.placements.length,
-		primaryLabel: input.role === "student" ? "applications" : "placements",
+			input.role === "student"
+				? (input.applications?.length ?? 0) + (input.requests?.length ?? 0)
+				: input.placements.length,
+		primaryLabel: input.role === "student" ? "requests" : "placements",
 		actionItems:
 			input.placements.filter((item) => item.status === "pending").length +
 			pendingApplications +

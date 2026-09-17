@@ -3,6 +3,7 @@ import {
 	canCancelRequest,
 	canEditRequest,
 	canResubmitRequest,
+	isRequestHistoryStatus,
 	requestStatusKeys,
 	requestStepKeys,
 } from "./internship-request-rules";
@@ -25,6 +26,14 @@ describe("internship request presentation rules", () => {
 	test("allows resubmission only after a revision request", () => {
 		expect(canResubmitRequest("revision_requested")).toBe(true);
 		expect(canResubmitRequest("submitted")).toBe(false);
+	});
+	test("moves every terminal request status into history", () => {
+		expect(isRequestHistoryStatus("approved")).toBe(true);
+		expect(isRequestHistoryStatus("rejected")).toBe(true);
+		expect(isRequestHistoryStatus("cancelled")).toBe(true);
+		expect(isRequestHistoryStatus("draft")).toBe(false);
+		expect(isRequestHistoryStatus("submitted")).toBe(false);
+		expect(isRequestHistoryStatus("revision_requested")).toBe(false);
 	});
 	test("maps presentation values to typed translation keys", () => {
 		expect(requestStatusKeys.revision_requested).toBe(

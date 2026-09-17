@@ -19,16 +19,22 @@ export class DrizzleStudentProfileRepository implements StudentProfileReadiness 
   }
 
   async isComplete(userId: string) {
-    return Boolean(await this.findMine(userId));
+    const profile = await this.findMine(userId);
+    return Boolean(profile?.cumulativeGpa && profile.lastTermGpa);
   }
 
   async upsert(userId: string, input: StudentProfileInput) {
+    const values = {
+      ...input,
+      cumulativeGpa: input.cumulativeGpa.toFixed(2),
+      lastTermGpa: input.lastTermGpa.toFixed(2),
+    };
     const [record] = await this.database
       .insert(studentProfile)
-      .values({ userId, ...input })
+      .values({ userId, ...values })
       .onConflictDoUpdate({
         target: studentProfile.userId,
-        set: { ...input, updatedAt: new Date() },
+        set: { ...values, updatedAt: new Date() },
       })
       .returning();
     if (!record) throw new Error("Database did not return the student profile");

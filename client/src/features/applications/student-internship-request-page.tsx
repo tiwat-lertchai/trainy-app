@@ -11,7 +11,7 @@ import { loadStudentProfile } from "@/features/student-profile/student-profile-a
 
 const WORKSPACE_KEY = "trainy-workspace-id";
 
-export function StudentInternshipRequestPage() {
+export function StudentInternshipRequestPage({ view = "active" }: { view?: "active" | "history" }) {
 	const { t } = useLanguage();
 	const organizations = useQuery({
 		queryKey: ["organizations"],
@@ -57,7 +57,7 @@ export function StudentInternshipRequestPage() {
 					{t("internshipRequests.backToApplications")}
 				</Link>
 			</Button>
-			<InternshipRequestPanel organizationId={context.organization.id} role={role} />
+			<InternshipRequestPanel organizationId={context.organization.id} role={role} view={view} />
 		</div>
 	);
 }

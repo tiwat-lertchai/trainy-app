@@ -15,15 +15,18 @@ export type NavigationKey =
 	| "attendance"
 	| "academic"
 	| "progress"
+	| "cwie"
 	| "documents"
 	| "evaluations"
 	| "invites"
 	| "members"
-	| "reports";
+	| "reports"
+	| "accessReviews";
 
 const roleNavigation: Record<OrganizationRole, readonly NavigationKey[]> = {
 	university_admin: [
 		"overview",
+		"accessReviews",
 		"applications",
 		"placements",
 		"attendance",
@@ -34,6 +37,7 @@ const roleNavigation: Record<OrganizationRole, readonly NavigationKey[]> = {
 	],
 	coordinator: [
 		"overview",
+		"accessReviews",
 		"applications",
 		"placements",
 		"attendance",
@@ -47,6 +51,7 @@ const roleNavigation: Record<OrganizationRole, readonly NavigationKey[]> = {
 		"placements",
 		"attendance",
 		"progress",
+		"cwie",
 		"documents",
 		"evaluations",
 	],
@@ -58,11 +63,13 @@ const roleNavigation: Record<OrganizationRole, readonly NavigationKey[]> = {
 		"placements",
 		"attendance",
 		"progress",
+		"cwie",
 		"documents",
 		"evaluations",
 	],
 	company_admin: [
 		"overview",
+		"accessReviews",
 		"internships",
 		"applications",
 		"placements",
@@ -77,6 +84,7 @@ const roleNavigation: Record<OrganizationRole, readonly NavigationKey[]> = {
 		"placements",
 		"attendance",
 		"progress",
+		"cwie",
 		"documents",
 		"evaluations",
 	],
@@ -93,4 +101,8 @@ const primaryRoleNavigation: Partial<Record<OrganizationRole, readonly Navigatio
 
 export function getPrimaryNavigationForRole(role: OrganizationRole) {
 	return primaryRoleNavigation[role] ?? roleNavigation[role];
+}
+
+export function canReviewAccessRequests(role: OrganizationRole | undefined) {
+	return role === "university_admin" || role === "coordinator" || role === "company_admin";
 }

@@ -92,7 +92,16 @@ export class OnboardingService {
   }
 
   private async canReview(userId: string, request: OnboardingRecord) {
-    if (["company_admin", "university_admin"].includes(request.requestedRole))
+    if (request.requestedRole === "company_admin") {
+      if (await this.repository.isPlatformStaff(userId)) return true;
+      if (!request.targetOrganizationId) return false;
+      const membership = await this.repository.findActiveMembership(
+        request.targetOrganizationId,
+        userId,
+      );
+      return membership?.role === "university_admin" || membership?.role === "coordinator";
+    }
+    if (request.requestedRole === "university_admin")
       return this.repository.isPlatformStaff(userId);
     if (!request.targetOrganizationId) return false;
     const membership = await this.repository.findActiveMembership(

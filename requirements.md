@@ -135,6 +135,17 @@ The identity model must remain provider-independent so Google Login may be added
 - **STU-ACT-04:** Show attendance/workday totals, submitted-log count, remaining duration, and upcoming events.
 - **STU-ACT-05:** Make the assigned advisor's permitted contact information available when help is needed.
 
+#### 6.3.1 CWIE Work Records and Monthly Certification
+
+- **CWIE-LOG-01:** Students with an active placement must be able to maintain structured daily logs, weekly work plans/results, and professional-experience records.
+- **CWIE-LOG-02:** Draft and returned records remain editable; submitted and fully approved records are immutable.
+- **CWIE-LOG-03:** Assigned advisors and workplace supervisors review independently and may approve or request revision with an actionable comment.
+- **CWIE-LOG-04:** A record becomes approved only after both assigned reviewers approve it. Editing a returned record clears prior review decisions.
+- **CWIE-MONTH-01:** Students must create at most one monthly summary per placement/month, including achievements, challenges, next-month plan, and total hours.
+- **CWIE-MONTH-02:** Advisor approval records acknowledgement and supervisor approval records electronic certification with reviewer identity and timestamp.
+- **CWIE-MONTH-03:** Electronic certification is an auditable workflow decision, not a cryptographic or image signature.
+- **CWIE-DATE-01:** Work records, summaries, and supervision events must fall within the active placement period.
+
 ### 6.4 History and Documents
 
 - **STU-HIS-01:** Record important events such as submissions, changes, approvals, cancellations, and document issuance.
@@ -160,6 +171,7 @@ The identity model must remain provider-independent so Google Login may be added
 - **STU-PRO-05:** Saving ordinary profile changes must not require a confirmation dialog; show success or actionable error feedback.
 - **STU-PRO-06:** Warn before leaving only when unsaved changes would be lost.
 - **STU-PRO-07:** If registry data is incorrect, show the responsible office and contact route.
+- **STU-PRO-08:** Students must enter their current cumulative GPA and latest-term GPA in their profile. Label these values as student-reported so they are not confused with university-maintained academic records.
 
 ## 7. Advisor/Teacher Portal Requirements
 
@@ -193,6 +205,13 @@ The identity model must remain provider-independent so Google Login may be added
 - **ADV-STU-08:** “Currently Supervised” means an active assignment to the signed-in advisor. It must not be inferred only from the student's internship status.
 - **ADV-STU-09:** Completed students remain discoverable through history but must not appear as active workload.
 - **ADV-STU-10:** Pagination or incremental loading must be used when the complete authorized result set is large. Filtering and search must apply to the full result set, not only loaded rows.
+
+#### 7.3.1 Supervision Visits
+
+- **ADV-VISIT-01:** Only the assigned advisor may schedule or edit supervision visits for a placement.
+- **ADV-VISIT-02:** A placement supports visit numbers 1–3, with date/time, onsite or online mode, location where applicable, and notes.
+- **ADV-VISIT-03:** The advisor must record observed work, student progress, issues, agreed solutions, and recommendations when completing a visit.
+- **ADV-VISIT-04:** Completed visit reports are immutable and visible only to the placement student, assigned advisor, and assigned workplace supervisor.
 
 ### 7.4 Advisor Evaluations
 

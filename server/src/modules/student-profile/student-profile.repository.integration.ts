@@ -42,6 +42,8 @@ describe("DrizzleStudentProfileRepository", () => {
       dateOfBirth: "2003-05-17",
       gender: "prefer_not_to_say",
       address: "123 Bangkok, Thailand",
+      cumulativeGpa: 3.42,
+      lastTermGpa: 3.75,
       emergencyContactName: "Emergency Contact",
       emergencyContactRelationship: "Parent",
       emergencyContactPhone: "0812345678",
@@ -55,6 +57,8 @@ describe("DrizzleStudentProfileRepository", () => {
     expect(await repository.findMine("profile-student")).toMatchObject({
       userId: "profile-student",
       emergencyContactPhone: "0812345678",
+      cumulativeGpa: "3.42",
+      lastTermGpa: "3.75",
     });
   });
 });

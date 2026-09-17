@@ -1,16 +1,19 @@
 import { useState, type FormEvent } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { HeartPulse, ShieldCheck } from "lucide-react";
+import { BookOpen, ContactRound, HeartPulse, ShieldCheck, UserRound } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useLanguage } from "@/i18n/config";
 import type { MessageKey } from "@/i18n/messages";
 import { apiClient } from "@/lib/api-client";
+import { authClient } from "@/lib/auth-client";
 import { loadStudentProfile } from "./student-profile-api";
 
 type StudentProfilePayload = {
 	dateOfBirth: string;
 	gender: "female" | "male" | "non_binary" | "prefer_not_to_say";
 	address: string;
+	cumulativeGpa: number;
+	lastTermGpa: number;
 	emergencyContactName: string;
 	emergencyContactRelationship: string;
 	emergencyContactPhone: string;
@@ -24,6 +27,7 @@ type StudentProfilePayload = {
 export function StudentProfilePage() {
 	const { t } = useLanguage();
 	const queryClient = useQueryClient();
+	const session = authClient.useSession();
 	const profile = useQuery({ queryKey: ["student-profile", "me"], queryFn: loadStudentProfile });
 	const [saved, setSaved] = useState(false);
 	const save = useMutation({
@@ -47,6 +51,8 @@ export function StudentProfilePage() {
 			dateOfBirth: value("dateOfBirth"),
 			gender: value("gender") as "female" | "male" | "non_binary" | "prefer_not_to_say",
 			address: value("address"),
+			cumulativeGpa: Number(value("cumulativeGpa")),
+			lastTermGpa: Number(value("lastTermGpa")),
 			emergencyContactName: value("emergencyContactName"),
 			emergencyContactRelationship: value("emergencyContactRelationship"),
 			emergencyContactPhone: value("emergencyContactPhone"),
@@ -62,9 +68,12 @@ export function StudentProfilePage() {
 		return <p className="text-muted-foreground">{t("studentProfile.loading")}</p>;
 	if (profile.isError)
 		return (
-			<p role="alert" className="rounded-xl bg-destructive-muted p-4 text-destructive">
-				{t("studentProfile.loadError")}
-			</p>
+			<div role="alert" className="rounded-2xl border border-destructive/20 bg-card p-6">
+				<p className="font-semibold text-destructive">{t("studentProfile.loadError")}</p>
+				<Button className="mt-4" variant="outline" onClick={() => profile.refetch()}>
+					{t("common.retry")}
+				</Button>
+			</div>
 		);
 	const current = profile.data?.data;
 	return (
@@ -76,11 +85,42 @@ export function StudentProfilePage() {
 				<ShieldCheck className="size-5 shrink-0" />
 				<p>{t("studentProfile.privacy")}</p>
 			</div>
+			<section className="mt-6 rounded-2xl border bg-card p-6">
+				<div className="flex items-center gap-3">
+					<span className="grid size-11 place-items-center rounded-xl bg-secondary text-secondary-foreground">
+						<UserRound className="size-5" />
+					</span>
+					<div>
+						<h2 className="font-bold">{t("studentProfile.accountHeading")}</h2>
+						<p className="text-sm text-muted-foreground">
+							{t("studentProfile.accountDescription")}
+						</p>
+					</div>
+				</div>
+				<dl className="mt-5 grid gap-4 sm:grid-cols-2">
+					<div className="rounded-xl bg-muted p-4">
+						<dt className="text-xs font-semibold text-muted-foreground">
+							{t("studentProfile.accountName")}
+						</dt>
+						<dd className="mt-1 font-semibold">{session.data?.user.name ?? "—"}</dd>
+					</div>
+					<div className="rounded-xl bg-muted p-4">
+						<dt className="text-xs font-semibold text-muted-foreground">
+							{t("studentProfile.accountEmail")}
+						</dt>
+						<dd className="mt-1 break-all font-semibold">{session.data?.user.email ?? "—"}</dd>
+					</div>
+				</dl>
+			</section>
 			<form
 				key={current?.updatedAt ?? "empty"}
 				className="mt-6 grid gap-5 rounded-2xl border bg-card p-6 sm:grid-cols-2"
 				onSubmit={handleSubmit}
 			>
+				<div className="flex items-center gap-2 font-bold sm:col-span-2">
+					<UserRound className="size-5 text-primary" />
+					{t("studentProfile.personalHeading")}
+				</div>
 				<Field
 					name="dateOfBirth"
 					label={t("studentProfile.dateOfBirth")}
@@ -101,6 +141,35 @@ export function StudentProfilePage() {
 					defaultValue={current?.address}
 					wide
 				/>
+				<div className="sm:col-span-2 mt-2 flex items-center gap-2 border-t pt-5 font-bold">
+					<BookOpen className="size-5 text-primary" />
+					{t("studentProfile.academicHeading")}
+				</div>
+				<p className="text-sm text-muted-foreground sm:col-span-2">
+					{t("studentProfile.academicDescription")}
+				</p>
+				<Field
+					name="cumulativeGpa"
+					label={t("academic.cumulativeGpa")}
+					type="number"
+					defaultValue={current?.cumulativeGpa}
+					min="0"
+					max="4"
+					step="0.01"
+				/>
+				<Field
+					name="lastTermGpa"
+					label={t("academic.latestGpa")}
+					type="number"
+					defaultValue={current?.lastTermGpa}
+					min="0"
+					max="4"
+					step="0.01"
+				/>
+				<div className="sm:col-span-2 mt-2 flex items-center gap-2 border-t pt-5 font-bold">
+					<ContactRound className="size-5 text-primary" />
+					{t("studentProfile.emergencyHeading")}
+				</div>
 				<Field
 					name="emergencyContactName"
 					label={t("studentProfile.emergencyName")}
@@ -165,13 +234,19 @@ function Field({
 	type = "text",
 	placeholder,
 	wide = false,
+	min,
+	max,
+	step,
 }: {
 	name: string;
 	label: string;
-	defaultValue?: string;
+	defaultValue?: string | null;
 	type?: string;
 	placeholder?: string;
 	wide?: boolean;
+	min?: string;
+	max?: string;
+	step?: string;
 }) {
 	return (
 		<label className={`grid gap-2 text-sm font-semibold ${wide ? "sm:col-span-2" : ""}`}>
@@ -182,6 +257,9 @@ function Field({
 				defaultValue={defaultValue ?? ""}
 				placeholder={placeholder}
 				required
+				min={min}
+				max={max}
+				step={step}
 				maxLength={type === "text" ? 1000 : undefined}
 				className="h-11 rounded-xl border bg-background px-3 font-normal"
 			/>

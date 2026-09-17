@@ -16,7 +16,7 @@ describe("onboarding presentation rules", () => {
 	it("filters tenant choices by requested role", () => {
 		expect(organizationTypeForRole("advisor")).toBe("university");
 		expect(organizationTypeForRole("supervisor")).toBe("company");
-		expect(organizationTypeForRole("company_admin")).toBeNull();
+		expect(organizationTypeForRole("company_admin")).toBe("university");
 	});
 
 	it("labels the organization field so it is not mistaken for a generic org", () => {

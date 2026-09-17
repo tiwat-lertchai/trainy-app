@@ -66,6 +66,7 @@ export const submitOnboardingSchema = z.discriminatedUnion("requestedRole", [
   }),
   z.object({
     requestedRole: z.literal("company_admin"),
+    targetOrganizationId: z.string().uuid(),
     profile: z.object({ ...contact, department: requiredText, jobTitle: requiredText }),
     organization: z.object({
       name: requiredText,

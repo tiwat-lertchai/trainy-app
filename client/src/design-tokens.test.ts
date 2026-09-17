@@ -55,6 +55,12 @@ describe("Trainy design tokens", () => {
 		}
 	});
 
+	it("uses the required self-hosted Noto Sans Thai Looped font", () => {
+		expect(css).toContain("@fontsource/noto-sans-thai-looped/thai-400.css");
+		expect(css).toContain('--font-sans: "Noto Sans Thai Looped"');
+		expect(css).not.toContain("Google Sans");
+	});
+
 	it("keeps essential foreground and surface pairs at WCAG AA contrast", () => {
 		for (const theme of [light, dark]) {
 			for (const [foreground, background] of [

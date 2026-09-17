@@ -28,7 +28,7 @@ export default defineConfig({
 			allow: [
 				path.resolve(import.meta.dirname, "."),
 				// Bun hoists this self-hosted font package to the monorepo root.
-				path.resolve(import.meta.dirname, "../node_modules/@fontsource/google-sans"),
+				path.resolve(import.meta.dirname, "../node_modules/@fontsource/noto-sans-thai-looped"),
 			],
 		},
 	},

@@ -129,7 +129,8 @@ Base path: `/api/v1/student-profile`
 | GET    | `/me` | Current authenticated user |
 | PUT    | `/me` | Current authenticated user |
 
-The profile contains date of birth, current address, emergency contact, blood
+The editable profile contains the student's self-reported cumulative and
+latest-term GPA, date of birth, current address, emergency contact, blood
 type, medical conditions, allergies, regular medications, and accessibility
 needs. It is isolated from application and request-review payloads and is only
 readable or writable through the owner's `/me` endpoint. A complete record is
@@ -152,17 +153,20 @@ Base path: `/api/v1/onboarding`
 Students select an active university and receive an active student membership
 immediately. Privileged roles never self-activate:
 
-| Requested role                        | Reviewer                                             |
-| ------------------------------------- | ---------------------------------------------------- |
-| `advisor`, `coordinator`              | Active `university_admin` in the selected university |
-| `supervisor`                          | Active `company_admin` in the selected company       |
-| `university_admin`                    | Active CWIE platform staff                           |
-| First `company_admin` and new company | Active CWIE platform staff                           |
+| Requested role                        | Reviewer                                                                                                        |
+| ------------------------------------- | --------------------------------------------------------------------------------------------------------------- |
+| `advisor`, `coordinator`              | Active `university_admin` in the selected university                                                            |
+| `supervisor`                          | Active `company_admin` in the selected company                                                                  |
+| `university_admin`                    | Active CWIE platform staff                                                                                      |
+| First `company_admin` and new company | Active CWIE platform staff, or an active `university_admin`/`coordinator` in the selected sponsoring university |
 
-Company approval requires `documentsVerified: true`. CWIE staff must verify the
-submitted company registration evidence outside the API before approving. The
-approval transaction creates the company, activates the first company admin,
-and marks the request approved atomically.
+The first company administrator must select a sponsoring university using
+`targetOrganizationId`. The request is visible only to platform staff and active
+`university_admin` or `coordinator` members of that university. Company approval
+requires `documentsVerified: true`; the reviewer must verify the submitted
+company registration evidence outside the API before approving. The approval
+transaction creates the company, activates the first company admin, and marks
+the request approved atomically.
 
 When a reviewer chooses `revision_requested`, a note is required. The applicant
 can correct the form and submit it again; reviewer identity and the old decision
@@ -200,6 +204,38 @@ CWIE company approval:
 first CWIE reviewer must sign in once and then be provisioned directly by an
 authorized database operator. There is intentionally no public endpoint for
 self-assigning this privilege.
+
+## CWIE work records, supervision, and monthly certification
+
+Base path: `/api/v1/cwie`
+
+All routes require authentication and resolve authorization from the placement.
+Only the placement student, assigned advisor, and assigned workplace supervisor
+can read the workspace. Client navigation never grants access by itself.
+
+| Method | Path                                   | Access and behavior                                                             |
+| ------ | -------------------------------------- | ------------------------------------------------------------------------------- |
+| GET    | `/placements/:placementId`             | Assigned placement participants; returns entries, visits, and monthly summaries |
+| POST   | `/entries`                             | Placement student; creates a draft daily log, weekly plan, or experience record |
+| PUT    | `/entries/:entryId`                    | Owning student; draft or revision-requested only                                |
+| POST   | `/entries/:entryId/submit`             | Owning student; locks content for review                                        |
+| POST   | `/entries/:entryId/review`             | Assigned advisor or supervisor                                                  |
+| POST   | `/visits`                              | Assigned advisor; schedules visit 1–3                                           |
+| PUT    | `/visits/:visitId`                     | Assigned advisor; completed visits are immutable                                |
+| POST   | `/visits/:visitId/report`              | Assigned advisor; completes the visit and records structured findings           |
+| POST   | `/monthly-summaries`                   | Placement student; one draft per placement/month                                |
+| PUT    | `/monthly-summaries/:summaryId`        | Owning student; draft or revision-requested only                                |
+| POST   | `/monthly-summaries/:summaryId/submit` | Owning student; locks content for review                                        |
+| POST   | `/monthly-summaries/:summaryId/review` | Assigned advisor or supervisor                                                  |
+
+Entries and monthly summaries require separate advisor and supervisor approval.
+A revision request immediately returns the record to the student. Editing a
+returned record clears both old decisions before resubmission. The supervisor's
+approval is an auditable electronic certification (reviewer ID and timestamp),
+not a cryptographic or image signature.
+
+Dates must fall inside an active placement. Duplicate entry dates/periods,
+duplicate monthly summaries, and duplicate visit numbers are rejected.
 
 ## Internships and applications
 

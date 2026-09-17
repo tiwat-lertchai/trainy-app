@@ -16,8 +16,10 @@ import { Route as ResetPasswordRouteImport } from './routes/reset-password'
 import { Route as AppAcademicRouteImport } from './routes/app.academic'
 import { Route as AppApplicationsRouteImport } from './routes/app.applications'
 import { Route as AppAttendanceRouteImport } from './routes/app.attendance'
+import { Route as AppCwieRouteImport } from './routes/app.cwie'
 import { Route as AppDocumentsRouteImport } from './routes/app.documents'
 import { Route as AppEvaluationsRouteImport } from './routes/app.evaluations'
+import { Route as AppHistoryRouteImport } from './routes/app.history'
 import { Route as AppInternshipRequestRouteImport } from './routes/app.internship-request'
 import { Route as AppInternshipsRouteImport } from './routes/app.internships'
 import { Route as AppInvitesRouteImport } from './routes/app.invites'
@@ -66,6 +68,11 @@ const AppAttendanceRoute = AppAttendanceRouteImport.update({
   path: '/attendance',
   getParentRoute: () => AppRoute,
 } as any)
+const AppCwieRoute = AppCwieRouteImport.update({
+  id: '/cwie',
+  path: '/cwie',
+  getParentRoute: () => AppRoute,
+} as any)
 const AppDocumentsRoute = AppDocumentsRouteImport.update({
   id: '/documents',
   path: '/documents',
@@ -74,6 +81,11 @@ const AppDocumentsRoute = AppDocumentsRouteImport.update({
 const AppEvaluationsRoute = AppEvaluationsRouteImport.update({
   id: '/evaluations',
   path: '/evaluations',
+  getParentRoute: () => AppRoute,
+} as any)
+const AppHistoryRoute = AppHistoryRouteImport.update({
+  id: '/history',
+  path: '/history',
   getParentRoute: () => AppRoute,
 } as any)
 const AppInternshipRequestRoute = AppInternshipRequestRouteImport.update({
@@ -145,8 +157,10 @@ export interface FileRoutesByFullPath {
   '/app/academic': typeof AppAcademicRoute
   '/app/applications': typeof AppApplicationsRoute
   '/app/attendance': typeof AppAttendanceRoute
+  '/app/cwie': typeof AppCwieRoute
   '/app/documents': typeof AppDocumentsRoute
   '/app/evaluations': typeof AppEvaluationsRoute
+  '/app/history': typeof AppHistoryRoute
   '/app/internship-request': typeof AppInternshipRequestRoute
   '/app/internships': typeof AppInternshipsRoute
   '/app/invites': typeof AppInvitesRouteWithChildren
@@ -168,8 +182,10 @@ export interface FileRoutesByTo {
   '/app/academic': typeof AppAcademicRoute
   '/app/applications': typeof AppApplicationsRoute
   '/app/attendance': typeof AppAttendanceRoute
+  '/app/cwie': typeof AppCwieRoute
   '/app/documents': typeof AppDocumentsRoute
   '/app/evaluations': typeof AppEvaluationsRoute
+  '/app/history': typeof AppHistoryRoute
   '/app/internship-request': typeof AppInternshipRequestRoute
   '/app/internships': typeof AppInternshipsRoute
   '/app/members': typeof AppMembersRoute
@@ -191,8 +207,10 @@ export interface FileRoutesById {
   '/app/academic': typeof AppAcademicRoute
   '/app/applications': typeof AppApplicationsRoute
   '/app/attendance': typeof AppAttendanceRoute
+  '/app/cwie': typeof AppCwieRoute
   '/app/documents': typeof AppDocumentsRoute
   '/app/evaluations': typeof AppEvaluationsRoute
+  '/app/history': typeof AppHistoryRoute
   '/app/internship-request': typeof AppInternshipRequestRoute
   '/app/internships': typeof AppInternshipsRoute
   '/app/invites': typeof AppInvitesRouteWithChildren
@@ -216,8 +234,10 @@ export interface FileRouteTypes {
     | '/app/academic'
     | '/app/applications'
     | '/app/attendance'
+    | '/app/cwie'
     | '/app/documents'
     | '/app/evaluations'
+    | '/app/history'
     | '/app/internship-request'
     | '/app/internships'
     | '/app/invites'
@@ -239,8 +259,10 @@ export interface FileRouteTypes {
     | '/app/academic'
     | '/app/applications'
     | '/app/attendance'
+    | '/app/cwie'
     | '/app/documents'
     | '/app/evaluations'
+    | '/app/history'
     | '/app/internship-request'
     | '/app/internships'
     | '/app/members'
@@ -261,8 +283,10 @@ export interface FileRouteTypes {
     | '/app/academic'
     | '/app/applications'
     | '/app/attendance'
+    | '/app/cwie'
     | '/app/documents'
     | '/app/evaluations'
+    | '/app/history'
     | '/app/internship-request'
     | '/app/internships'
     | '/app/invites'
@@ -335,6 +359,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AppAttendanceRouteImport
       parentRoute: typeof AppRoute
     }
+    '/app/cwie': {
+      id: '/app/cwie'
+      path: '/cwie'
+      fullPath: '/app/cwie'
+      preLoaderRoute: typeof AppCwieRouteImport
+      parentRoute: typeof AppRoute
+    }
     '/app/documents': {
       id: '/app/documents'
       path: '/documents'
@@ -347,6 +378,13 @@ declare module '@tanstack/react-router' {
       path: '/evaluations'
       fullPath: '/app/evaluations'
       preLoaderRoute: typeof AppEvaluationsRouteImport
+      parentRoute: typeof AppRoute
+    }
+    '/app/history': {
+      id: '/app/history'
+      path: '/history'
+      fullPath: '/app/history'
+      preLoaderRoute: typeof AppHistoryRouteImport
       parentRoute: typeof AppRoute
     }
     '/app/internship-request': {
@@ -454,8 +492,10 @@ interface AppRouteChildren {
   AppAcademicRoute: typeof AppAcademicRoute
   AppApplicationsRoute: typeof AppApplicationsRoute
   AppAttendanceRoute: typeof AppAttendanceRoute
+  AppCwieRoute: typeof AppCwieRoute
   AppDocumentsRoute: typeof AppDocumentsRoute
   AppEvaluationsRoute: typeof AppEvaluationsRoute
+  AppHistoryRoute: typeof AppHistoryRoute
   AppInternshipRequestRoute: typeof AppInternshipRequestRoute
   AppInternshipsRoute: typeof AppInternshipsRoute
   AppInvitesRoute: typeof AppInvitesRouteWithChildren
@@ -472,8 +512,10 @@ const AppRouteChildren: AppRouteChildren = {
   AppAcademicRoute: AppAcademicRoute,
   AppApplicationsRoute: AppApplicationsRoute,
   AppAttendanceRoute: AppAttendanceRoute,
+  AppCwieRoute: AppCwieRoute,
   AppDocumentsRoute: AppDocumentsRoute,
   AppEvaluationsRoute: AppEvaluationsRoute,
+  AppHistoryRoute: AppHistoryRoute,
   AppInternshipRequestRoute: AppInternshipRequestRoute,
   AppInternshipsRoute: AppInternshipsRoute,
   AppInvitesRoute: AppInvitesRouteWithChildren,

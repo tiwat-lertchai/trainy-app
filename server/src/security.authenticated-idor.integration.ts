@@ -222,6 +222,15 @@ describe("cross-tenant IDOR: an outsider (student B, unrelated university) again
     ).rejects.toMatchObject({ code: "PROGRESS_REPORT_NOT_FOUND" });
   });
 
+  it("cannot read placement A's CWIE journal, visits, or monthly summaries", async () => {
+    const { CwieService } = await import("./modules/cwie/cwie.service");
+    const { DrizzleCwieRepository } = await import("./modules/cwie/cwie.repository");
+    const service = new CwieService(new DrizzleCwieRepository(db));
+    await expect(service.getWorkspace(users.studentB, ids.placementA)).rejects.toMatchObject({
+      code: "PLACEMENT_ACCESS_REQUIRED",
+    });
+  });
+
   it("cannot list placement A's documents", async () => {
     const { DocumentService } = await import("./modules/documents/document.service");
     const { DrizzleDocumentRepository } = await import("./modules/documents/document.repository");
@@ -293,6 +302,45 @@ describe("cross-tenant IDOR: an outsider (student B, unrelated university) again
 });
 
 describe("role escalation: a legitimate participant of placement A acting outside their role", () => {
+  it("the student cannot schedule a supervision visit", async () => {
+    const { CwieService } = await import("./modules/cwie/cwie.service");
+    const { DrizzleCwieRepository } = await import("./modules/cwie/cwie.repository");
+    const service = new CwieService(new DrizzleCwieRepository(db));
+    await expect(
+      service.createVisit(users.studentA, {
+        placementId: ids.placementA,
+        visitNumber: 1,
+        scheduledAt: new Date("2026-10-01T03:00:00.000Z"),
+        mode: "onsite",
+        location: "Security test office",
+      }),
+    ).rejects.toMatchObject({ code: "CWIE_ADVISOR_REQUIRED" });
+  });
+
+  it("the student cannot certify their own CWIE entry and both assigned reviewers are required", async () => {
+    const { CwieService } = await import("./modules/cwie/cwie.service");
+    const { DrizzleCwieRepository } = await import("./modules/cwie/cwie.repository");
+    const service = new CwieService(new DrizzleCwieRepository(db));
+    const entry = await service.createEntry(users.studentA, {
+      type: "daily_log",
+      placementId: ids.placementA,
+      workDate: "2026-10-02",
+      activities: "Implemented the security integration fixture",
+      learning: "Learned how placement authorization is enforced",
+      hoursWorked: 8,
+    });
+    await service.submitEntry(users.studentA, entry.id);
+    await expect(service.reviewEntry(users.studentA, entry.id, "approved")).rejects.toMatchObject({
+      code: "CWIE_REVIEWER_REQUIRED",
+    });
+    expect((await service.reviewEntry(users.advisorA, entry.id, "approved")).status).toBe(
+      "submitted",
+    );
+    expect((await service.reviewEntry(users.supervisorA, entry.id, "approved")).status).toBe(
+      "approved",
+    );
+  });
+
   it("the student cannot review their own submitted document (advisor/supervisor-only action)", async () => {
     const { DrizzleDocumentRepository } = await import("./modules/documents/document.repository");
     const { DocumentService } = await import("./modules/documents/document.service");

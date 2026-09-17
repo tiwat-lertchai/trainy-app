@@ -39,7 +39,6 @@ export const roleOptions: Array<{
 ];
 
 export function organizationTypeForRole(role: OnboardingRole) {
-	if (role === "company_admin") return null;
 	return role === "supervisor" ? "company" : "university";
 }
 

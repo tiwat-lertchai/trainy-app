@@ -1,8 +1,9 @@
-import { date, pgTable, text, timestamp } from "drizzle-orm/pg-core";
+import { date, numeric, pgTable, text, timestamp } from "drizzle-orm/pg-core";
 import { user } from "./auth";
 
-// Health fields are intentionally isolated from applications and review-list
-// payloads. Only the owning student can read or update this record.
+// Health and self-reported academic fields are intentionally isolated from
+// applications and review-list payloads. Only the owning student can read or
+// update this record.
 export const studentProfile = pgTable("student_profile", {
   userId: text("user_id")
     .primaryKey()
@@ -10,6 +11,8 @@ export const studentProfile = pgTable("student_profile", {
   dateOfBirth: date("date_of_birth").notNull(),
   gender: text("gender").notNull(),
   address: text("address").notNull(),
+  cumulativeGpa: numeric("cumulative_gpa", { precision: 3, scale: 2 }),
+  lastTermGpa: numeric("last_term_gpa", { precision: 3, scale: 2 }),
   emergencyContactName: text("emergency_contact_name").notNull(),
   emergencyContactRelationship: text("emergency_contact_relationship").notNull(),
   emergencyContactPhone: text("emergency_contact_phone").notNull(),

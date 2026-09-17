@@ -2,6 +2,7 @@
 // schema for relational queries, while the rest of the app gets one import path.
 export * from "./academic";
 export * from "./auth";
+export * from "./cwie";
 export * from "./document";
 export * from "./evaluation";
 export * from "./internship";

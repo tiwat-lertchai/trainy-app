@@ -157,6 +157,19 @@ describe("progress report routes", () => {
   });
 });
 
+describe("CWIE work and supervision routes", () => {
+  it("rejects unauthenticated access before exposing placement records", async () => {
+    const response = await app.request(
+      "/api/v1/cwie/placements/00000000-0000-4000-8000-000000000000",
+    );
+    expect(response.status).toBe(401);
+    expect(await response.json()).toMatchObject({
+      success: false,
+      error: { code: "UNAUTHORIZED" },
+    });
+  });
+});
+
 describe("document and evaluation routes", () => {
   it("rejects unauthenticated workflow access", async () => {
     const [documents, evaluations] = await Promise.all([

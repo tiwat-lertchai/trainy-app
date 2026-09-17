@@ -2,12 +2,14 @@ import { useState, type FormEvent } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { Building2, CheckCircle2, Clock3 } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { ConfirmationDialog } from "@/components/ui/confirmation-dialog";
 import { useLanguage } from "@/i18n/config";
 import { apiClient } from "@/lib/api-client";
 import type { OrganizationRole } from "@/features/organizations/role-navigation";
 import {
 	canCancelRequest,
 	canEditRequest,
+	isRequestHistoryStatus,
 	requestStatusKeys,
 	requestStepKeys,
 	type InternshipRequestStatus,
@@ -17,21 +19,34 @@ import {
 type Props = {
 	organizationId?: string;
 	role?: OrganizationRole;
+	view?: "active" | "history";
 };
 
-export function InternshipRequestPanel({ organizationId, role }: Props) {
-	if (role === "student") return <StudentRequests organizationId={organizationId} />;
+export function InternshipRequestPanel({ organizationId, role, view = "active" }: Props) {
+	if (role === "student") return <StudentRequests organizationId={organizationId} view={view} />;
 	if (["advisor", "coordinator", "university_admin"].includes(role ?? ""))
 		return <RequestReviews />;
 	return null;
 }
 
-function StudentRequests({ organizationId }: { organizationId?: string }) {
+function StudentRequests({
+	organizationId,
+	view,
+}: {
+	organizationId?: string;
+	view: "active" | "history";
+}) {
 	const { t } = useLanguage();
 	const queryClient = useQueryClient();
 	const [facultyId, setFacultyId] = useState("");
 	const [majorId, setMajorId] = useState("");
 	const [editingRequestId, setEditingRequestId] = useState<string>();
+	const [pendingSubmission, setPendingSubmission] = useState<
+		| { kind: "new"; form: HTMLFormElement }
+		| { kind: "draft"; requestId: string }
+		| { kind: "resubmit"; request: EditableRequest; form: HTMLFormElement }
+		| { kind: "cancel"; requestId: string }
+	>();
 	const faculties = useQuery({
 		queryKey: ["academic", "faculties", organizationId],
 		queryFn: async () => {
@@ -73,6 +88,12 @@ function StudentRequests({ organizationId }: { organizationId?: string }) {
 			return response.json();
 		},
 	});
+	const visibleRequests =
+		requests.data?.data.filter((request) =>
+			view === "history"
+				? isRequestHistoryStatus(request.status as InternshipRequestStatus)
+				: !isRequestHistoryStatus(request.status as InternshipRequestStatus),
+		) ?? [];
 	const create = useMutation({
 		mutationFn: async ({ form, submitNow }: { form: HTMLFormElement; submitNow: boolean }) => {
 			const data = new FormData(form);
@@ -174,187 +195,231 @@ function StudentRequests({ organizationId }: { organizationId?: string }) {
 		event.preventDefault();
 		const form = event.currentTarget;
 		const submitter = (event.nativeEvent as SubmitEvent).submitter as HTMLButtonElement | null;
-		create.mutate(
-			{ form, submitNow: submitter?.value !== "draft" },
-			{ onSuccess: () => form.reset() },
-		);
+		if (submitter?.value === "draft") {
+			create.mutate({ form, submitNow: false }, { onSuccess: () => form.reset() });
+			return;
+		}
+		setPendingSubmission({ kind: "new", form });
+	}
+
+	function confirmPendingSubmission() {
+		if (!pendingSubmission) return;
+		if (pendingSubmission.kind === "new") {
+			const { form } = pendingSubmission;
+			create.mutate(
+				{ form, submitNow: true },
+				{
+					onSuccess: () => {
+						form.reset();
+						setPendingSubmission(undefined);
+					},
+				},
+			);
+			return;
+		}
+		if (pendingSubmission.kind === "draft") {
+			submitDraft.mutate(pendingSubmission.requestId, {
+				onSuccess: () => setPendingSubmission(undefined),
+			});
+			return;
+		}
+		if (pendingSubmission.kind === "resubmit") {
+			resubmit.mutate(
+				{ request: pendingSubmission.request, form: pendingSubmission.form },
+				{ onSuccess: () => setPendingSubmission(undefined) },
+			);
+			return;
+		}
+		cancel.mutate(pendingSubmission.requestId, {
+			onSuccess: () => setPendingSubmission(undefined),
+		});
 	}
 
 	return (
 		<section className="mt-12 border-t pt-10">
-			<h2 className="text-2xl font-black">{t("internshipRequests.title")}</h2>
-			<p className="mt-2 text-muted-foreground">{t("internshipRequests.description")}</p>
-			<form
-				className="mt-6 grid gap-4 rounded-2xl border bg-card p-6 md:grid-cols-2"
-				onSubmit={submit}
-			>
-				<Field label={t("internshipRequests.type")}>
-					<select name="type" required className={controlClass}>
-						<option value="regular">{t("internshipRequests.type.regular")}</option>
-						<option value="cooperative">{t("internshipRequests.type.cooperative")}</option>
-					</select>
-				</Field>
-				<Field label={t("internshipRequests.semester")}>
-					<select name="semester" required className={controlClass} defaultValue="1">
-						<option value="1">1</option>
-						<option value="2">2</option>
-						<option value="3">3</option>
-					</select>
-				</Field>
-				<Field label={t("internshipRequests.academicYear")}>
-					<input
-						name="academicYear"
-						type="number"
-						min="2400"
-						max="2800"
-						defaultValue="2569"
-						required
-						className={controlClass}
-					/>
-				</Field>
-				<Field label={t("internshipRequests.faculty")}>
-					<select
-						required
-						className={controlClass}
-						value={facultyId}
-						onChange={(event) => {
-							setFacultyId(event.target.value);
-							setMajorId("");
-						}}
-					>
-						<option value="">{t("internshipRequests.selectFaculty")}</option>
-						{faculties.data?.data.map((faculty) => (
-							<option key={faculty.id} value={faculty.id}>
-								{faculty.name}
-							</option>
-						))}
-					</select>
-				</Field>
-				<Field label={t("internshipRequests.major")}>
-					<select
-						required
-						className={controlClass}
-						value={majorId}
-						onChange={(e) => setMajorId(e.target.value)}
-					>
-						<option value="">{t("internshipRequests.selectMajor")}</option>
-						{majors.data?.data.map((major) => (
-							<option key={major.id} value={major.id}>
-								{major.name}
-							</option>
-						))}
-					</select>
-				</Field>
-				<Field label={t("internshipRequests.advisor")}>
-					<select name="advisorUserId" required className={controlClass}>
-						<option value="">{t("internshipRequests.selectAdvisor")}</option>
-						{advisors.data?.data.map((advisor) => (
-							<option key={advisor.userId} value={advisor.userId}>
-								{advisor.name}
-							</option>
-						))}
-					</select>
-				</Field>
-				<Field label={t("internshipRequests.position")}>
-					<input
-						name="positionTitle"
-						minLength={2}
-						maxLength={200}
-						required
-						className={controlClass}
-					/>
-				</Field>
-				<Field label={t("internshipRequests.companyName")}>
-					<input
-						name="companyNameProposed"
-						minLength={2}
-						maxLength={200}
-						required
-						className={controlClass}
-					/>
-				</Field>
-				<Field label={t("internshipRequests.startDate")}>
-					<input name="proposedStartDate" type="date" required className={controlClass} />
-				</Field>
-				<Field label={t("internshipRequests.endDate")}>
-					<input name="proposedEndDate" type="date" required className={controlClass} />
-				</Field>
-				<Field label={t("internshipRequests.contactName")}>
-					<input
-						name="companyContactName"
-						minLength={2}
-						maxLength={200}
-						required
-						className={controlClass}
-					/>
-				</Field>
-				<Field label={t("internshipRequests.contactPosition")}>
-					<input
-						name="companyContactPosition"
-						minLength={2}
-						maxLength={200}
-						required
-						className={controlClass}
-					/>
-				</Field>
-				<Field label={t("internshipRequests.contactEmail")}>
-					<input name="companyContactEmail" type="email" required className={controlClass} />
-				</Field>
-				<Field label={t("internshipRequests.contactPhone")}>
-					<input
-						name="companyContactPhone"
-						minLength={8}
-						maxLength={30}
-						required
-						className={controlClass}
-					/>
-				</Field>
-				<Field label={t("internshipRequests.companyAddress")} wide>
-					<textarea
-						name="companyAddress"
-						minLength={5}
-						maxLength={1000}
-						required
-						className={`${controlClass} min-h-20 py-3`}
-					/>
-				</Field>
-				<Field label={t("internshipRequests.details")} wide>
-					<textarea
-						name="description"
-						minLength={10}
-						maxLength={5000}
-						required
-						className={`${controlClass} min-h-28 py-3`}
-					/>
-				</Field>
-				<div className="md:col-span-2">
-					{create.isError && (
-						<p role="alert" className="mb-3 text-sm text-destructive">
-							{t("internshipRequests.createError")}
-						</p>
-					)}
-					<Button
-						type="submit"
-						name="intent"
-						value="submit"
-						disabled={create.isPending || !majorId}
-					>
-						{t(create.isPending ? "internshipRequests.sending" : "internshipRequests.send")}
-					</Button>
-					<Button
-						type="submit"
-						name="intent"
-						value="draft"
-						variant="outline"
-						className="ml-2"
-						disabled={create.isPending || !majorId}
-					>
-						{t("internshipRequests.saveDraft")}
-					</Button>
-				</div>
-			</form>
+			<h2 className="text-2xl font-black">
+				{t(view === "history" ? "internshipRequests.historyTitle" : "internshipRequests.title")}
+			</h2>
+			<p className="mt-2 text-muted-foreground">
+				{t(
+					view === "history"
+						? "internshipRequests.historyDescription"
+						: "internshipRequests.description",
+				)}
+			</p>
+			{view === "active" && (
+				<form
+					className="mt-6 grid gap-4 rounded-2xl border bg-card p-6 md:grid-cols-2"
+					onSubmit={submit}
+				>
+					<Field label={t("internshipRequests.type")}>
+						<select name="type" required className={controlClass}>
+							<option value="regular">{t("internshipRequests.type.regular")}</option>
+							<option value="cooperative">{t("internshipRequests.type.cooperative")}</option>
+						</select>
+					</Field>
+					<Field label={t("internshipRequests.semester")}>
+						<select name="semester" required className={controlClass} defaultValue="1">
+							<option value="1">1</option>
+							<option value="2">2</option>
+							<option value="3">3</option>
+						</select>
+					</Field>
+					<Field label={t("internshipRequests.academicYear")}>
+						<input
+							name="academicYear"
+							type="number"
+							min="2400"
+							max="2800"
+							defaultValue="2569"
+							required
+							className={controlClass}
+						/>
+					</Field>
+					<Field label={t("internshipRequests.faculty")}>
+						<select
+							required
+							className={controlClass}
+							value={facultyId}
+							onChange={(event) => {
+								setFacultyId(event.target.value);
+								setMajorId("");
+							}}
+						>
+							<option value="">{t("internshipRequests.selectFaculty")}</option>
+							{faculties.data?.data.map((faculty) => (
+								<option key={faculty.id} value={faculty.id}>
+									{faculty.name}
+								</option>
+							))}
+						</select>
+					</Field>
+					<Field label={t("internshipRequests.major")}>
+						<select
+							required
+							className={controlClass}
+							value={majorId}
+							onChange={(e) => setMajorId(e.target.value)}
+						>
+							<option value="">{t("internshipRequests.selectMajor")}</option>
+							{majors.data?.data.map((major) => (
+								<option key={major.id} value={major.id}>
+									{major.name}
+								</option>
+							))}
+						</select>
+					</Field>
+					<Field label={t("internshipRequests.advisor")}>
+						<select name="advisorUserId" required className={controlClass}>
+							<option value="">{t("internshipRequests.selectAdvisor")}</option>
+							{advisors.data?.data.map((advisor) => (
+								<option key={advisor.userId} value={advisor.userId}>
+									{advisor.name}
+								</option>
+							))}
+						</select>
+					</Field>
+					<Field label={t("internshipRequests.position")}>
+						<input
+							name="positionTitle"
+							minLength={2}
+							maxLength={200}
+							required
+							className={controlClass}
+						/>
+					</Field>
+					<Field label={t("internshipRequests.companyName")}>
+						<input
+							name="companyNameProposed"
+							minLength={2}
+							maxLength={200}
+							required
+							className={controlClass}
+						/>
+					</Field>
+					<Field label={t("internshipRequests.startDate")}>
+						<input name="proposedStartDate" type="date" required className={controlClass} />
+					</Field>
+					<Field label={t("internshipRequests.endDate")}>
+						<input name="proposedEndDate" type="date" required className={controlClass} />
+					</Field>
+					<Field label={t("internshipRequests.contactName")}>
+						<input
+							name="companyContactName"
+							minLength={2}
+							maxLength={200}
+							required
+							className={controlClass}
+						/>
+					</Field>
+					<Field label={t("internshipRequests.contactPosition")}>
+						<input
+							name="companyContactPosition"
+							minLength={2}
+							maxLength={200}
+							required
+							className={controlClass}
+						/>
+					</Field>
+					<Field label={t("internshipRequests.contactEmail")}>
+						<input name="companyContactEmail" type="email" required className={controlClass} />
+					</Field>
+					<Field label={t("internshipRequests.contactPhone")}>
+						<input
+							name="companyContactPhone"
+							minLength={8}
+							maxLength={30}
+							required
+							className={controlClass}
+						/>
+					</Field>
+					<Field label={t("internshipRequests.companyAddress")} wide>
+						<textarea
+							name="companyAddress"
+							minLength={5}
+							maxLength={1000}
+							required
+							className={`${controlClass} min-h-20 py-3`}
+						/>
+					</Field>
+					<Field label={t("internshipRequests.details")} wide>
+						<textarea
+							name="description"
+							minLength={10}
+							maxLength={5000}
+							required
+							className={`${controlClass} min-h-28 py-3`}
+						/>
+					</Field>
+					<div className="md:col-span-2">
+						{create.isError && (
+							<p role="alert" className="mb-3 text-sm text-destructive">
+								{t("internshipRequests.createError")}
+							</p>
+						)}
+						<Button
+							type="submit"
+							name="intent"
+							value="submit"
+							disabled={create.isPending || !majorId}
+						>
+							{t(create.isPending ? "internshipRequests.sending" : "internshipRequests.send")}
+						</Button>
+						<Button
+							type="submit"
+							name="intent"
+							value="draft"
+							variant="outline"
+							className="ml-2"
+							disabled={create.isPending || !majorId}
+						>
+							{t("internshipRequests.saveDraft")}
+						</Button>
+					</div>
+				</form>
+			)}
 			<div className="mt-6 grid gap-4">
-				{requests.data?.data.map((request) => {
+				{visibleRequests.map((request) => {
 					const status = request.status as InternshipRequestStatus;
 					const isEditing = editingRequestId === request.id;
 					return (
@@ -368,7 +433,7 @@ function StudentRequests({ organizationId }: { organizationId?: string }) {
 										isPending={resubmit.isPending}
 										isError={resubmit.isError}
 										onCancel={() => setEditingRequestId(undefined)}
-										onSubmit={(form) => resubmit.mutate({ request, form })}
+										onSubmit={(form) => setPendingSubmission({ kind: "resubmit", request, form })}
 									/>
 								) : (
 									<div className="flex gap-2">
@@ -381,7 +446,9 @@ function StudentRequests({ organizationId }: { organizationId?: string }) {
 											<Button
 												size="sm"
 												disabled={submitDraft.isPending}
-												onClick={() => submitDraft.mutate(request.id)}
+												onClick={() =>
+													setPendingSubmission({ kind: "draft", requestId: request.id })
+												}
 											>
 												{t("internshipRequests.submitDraft")}
 											</Button>
@@ -391,7 +458,9 @@ function StudentRequests({ organizationId }: { organizationId?: string }) {
 												size="sm"
 												variant="outline"
 												disabled={cancel.isPending}
-												onClick={() => cancel.mutate(request.id)}
+												onClick={() =>
+													setPendingSubmission({ kind: "cancel", requestId: request.id })
+												}
 											>
 												{t("internshipRequests.cancel")}
 											</Button>
@@ -402,7 +471,41 @@ function StudentRequests({ organizationId }: { organizationId?: string }) {
 						/>
 					);
 				})}
+				{!requests.isLoading && visibleRequests.length === 0 && (
+					<p className="rounded-2xl border bg-card p-8 text-center text-muted-foreground">
+						{t(
+							view === "history"
+								? "internshipRequests.historyEmpty"
+								: "internshipRequests.activeEmpty",
+						)}
+					</p>
+				)}
 			</div>
+			<ConfirmationDialog
+				open={Boolean(pendingSubmission)}
+				title={t(
+					pendingSubmission?.kind === "cancel"
+						? "internshipRequests.cancelConfirmTitle"
+						: "internshipRequests.submitConfirmTitle",
+				)}
+				description={t(
+					pendingSubmission?.kind === "cancel"
+						? "internshipRequests.cancelConfirmDescription"
+						: "internshipRequests.submitConfirmDescription",
+				)}
+				confirmLabel={t(
+					pendingSubmission?.kind === "cancel"
+						? "internshipRequests.confirmCancel"
+						: "internshipRequests.confirmSubmit",
+				)}
+				cancelLabel={t("common.cancel")}
+				destructive={pendingSubmission?.kind === "cancel"}
+				pending={
+					create.isPending || submitDraft.isPending || resubmit.isPending || cancel.isPending
+				}
+				onConfirm={confirmPendingSubmission}
+				onCancel={() => setPendingSubmission(undefined)}
+			/>
 		</section>
 	);
 }

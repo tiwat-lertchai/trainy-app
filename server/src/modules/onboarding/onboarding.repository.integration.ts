@@ -26,7 +26,7 @@ beforeAll(async () => {
   await database.delete(schema.organizationMembership);
   await database.delete(schema.organization);
   await database.delete(schema.user);
-  const users = ["student", "company-admin", "cwie"].map((id) => ({
+  const users = ["student", "company-admin", "university-admin", "cwie"].map((id) => ({
     id,
     name: id,
     email: `${id}@example.test`,
@@ -41,6 +41,22 @@ beforeAll(async () => {
 afterAll(async () => closeDatabase());
 
 describe("DrizzleOnboardingRepository", () => {
+  it("recognizes only an active university administrator membership", async () => {
+    const schema = await import("../../db/schema");
+    const [university] = await database
+      .insert(schema.organization)
+      .values({ type: "university", name: "Review University", slug: "review-university" })
+      .returning();
+    await database.insert(schema.organizationMembership).values({
+      organizationId: university!.id,
+      userId: "university-admin",
+      role: "university_admin",
+    });
+
+    expect(await repository.isActiveUniversityAdmin("university-admin")).toBeTrue();
+    expect(await repository.isActiveUniversityAdmin("student")).toBeFalse();
+  });
+
   it("atomically approves a student and creates university membership", async () => {
     const schema = await import("../../db/schema");
     const [university] = await database
@@ -60,9 +76,15 @@ describe("DrizzleOnboardingRepository", () => {
   });
 
   it("lets CWIE approve a verified company request atomically", async () => {
+    const schema = await import("../../db/schema");
+    const [university] = await database
+      .insert(schema.organization)
+      .values({ type: "university", name: "Sponsor University", slug: "sponsor-university" })
+      .returning();
     const pending = await repository.createPending({
       userId: "company-admin",
       requestedRole: "company_admin",
+      targetOrganizationId: university!.id,
       profileData: { jobTitle: "Manager" },
       proposedOrganization: {
         name: "Verified Company",

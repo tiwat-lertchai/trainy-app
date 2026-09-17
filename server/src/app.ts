@@ -11,6 +11,7 @@ import { apiRateLimit, authRateLimit } from "./middleware/rate-limit";
 import { academicRoute } from "./modules/academic/academic.route";
 import { attendanceRoute } from "./modules/attendance/attendance.route";
 import { authRoute } from "./modules/auth/auth.route";
+import { cwieRoute } from "./modules/cwie/cwie.route";
 import { documentRoute } from "./modules/documents/document.route";
 import { evaluationRoute } from "./modules/evaluations/evaluation.route";
 import { healthRoute } from "./modules/health/health.route";
@@ -113,6 +114,7 @@ export const app = createApp()
   .route("/api/auth", authRoute)
   .route("/api/v1/academic", academicRoute)
   .route("/api/v1/attendance", attendanceRoute)
+  .route("/api/v1/cwie", cwieRoute)
   .route("/api/v1/documents", documentRoute)
   .route("/api/v1/evaluations", evaluationRoute)
   .route("/api/v1/internships", internshipRoute)

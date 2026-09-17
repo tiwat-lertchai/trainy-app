@@ -28,9 +28,9 @@ describe("dashboard navigation", () => {
 
 	test("maps only available requirement destinations to real routes", () => {
 		expect(dashboardNavigationLinks.requests).toBe("/app/applications");
-		expect(dashboardNavigationLinks.internship).toBe("/app/placements");
+		expect(dashboardNavigationLinks.internship).toBe("/app/cwie");
 		expect(dashboardNavigationLinks.approvals).toBe("/app/applications");
-		expect("history" in dashboardNavigationLinks).toBe(false);
-		expect("students" in dashboardNavigationLinks).toBe(false);
+		expect(dashboardNavigationLinks.history).toBe("/app/history");
+		expect(dashboardNavigationLinks.students).toBe("/app/cwie");
 	});
 });

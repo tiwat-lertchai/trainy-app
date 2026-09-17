@@ -24,6 +24,7 @@ export interface OnboardingRepository {
     userId: string,
   ): Promise<typeof organizationMembership.$inferSelect | undefined>;
   isPlatformStaff(userId: string): Promise<boolean>;
+  isActiveUniversityAdmin(userId: string): Promise<boolean>;
   listPending(): Promise<OnboardingReviewRecord[]>;
   listAvailableOrganizations(): Promise<
     Array<Pick<typeof organization.$inferSelect, "id" | "name" | "type">>
@@ -73,6 +74,17 @@ export class DrizzleOnboardingRepository implements OnboardingRepository {
     return Boolean(
       await this.database.query.platformStaff.findFirst({
         where: and(eq(platformStaff.userId, userId), eq(platformStaff.active, true)),
+      }),
+    );
+  }
+  async isActiveUniversityAdmin(userId: string) {
+    return Boolean(
+      await this.database.query.organizationMembership.findFirst({
+        where: and(
+          eq(organizationMembership.userId, userId),
+          eq(organizationMembership.role, "university_admin"),
+          eq(organizationMembership.status, "active"),
+        ),
       }),
     );
   }

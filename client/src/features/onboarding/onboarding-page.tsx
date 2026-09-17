@@ -156,6 +156,7 @@ export function OnboardingPage() {
 		else
 			payload = {
 				requestedRole: selectedRole,
+				targetOrganizationId: value("organizationId"),
 				profile: { ...profile, department: value("department"), jobTitle: value("jobTitle") },
 				organization: {
 					name: value("companyName"),
@@ -173,6 +174,12 @@ export function OnboardingPage() {
 	}
 
 	const targetType = organizationTypeForRole(selectedRole);
+	const organizationLabel =
+		selectedRole === "company_admin"
+			? t("onboarding.sponsoringUniversity")
+			: targetType
+				? t(organizationFieldKey(targetType))
+				: "";
 	const available = organizations.data?.data.filter((item) => item.type === targetType) ?? [];
 	return (
 		<div className="mx-auto max-w-3xl">
@@ -200,7 +207,7 @@ export function OnboardingPage() {
 					<Field name="phone" label={t("onboarding.phone")} />
 					{targetType && (
 						<label className="grid gap-2 text-sm font-semibold sm:col-span-2">
-							{t(organizationFieldKey(targetType))}
+							{organizationLabel}
 							<select
 								name="organizationId"
 								required
@@ -213,7 +220,7 @@ export function OnboardingPage() {
 							>
 								<option value="">
 									{t("onboarding.selectOrganization", {
-										organization: t(organizationFieldKey(targetType)),
+										organization: organizationLabel,
 									})}
 								</option>
 								{available.map((item) => (

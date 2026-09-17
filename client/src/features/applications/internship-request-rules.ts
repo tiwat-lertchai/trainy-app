@@ -29,4 +29,8 @@ export function canResubmitRequest(status: InternshipRequestStatus) {
 export function canEditRequest(status: InternshipRequestStatus) {
 	return status === "draft" || status === "revision_requested";
 }
+
+export function isRequestHistoryStatus(status: InternshipRequestStatus) {
+	return status === "approved" || status === "rejected" || status === "cancelled";
+}
 import type { MessageKey } from "@/i18n/messages";

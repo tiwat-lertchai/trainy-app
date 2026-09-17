@@ -10,8 +10,12 @@ const repository = new DrizzleStudentProfileRepository(db);
 export const studentProfileRoute = new Hono<{ Variables: AuthVariables }>()
   .use("*", requireAuth)
   .get("/me", async (c) => {
-    const data = await repository.findMine(c.get("authUser").id);
-    return c.json({ data: data ?? null, complete: Boolean(data) });
+    const userId = c.get("authUser").id;
+    const data = await repository.findMine(userId);
+    return c.json({
+      data: data ?? null,
+      complete: Boolean(data?.cumulativeGpa && data.lastTermGpa),
+    });
   })
   .put("/me", zValidator("json", updateStudentProfileSchema), async (c) =>
     c.json({ data: await repository.upsert(c.get("authUser").id, c.req.valid("json")) }),

@@ -6,6 +6,8 @@ export const updateStudentProfileSchema = z.object({
   dateOfBirth: z.string().date(),
   gender: z.enum(["female", "male", "non_binary", "prefer_not_to_say"]),
   address: requiredText(1000),
+  cumulativeGpa: z.number().min(0).max(4),
+  lastTermGpa: z.number().min(0).max(4),
   emergencyContactName: requiredText(200),
   emergencyContactRelationship: requiredText(100),
   emergencyContactPhone: z.string().trim().min(8).max(30),

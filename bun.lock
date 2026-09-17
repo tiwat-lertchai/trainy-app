@@ -20,7 +20,7 @@
       "name": "client",
       "version": "0.0.1",
       "dependencies": {
-        "@fontsource/google-sans": "5.3.1",
+        "@fontsource/noto-sans-thai-looped": "5.3.0",
         "@radix-ui/react-slot": "^1.3.3",
         "@tailwindcss/vite": "^4.3.3",
         "@tanstack/react-query": "^5.102.7",
@@ -211,7 +211,7 @@
 
     "@eslint/plugin-kit": ["@eslint/plugin-kit@0.7.3", "", { "dependencies": { "@eslint/core": "^1.2.1", "levn": "^0.4.1" } }, "sha512-IkO+/KEUvwbVpiURZg+P7zF74z5Jxe0UgJxVni+RtoHQ6IZieXaO02kmadomap/q+l6bc/jdPGGqTjhuZnuz1Q=="],
 
-    "@fontsource/google-sans": ["@fontsource/google-sans@5.3.1", "", {}, "sha512-vPaxyKtWMAecphz5CHerhBAIhnRNzQs0dn4KEr8d9Zx5MsoRBXZgFG43Lso2h7w46HVb7S+ku1sdVkGvONz1kQ=="],
+    "@fontsource/noto-sans-thai-looped": ["@fontsource/noto-sans-thai-looped@5.3.0", "", {}, "sha512-10a1WIfSNARWUlkiHC709gUF92WyduKdspctM352s3WLt7EXVlf7HwQycjpQ3j17AfCZG/upu4mUtGADF+ppaw=="],
 
     "@hono/zod-validator": ["@hono/zod-validator@0.9.0", "", { "peerDependencies": { "hono": ">=4.11.2", "zod": "^3.25.0 || ^4.0.0" } }, "sha512-n0ZSXmCiHVIp4Y5wlOOyZCeTd/rsawA/qW1cipB8QOYKZ9N8Tk0nZUZCXho9cu374AN4JpDNKioNKBJ/W+LBug=="],
 

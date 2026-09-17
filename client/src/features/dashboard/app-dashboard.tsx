@@ -3,6 +3,7 @@ import { useQuery } from "@tanstack/react-query";
 import { Link, Outlet, useRouterState } from "@tanstack/react-router";
 import {
 	BriefcaseBusiness,
+	BookOpenCheck,
 	Building2,
 	CalendarClock,
 	Check,
@@ -26,6 +27,7 @@ import { Button } from "@/components/ui/button";
 import { authClient, signInWithLine } from "@/lib/auth-client";
 import { apiClient } from "@/lib/api-client";
 import {
+	canReviewAccessRequests,
 	getNavigationForRole,
 	getPrimaryNavigationForRole,
 	type NavigationKey,
@@ -64,11 +66,13 @@ const navigationDetails: Record<
 	attendance: { label: "nav.attendance", icon: CalendarClock },
 	academic: { label: "nav.academic", icon: GraduationCap },
 	progress: { label: "nav.progress", icon: FileText },
+	cwie: { label: "nav.cwie", icon: BookOpenCheck },
 	documents: { label: "nav.documents", icon: FileCheck2 },
 	evaluations: { label: "nav.evaluations", icon: ClipboardCheck },
 	invites: { label: "nav.invites", icon: TicketCheck },
 	members: { label: "nav.members", icon: UsersRound },
 	reports: { label: "nav.reports", icon: FileText },
+	accessReviews: { label: "nav.accessReviews", icon: ClipboardCheck },
 };
 const roleLabels: Record<OrganizationRole, MessageKey> = {
 	university_admin: "role.university_admin",
@@ -156,17 +160,21 @@ export function AppDashboard() {
 	if (!session.data?.user) return <SignedOut />;
 	const navigation = role ? getNavigationForRole(role) : (["overview"] as const);
 	const primaryNavigation = role ? getPrimaryNavigationForRole(role) : (["overview"] as const);
-	const desktopNavigation = [
-		...primaryNavigation,
-		...navigation.filter((key) => {
-			const destination = dashboardNavigationLinks[key as keyof typeof dashboardNavigationLinks];
-			return !primaryNavigation.some(
-				(primaryKey) =>
-					dashboardNavigationLinks[primaryKey as keyof typeof dashboardNavigationLinks] ===
-					destination,
-			);
-		}),
-	];
+	const desktopNavigation =
+		role === "student"
+			? primaryNavigation
+			: [
+					...primaryNavigation,
+					...navigation.filter((key) => {
+						const destination =
+							dashboardNavigationLinks[key as keyof typeof dashboardNavigationLinks];
+						return !primaryNavigation.some(
+							(primaryKey) =>
+								dashboardNavigationLinks[primaryKey as keyof typeof dashboardNavigationLinks] ===
+								destination,
+						);
+					}),
+				];
 	const snapshot = report.data?.data
 		? dashboardFromReport(report.data.data)
 		: role
@@ -258,12 +266,14 @@ export function AppDashboard() {
 							<Languages />
 							<span className="hidden sm:inline">{locale === "th" ? "EN" : t("common.thai")}</span>
 						</Button>
-						<Button variant="ghost" size="sm" asChild>
-							<Link to="/app/reviews">
-								<ClipboardCheck />
-								<span className="hidden sm:inline">{t("dashboard.reviews")}</span>
-							</Link>
-						</Button>
+						{canReviewAccessRequests(role) && (
+							<Button variant="ghost" size="sm" className="lg:hidden" asChild>
+								<Link to="/app/reviews">
+									<ClipboardCheck />
+									<span className="hidden sm:inline">{t("dashboard.reviews")}</span>
+								</Link>
+							</Button>
+						)}
 						<NotificationBell />
 						<AccountMenu
 							name={session.data.user.name}
@@ -342,6 +352,41 @@ function DashboardOverview({
 		day: "numeric",
 		month: "long",
 	}).format(new Date());
+	if (role === "advisor")
+		return (
+			<AdvisorOverview
+				userName={userName}
+				contextName={activeContext?.organization.name}
+				snapshot={snapshot}
+				loading={loading}
+				error={error}
+				today={today}
+			/>
+		);
+	if (role === "coordinator" || role === "university_admin")
+		return (
+			<UniversityOperationsOverview
+				userName={userName}
+				contextName={activeContext?.organization.name}
+				role={role}
+				snapshot={snapshot}
+				loading={loading}
+				error={error}
+				today={today}
+			/>
+		);
+	if (role === "company_admin" || role === "supervisor")
+		return (
+			<CompanyOverview
+				userName={userName}
+				contextName={activeContext?.organization.name}
+				role={role}
+				snapshot={snapshot}
+				loading={loading}
+				error={error}
+				today={today}
+			/>
+		);
 	const nextActionTitle =
 		role === "student"
 			? snapshot?.nextAction === "editRequest"
@@ -422,20 +467,29 @@ function DashboardOverview({
 					label={snapshot ? t(label(snapshot.primaryLabel)) : "—"}
 					value={loading ? "—" : (snapshot?.primaryValue ?? 0)}
 					icon={Building2}
+					to={role === "student" ? "/app/applications" : undefined}
 				/>
 				<StatCard
 					label={t("dashboard.stat.actions")}
 					value={loading ? "—" : (snapshot?.actionItems ?? 0)}
 					icon={ClipboardCheck}
 					accent
+					to={role === "student" ? nextActionDestination : undefined}
 				/>
 				<StatCard
 					label={t("dashboard.stat.completed")}
 					value={loading ? "—" : (snapshot?.completedItems ?? 0)}
 					icon={FileText}
+					to={role === "student" ? "/app/history" : undefined}
 				/>
 				<StatCard
-					label={snapshot ? t(label(snapshot.secondaryLabel)) : "—"}
+					label={
+						role === "student"
+							? t("dashboard.affiliation")
+							: snapshot
+								? t(label(snapshot.secondaryLabel))
+								: "—"
+					}
 					value={loading ? "—" : (snapshot?.secondaryValue ?? 0)}
 					icon={UsersRound}
 				/>
@@ -464,7 +518,9 @@ function DashboardOverview({
 					</div>
 				</div>
 				<div className="rounded-[22px] border bg-card p-6">
-					<h2 className="text-lg font-bold">{t("dashboard.myOrganizations")}</h2>
+					<h2 className="text-lg font-bold">
+						{t(role === "student" ? "dashboard.affiliation" : "dashboard.myOrganizations")}
+					</h2>
 					{organizations.map((item) => (
 						<button
 							type="button"
@@ -486,6 +542,312 @@ function DashboardOverview({
 				</div>
 			</section>
 		</div>
+	);
+}
+
+type RoleOverviewProps = {
+	userName: string;
+	contextName?: string;
+	snapshot?: DashboardSnapshot;
+	loading: boolean;
+	error: boolean;
+	today: string;
+};
+
+function AdvisorOverview({
+	userName,
+	contextName,
+	snapshot,
+	loading,
+	error,
+	today,
+}: RoleOverviewProps) {
+	const { t } = useLanguage();
+	return (
+		<div className="space-y-6">
+			<RoleHeading
+				eyebrow={t("dashboard.advisor.eyebrow")}
+				title={`${t("dashboard.greeting")}, ${userName}`}
+				description={`${contextName ?? t("dashboard.workspace")} · ${t("dashboard.advisor.description")}`}
+				today={today}
+			/>
+			{error && <DashboardError />}
+			<section className="grid gap-4 md:grid-cols-3">
+				<StatCard
+					label={t("dashboard.advisor.students")}
+					value={loading ? "—" : (snapshot?.primaryValue ?? 0)}
+					icon={UsersRound}
+					to="/app/placements"
+				/>
+				<StatCard
+					label={t("dashboard.advisor.attention")}
+					value={loading ? "—" : (snapshot?.actionItems ?? 0)}
+					icon={ClipboardCheck}
+					accent
+					to="/app/applications"
+				/>
+				<StatCard
+					label={t("dashboard.advisor.completed")}
+					value={loading ? "—" : (snapshot?.completedItems ?? 0)}
+					icon={Check}
+					to="/app/evaluations"
+				/>
+			</section>
+			<section className="grid gap-6 xl:grid-cols-[1.35fr_0.65fr]">
+				<div className="rounded-[24px] border bg-card p-6 shadow-[0_8px_30px_rgb(16_17_15_/_0.045)] sm:p-7">
+					<p className="text-xs font-bold uppercase tracking-[0.12em] text-muted-foreground">
+						{t("dashboard.advisor.priority")}
+					</p>
+					<h2 className="mt-2 text-2xl font-black">
+						{(snapshot?.actionItems ?? 0) > 0
+							? t("dashboard.advisor.reviewNow")
+							: t("dashboard.advisor.clear")}
+					</h2>
+					<p className="mt-2 text-muted-foreground">{t("dashboard.advisor.priorityDetail")}</p>
+					<Button className="mt-6" asChild>
+						<Link to="/app/applications">
+							{t("nav.approvals")}
+							<ChevronRight />
+						</Link>
+					</Button>
+				</div>
+				<div className="rounded-[24px] bg-sidebar p-6 text-sidebar-foreground">
+					<h2 className="text-lg font-bold">{t("dashboard.advisor.tools")}</h2>
+					<div className="mt-4 grid gap-2">
+						<RoleAction to="/app/placements" label={t("dashboard.advisor.openStudents")} />
+						<RoleAction to="/app/evaluations" label={t("nav.evaluations")} />
+						<RoleAction to="/app/progress" label={t("nav.progress")} />
+					</div>
+				</div>
+			</section>
+		</div>
+	);
+}
+
+function UniversityOperationsOverview({
+	userName,
+	contextName,
+	role,
+	snapshot,
+	loading,
+	error,
+	today,
+}: RoleOverviewProps & { role: "coordinator" | "university_admin" }) {
+	const { t } = useLanguage();
+	return (
+		<div className="space-y-6">
+			<RoleHeading
+				eyebrow={t("dashboard.operations.eyebrow")}
+				title={t("dashboard.operations.title", { name: userName })}
+				description={`${contextName ?? t("dashboard.workspace")} · ${t(`role.${role}` as MessageKey)}`}
+				today={today}
+			/>
+			{error && <DashboardError />}
+			<section className="rounded-[26px] bg-sidebar p-6 text-sidebar-foreground shadow-xl sm:p-8">
+				<div className="flex flex-col gap-6 sm:flex-row sm:items-center sm:justify-between">
+					<div>
+						<p className="text-sm font-semibold text-sidebar-primary">
+							{t("dashboard.operations.accessEyebrow")}
+						</p>
+						<h2 className="mt-2 text-2xl font-black">{t("dashboard.operations.accessTitle")}</h2>
+						<p className="mt-2 max-w-2xl text-sm text-sidebar-foreground/65">
+							{t("dashboard.operations.accessDetail")}
+						</p>
+					</div>
+					<Button
+						asChild
+						className="shrink-0 bg-sidebar-primary text-sidebar-primary-foreground hover:bg-sidebar-primary/90"
+					>
+						<Link to="/app/reviews">
+							{t("nav.accessReviews")}
+							<ChevronRight />
+						</Link>
+					</Button>
+				</div>
+			</section>
+			<section className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
+				<StatCard
+					label={t("dashboard.stat.placements")}
+					value={loading ? "—" : (snapshot?.primaryValue ?? 0)}
+					icon={Building2}
+					to="/app/placements"
+				/>
+				<StatCard
+					label={t("dashboard.stat.actions")}
+					value={loading ? "—" : (snapshot?.actionItems ?? 0)}
+					icon={ClipboardCheck}
+					accent
+					to="/app/applications"
+				/>
+				<StatCard
+					label={t("dashboard.stat.completed")}
+					value={loading ? "—" : (snapshot?.completedItems ?? 0)}
+					icon={FileCheck2}
+					to="/app/placements"
+				/>
+				<StatCard
+					label={t("dashboard.stat.internships")}
+					value={loading ? "—" : (snapshot?.secondaryValue ?? 0)}
+					icon={BriefcaseBusiness}
+				/>
+			</section>
+			<section className="grid gap-4 md:grid-cols-3">
+				<OperationsLink
+					to="/app/applications"
+					title={t("nav.applications")}
+					detail={t("dashboard.operations.applicationsDetail")}
+					icon={ClipboardCheck}
+				/>
+				<OperationsLink
+					to="/app/placements"
+					title={t("nav.placements")}
+					detail={t("dashboard.operations.placementsDetail")}
+					icon={Building2}
+				/>
+				<OperationsLink
+					to="/app/reports"
+					title={t("nav.reports")}
+					detail={t("dashboard.operations.reportsDetail")}
+					icon={FileText}
+				/>
+			</section>
+		</div>
+	);
+}
+
+function CompanyOverview({
+	userName,
+	contextName,
+	role,
+	snapshot,
+	loading,
+	error,
+	today,
+}: RoleOverviewProps & { role: "company_admin" | "supervisor" }) {
+	const { t } = useLanguage();
+	const admin = role === "company_admin";
+	return (
+		<div className="space-y-6">
+			<RoleHeading
+				eyebrow={t(admin ? "dashboard.company.eyebrow" : "dashboard.supervisor.eyebrow")}
+				title={`${t("dashboard.greeting")}, ${userName}`}
+				description={`${contextName ?? t("dashboard.workspace")} · ${t(`role.${role}` as MessageKey)}`}
+				today={today}
+			/>
+			{error && <DashboardError />}
+			<section className="grid gap-6 xl:grid-cols-[1.2fr_0.8fr]">
+				<div className="rounded-[26px] border bg-card p-7">
+					<p className="text-sm font-semibold text-primary">
+						{t(admin ? "dashboard.company.focus" : "dashboard.supervisor.focus")}
+					</p>
+					<h2 className="mt-2 text-2xl font-black">
+						{t(admin ? "dashboard.company.focusTitle" : "dashboard.supervisor.focusTitle")}
+					</h2>
+					<p className="mt-2 text-muted-foreground">
+						{t(admin ? "dashboard.company.focusDetail" : "dashboard.supervisor.focusDetail")}
+					</p>
+					<Button className="mt-6" asChild>
+						<Link to={admin ? "/app/applications" : "/app/attendance"}>
+							{t(admin ? "nav.applications" : "nav.attendance")}
+							<ChevronRight />
+						</Link>
+					</Button>
+				</div>
+				<div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-1">
+					<StatCard
+						label={t("dashboard.stat.placements")}
+						value={loading ? "—" : (snapshot?.primaryValue ?? 0)}
+						icon={UsersRound}
+						to="/app/placements"
+					/>
+					<StatCard
+						label={t("dashboard.stat.actions")}
+						value={loading ? "—" : (snapshot?.actionItems ?? 0)}
+						icon={ClipboardCheck}
+						accent
+						to={admin ? "/app/applications" : "/app/placements"}
+					/>
+				</div>
+			</section>
+		</div>
+	);
+}
+
+function RoleHeading({
+	eyebrow,
+	title,
+	description,
+	today,
+}: {
+	eyebrow: string;
+	title: string;
+	description: string;
+	today: string;
+}) {
+	return (
+		<div className="flex flex-col justify-between gap-4 sm:flex-row sm:items-end">
+			<div>
+				<p className="text-sm font-semibold text-primary">{eyebrow}</p>
+				<h1 className="mt-2 text-3xl font-black tracking-[-0.035em] sm:text-4xl">{title}</h1>
+				<p className="mt-2 text-muted-foreground">{description}</p>
+			</div>
+			<p className="text-sm text-muted-foreground">{today}</p>
+		</div>
+	);
+}
+
+function DashboardError() {
+	const { t } = useLanguage();
+	return (
+		<p
+			role="alert"
+			className="rounded-xl border border-destructive/20 bg-destructive-muted p-4 text-sm text-destructive"
+		>
+			{t("dashboard.loadError")}
+		</p>
+	);
+}
+
+function RoleAction({
+	to,
+	label,
+}: {
+	to: "/app/placements" | "/app/evaluations" | "/app/progress";
+	label: string;
+}) {
+	return (
+		<Link
+			to={to}
+			className="flex items-center justify-between rounded-xl bg-sidebar-accent px-4 py-3 text-sm font-semibold hover:text-sidebar-primary"
+		>
+			<span>{label}</span>
+			<ChevronRight className="size-4" />
+		</Link>
+	);
+}
+
+function OperationsLink({
+	to,
+	title,
+	detail,
+	icon: Icon,
+}: {
+	to: "/app/applications" | "/app/placements" | "/app/reports";
+	title: string;
+	detail: string;
+	icon: typeof Building2;
+}) {
+	return (
+		<Link
+			to={to}
+			className="rounded-2xl border bg-card p-5 transition hover:-translate-y-0.5 hover:shadow-md"
+		>
+			<span className="grid size-10 place-items-center rounded-xl bg-secondary">
+				<Icon className="size-5" />
+			</span>
+			<h2 className="mt-4 font-bold">{title}</h2>
+			<p className="mt-1 text-sm text-muted-foreground">{detail}</p>
+		</Link>
 	);
 }
 
@@ -661,14 +1023,21 @@ function StatCard({
 	value,
 	icon: Icon,
 	accent = false,
+	to,
 }: {
 	label: string;
 	value: string | number;
 	icon: typeof Building2;
 	accent?: boolean;
+	to?:
+		| "/app/applications"
+		| "/app/internship-request"
+		| "/app/history"
+		| "/app/placements"
+		| "/app/evaluations";
 }) {
-	return (
-		<div className="rounded-2xl border bg-card p-5">
+	const content = (
+		<>
 			<div
 				className={`grid size-10 place-items-center rounded-xl ${accent ? "bg-accent text-accent-foreground" : "bg-secondary text-secondary-foreground"}`}
 			>
@@ -676,7 +1045,17 @@ function StatCard({
 			</div>
 			<p className="mt-5 text-3xl font-black">{value}</p>
 			<p className="mt-1 text-sm text-muted-foreground">{label}</p>
-		</div>
+		</>
+	);
+	return to ? (
+		<Link
+			to={to}
+			className="rounded-2xl border bg-card p-5 transition hover:-translate-y-0.5 hover:shadow-md focus-visible:ring-3 focus-visible:ring-ring/30"
+		>
+			{content}
+		</Link>
+	) : (
+		<div className="rounded-2xl border bg-card p-5">{content}</div>
 	);
 }
 function Task({

@@ -1,12 +1,21 @@
 import { describe, expect, test } from "bun:test";
 import {
 	dashboardProgressIndex,
+	dashboardExperienceForRole,
 	dashboardFromReport,
 	dashboardFromWorkflow,
 	liveDashboardQueryOptions,
 } from "./dashboard-data";
 
 describe("dashboard data", () => {
+	test("assigns a distinct dashboard experience to each operational role group", () => {
+		expect(dashboardExperienceForRole("student")).toBe("student");
+		expect(dashboardExperienceForRole("advisor")).toBe("advisor");
+		expect(dashboardExperienceForRole("coordinator")).toBe("university_operations");
+		expect(dashboardExperienceForRole("university_admin")).toBe("university_operations");
+		expect(dashboardExperienceForRole("company_admin")).toBe("company");
+		expect(dashboardExperienceForRole("supervisor")).toBe("company");
+	});
 	test("refreshes live metrics on mount, focus, and a short interval", () => {
 		expect(liveDashboardQueryOptions).toEqual({
 			refetchOnMount: "always",
@@ -45,23 +54,24 @@ describe("dashboard data", () => {
 				role: "student",
 				placements: [{ status: "active" }, { status: "completed" }],
 				applications: [{ status: "submitted" }, { status: "withdrawn" }],
+				requests: [{ status: "submitted" }],
 				organizationCount: 1,
 			}),
 		).toEqual({
-			primaryValue: 2,
-			primaryLabel: "applications",
+			primaryValue: 3,
+			primaryLabel: "requests",
 			actionItems: 1,
 			completedItems: 1,
 			secondaryValue: 1,
 			secondaryLabel: "organizations",
-			nextAction: "applications",
+			nextAction: "awaitRequestReview",
 		});
 	});
 
 	test("maps the student's real next action to the visible journey stage", () => {
 		const base = {
 			primaryValue: 1,
-			primaryLabel: "applications" as const,
+			primaryLabel: "requests" as const,
 			actionItems: 1,
 			completedItems: 0,
 			secondaryValue: 1,
