@@ -1,6 +1,8 @@
 import { and, asc, eq } from "drizzle-orm";
 import type { Database } from "../../db";
 import {
+  accessRole,
+  membershipRoleAssignment,
   onboardingRequest,
   organization,
   organizationMembership,
@@ -8,6 +10,14 @@ import {
   user,
 } from "../../db/schema";
 import type { OrganizationRole } from "../organizations/organization.schema";
+import {
+  activePrimaryRoleAssignment,
+  findMembershipAccess,
+} from "../workspace-access/workspace-access.repository";
+import {
+  provisionMembershipCore,
+  seedWorkspaceCore,
+} from "../workspace-access/workspace-core.provisioning";
 
 export type OnboardingRecord = typeof onboardingRequest.$inferSelect;
 export type OnboardingReviewRecord = OnboardingRecord & {
@@ -22,7 +32,7 @@ export interface OnboardingRepository {
   findActiveMembership(
     organizationId: string,
     userId: string,
-  ): Promise<typeof organizationMembership.$inferSelect | undefined>;
+  ): Promise<(typeof organizationMembership.$inferSelect & { role: OrganizationRole }) | undefined>;
   isPlatformStaff(userId: string): Promise<boolean>;
   isActiveUniversityAdmin(userId: string): Promise<boolean>;
   listPending(): Promise<OnboardingReviewRecord[]>;
@@ -61,14 +71,11 @@ export class DrizzleOnboardingRepository implements OnboardingRepository {
   findOrganization(id: string) {
     return this.database.query.organization.findFirst({ where: eq(organization.id, id) });
   }
-  findActiveMembership(organizationId: string, userId: string) {
-    return this.database.query.organizationMembership.findFirst({
-      where: and(
-        eq(organizationMembership.organizationId, organizationId),
-        eq(organizationMembership.userId, userId),
-        eq(organizationMembership.status, "active"),
-      ),
-    });
+  async findActiveMembership(organizationId: string, userId: string) {
+    const membership = await findMembershipAccess(this.database, organizationId, userId);
+    return membership?.status === "active"
+      ? { ...membership, role: membership.role as OrganizationRole }
+      : undefined;
   }
   async isPlatformStaff(userId: string) {
     return Boolean(
@@ -79,13 +86,21 @@ export class DrizzleOnboardingRepository implements OnboardingRepository {
   }
   async isActiveUniversityAdmin(userId: string) {
     return Boolean(
-      await this.database.query.organizationMembership.findFirst({
-        where: and(
-          eq(organizationMembership.userId, userId),
-          eq(organizationMembership.role, "university_admin"),
-          eq(organizationMembership.status, "active"),
-        ),
-      }),
+      (
+        await this.database
+          .select({ id: organizationMembership.id })
+          .from(organizationMembership)
+          .innerJoin(membershipRoleAssignment, activePrimaryRoleAssignment())
+          .innerJoin(accessRole, eq(accessRole.id, membershipRoleAssignment.roleId))
+          .where(
+            and(
+              eq(organizationMembership.userId, userId),
+              eq(accessRole.key, "university_admin"),
+              eq(organizationMembership.status, "active"),
+            ),
+          )
+          .limit(1)
+      )[0],
     );
   }
   async listPending() {
@@ -147,8 +162,21 @@ export class DrizzleOnboardingRepository implements OnboardingRepository {
         .values({ ...input, status: "approved", reviewedAt: new Date() })
         .returning();
       if (!record) throw new Error("Database did not return the onboarding request");
-      await transaction.insert(organizationMembership).values({
+      await seedWorkspaceCore(transaction, {
         organizationId: input.targetOrganizationId,
+        organizationType: "university",
+      });
+      const [membership] = await transaction
+        .insert(organizationMembership)
+        .values({
+          organizationId: input.targetOrganizationId,
+          userId: input.userId,
+        })
+        .returning();
+      if (!membership) throw new Error("Database did not return the student membership");
+      await provisionMembershipCore(transaction, {
+        organizationId: input.targetOrganizationId,
+        membershipId: membership.id,
         userId: input.userId,
         role: "student",
       });
@@ -168,11 +196,32 @@ export class DrizzleOnboardingRepository implements OnboardingRepository {
           .values({ type: "company", name: proposed.name, slug: proposed.slug })
           .returning();
         if (!created) throw new Error("Database did not return the company");
+        await seedWorkspaceCore(transaction, {
+          organizationId: created.id,
+          organizationType: "company",
+        });
         organizationId = created.id;
       }
       if (!organizationId) throw new Error("Approved request is missing an organization");
-      await transaction.insert(organizationMembership).values({
+      await seedWorkspaceCore(transaction, {
         organizationId,
+        organizationType:
+          input.request.requestedRole === "company_admin" ||
+          input.request.requestedRole === "supervisor"
+            ? "company"
+            : "university",
+      });
+      const [membership] = await transaction
+        .insert(organizationMembership)
+        .values({
+          organizationId,
+          userId: input.request.userId,
+        })
+        .returning();
+      if (!membership) throw new Error("Database did not return the approved membership");
+      await provisionMembershipCore(transaction, {
+        organizationId,
+        membershipId: membership.id,
         userId: input.request.userId,
         role: input.request.requestedRole as OrganizationRole,
       });

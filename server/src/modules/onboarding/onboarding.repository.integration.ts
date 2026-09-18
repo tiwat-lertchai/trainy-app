@@ -1,5 +1,6 @@
 import { afterAll, beforeAll, describe, expect, it } from "bun:test";
 import type { Database } from "../../db";
+import { insertMembershipsWithAccess } from "../../test/workspace-fixtures";
 import type { OnboardingRepository } from "./onboarding.repository";
 
 let database: Database;
@@ -47,11 +48,13 @@ describe("DrizzleOnboardingRepository", () => {
       .insert(schema.organization)
       .values({ type: "university", name: "Review University", slug: "review-university" })
       .returning();
-    await database.insert(schema.organizationMembership).values({
-      organizationId: university!.id,
-      userId: "university-admin",
-      role: "university_admin",
-    });
+    await insertMembershipsWithAccess(database, [
+      {
+        organizationId: university!.id,
+        userId: "university-admin",
+        role: "university_admin",
+      },
+    ]);
 
     expect(await repository.isActiveUniversityAdmin("university-admin")).toBeTrue();
     expect(await repository.isActiveUniversityAdmin("student")).toBeFalse();

@@ -5,6 +5,7 @@
 import { afterAll, beforeAll, describe, expect, it } from "bun:test";
 import { eq, inArray } from "drizzle-orm";
 import type { Database } from "./db";
+import { insertMembershipsWithAccess } from "./test/workspace-fixtures";
 
 let db: Database;
 let closeDatabase: () => Promise<void>;
@@ -78,7 +79,7 @@ beforeAll(async () => {
     { id: ids.company, type: "company", name: "Abuse Test Company", slug: "sec-abuse-company" },
   ]);
 
-  await db.insert(schema.organizationMembership).values([
+  await insertMembershipsWithAccess(db, [
     { organizationId: ids.university, userId: users.student, role: "student" },
     { organizationId: ids.university, userId: users.advisor, role: "advisor" },
     { organizationId: ids.university, userId: users.uniAdmin, role: "university_admin" },

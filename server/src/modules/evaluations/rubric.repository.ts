@@ -6,9 +6,9 @@ import {
   evaluationCriterionScore,
   evaluationScheme,
   evaluationSubmission,
-  organizationMembership,
   placement,
 } from "../../db/schema";
+import { findMembershipAccess } from "../workspace-access/workspace-access.repository";
 
 export type RubricPlacement = Pick<
   typeof placement.$inferSelect,
@@ -70,14 +70,11 @@ export class DrizzleRubricRepository implements RubricRepository {
   }
 
   async hasActiveUniversityStaffRole(organizationId: string, userId: string) {
-    const membership = await this.database.query.organizationMembership.findFirst({
-      where: and(
-        eq(organizationMembership.organizationId, organizationId),
-        eq(organizationMembership.userId, userId),
-        eq(organizationMembership.status, "active"),
-      ),
-    });
-    return membership?.role === "university_admin" || membership?.role === "coordinator";
+    const membership = await findMembershipAccess(this.database, organizationId, userId);
+    return (
+      membership?.status === "active" &&
+      (membership.role === "university_admin" || membership.role === "coordinator")
+    );
   }
 
   findScheme(universityOrganizationId: string, track: "regular" | "cooperative") {

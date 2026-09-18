@@ -4,10 +4,10 @@ import {
   attendanceAdjustmentRequest,
   attendanceLeaveRequest,
   attendanceRecord,
-  organizationMembership,
   placement,
   placementWorkSchedule,
 } from "../../db/schema";
+import { findMembershipAccess } from "../workspace-access/workspace-access.repository";
 
 export type AttendancePlacement = typeof placement.$inferSelect;
 export type WorkSchedule = typeof placementWorkSchedule.$inferSelect;
@@ -79,18 +79,8 @@ export class DrizzleAttendanceRepository implements AttendanceRepository {
   }
 
   async findActiveMembership(organizationId: string, userId: string) {
-    const [record] = await this.database
-      .select({ role: organizationMembership.role })
-      .from(organizationMembership)
-      .where(
-        and(
-          eq(organizationMembership.organizationId, organizationId),
-          eq(organizationMembership.userId, userId),
-          eq(organizationMembership.status, "active"),
-        ),
-      )
-      .limit(1);
-    return record;
+    const membership = await findMembershipAccess(this.database, organizationId, userId);
+    return membership?.status === "active" ? { role: membership.role } : undefined;
   }
 
   findSchedule(placementId: string, weekday: number) {

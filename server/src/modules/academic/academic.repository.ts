@@ -4,9 +4,9 @@ import {
   academicFaculty,
   academicMajor,
   organization,
-  organizationMembership,
   studentAcademicRecord,
 } from "../../db/schema";
+import { findMembershipAccess } from "../workspace-access/workspace-access.repository";
 
 export type AcademicOrganization = Pick<typeof organization.$inferSelect, "id" | "type" | "status">;
 export type FacultyRecord = typeof academicFaculty.$inferSelect;
@@ -48,18 +48,8 @@ export class DrizzleAcademicRepository implements AcademicRepository {
   }
 
   async findActiveMembership(organizationId: string, userId: string) {
-    const [record] = await this.database
-      .select({ role: organizationMembership.role })
-      .from(organizationMembership)
-      .where(
-        and(
-          eq(organizationMembership.organizationId, organizationId),
-          eq(organizationMembership.userId, userId),
-          eq(organizationMembership.status, "active"),
-        ),
-      )
-      .limit(1);
-    return record;
+    const membership = await findMembershipAccess(this.database, organizationId, userId);
+    return membership?.status === "active" ? { role: membership.role } : undefined;
   }
 
   listFaculties(organizationId: string) {

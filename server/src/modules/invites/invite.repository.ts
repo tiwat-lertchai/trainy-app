@@ -2,10 +2,16 @@ import { randomBytes } from "node:crypto";
 import { and, eq, gt, isNull } from "drizzle-orm";
 import type { Database } from "../../db";
 import { organization, organizationInvite, organizationMembership } from "../../db/schema";
+import type { OrganizationRole } from "../organizations/organization.schema";
+import { findMembershipAccess } from "../workspace-access/workspace-access.repository";
+import {
+  provisionMembershipCore,
+  seedWorkspaceCore,
+} from "../workspace-access/workspace-core.provisioning";
 import type { InviteRole } from "./invite.schema";
 
 export type InviteRecord = typeof organizationInvite.$inferSelect;
-type MembershipRecord = typeof organizationMembership.$inferSelect;
+type MembershipRecord = typeof organizationMembership.$inferSelect & { role: OrganizationRole };
 
 function generateToken() {
   return randomBytes(32).toString("base64url");
@@ -42,13 +48,9 @@ const INVITE_LIFETIME_MS = 14 * 24 * 60 * 60 * 1000;
 export class DrizzleInviteRepository implements InviteRepository {
   constructor(private readonly database: Database) {}
 
-  findMembership(organizationId: string, userId: string) {
-    return this.database.query.organizationMembership.findFirst({
-      where: and(
-        eq(organizationMembership.organizationId, organizationId),
-        eq(organizationMembership.userId, userId),
-      ),
-    });
+  async findMembership(organizationId: string, userId: string) {
+    const membership = await findMembershipAccess(this.database, organizationId, userId);
+    return membership ? { ...membership, role: membership.role as OrganizationRole } : undefined;
   }
 
   findOrganization(id: string) {
@@ -127,8 +129,21 @@ export class DrizzleInviteRepository implements InviteRepository {
         if (!created) throw new Error("Database did not return the company");
         organizationId = created.id;
       }
-      await transaction.insert(organizationMembership).values({
+      await seedWorkspaceCore(transaction, {
         organizationId,
+        organizationType: "company",
+      });
+      const [membership] = await transaction
+        .insert(organizationMembership)
+        .values({
+          organizationId,
+          userId: input.redeemerUserId,
+        })
+        .returning();
+      if (!membership) throw new Error("Database did not return the invited membership");
+      await provisionMembershipCore(transaction, {
+        organizationId,
+        membershipId: membership.id,
         userId: input.redeemerUserId,
         role: input.invite.role,
       });

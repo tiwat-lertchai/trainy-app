@@ -1,11 +1,14 @@
 import { and, desc, eq, sql } from "drizzle-orm";
 import type { Database } from "../../db";
 import {
+  accessRole,
   internship,
   internshipApplication,
+  membershipRoleAssignment,
   organization,
   organizationMembership,
 } from "../../db/schema";
+import { activePrimaryRoleAssignment } from "../workspace-access/workspace-access.repository";
 import type {
   ApplicationStatus,
   InternshipStatus,
@@ -22,8 +25,8 @@ export type ApplicationView = ApplicationRecord & {
 };
 export type MembershipAccess = Pick<
   typeof organizationMembership.$inferSelect,
-  "organizationId" | "role" | "status" | "userId"
-> & { organizationType: "university" | "company" };
+  "organizationId" | "status" | "userId"
+> & { role: string; organizationType: "university" | "company" };
 
 type InternshipChanges = Partial<{
   title: string;
@@ -85,11 +88,13 @@ export class DrizzleInternshipRepository implements InternshipRepository {
       .select({
         organizationId: organizationMembership.organizationId,
         organizationType: organization.type,
-        role: organizationMembership.role,
+        role: accessRole.key,
         status: organizationMembership.status,
         userId: organizationMembership.userId,
       })
       .from(organizationMembership)
+      .innerJoin(membershipRoleAssignment, activePrimaryRoleAssignment())
+      .innerJoin(accessRole, eq(accessRole.id, membershipRoleAssignment.roleId))
       .innerJoin(organization, eq(organization.id, organizationMembership.organizationId))
       .where(
         and(

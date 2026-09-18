@@ -153,6 +153,7 @@ export const membershipRoleAssignment = pgTable(
     organizationId: uuid("organization_id").notNull(),
     membershipId: uuid("membership_id").notNull(),
     roleId: uuid("role_id").notNull(),
+    isPrimary: boolean("is_primary").default(false).notNull(),
     scopeType: authorizationScopeType("scope_type").default("workspace").notNull(),
     scopeRefId: text("scope_ref_id"),
     grantedByMembershipId: uuid("granted_by_membership_id"),
@@ -182,6 +183,9 @@ export const membershipRoleAssignment = pgTable(
       table.scopeType,
       table.scopeRefId,
     ),
+    uniqueIndex("membership_role_assignment_one_primary_uidx")
+      .on(table.membershipId)
+      .where(sql`${table.isPrimary}`),
     check(
       "membership_role_assignment_scope_ref",
       sql`(${table.scopeType} = 'organization_unit' AND ${table.scopeRefId} IS NOT NULL) OR (${table.scopeType} <> 'organization_unit' AND ${table.scopeRefId} IS NULL)`,

@@ -2,9 +2,57 @@ import { and, eq, gt, isNull, or } from "drizzle-orm";
 import type { Database } from "../../db";
 import {
   accessRolePermission,
+  accessRole,
   membershipRoleAssignment,
   organizationMembership,
 } from "../../db/schema";
+
+export function activePrimaryRoleAssignment() {
+  return and(
+    eq(membershipRoleAssignment.membershipId, organizationMembership.id),
+    eq(membershipRoleAssignment.organizationId, organizationMembership.organizationId),
+    eq(membershipRoleAssignment.isPrimary, true),
+    or(
+      isNull(membershipRoleAssignment.expiresAt),
+      gt(membershipRoleAssignment.expiresAt, new Date()),
+    ),
+  );
+}
+
+export async function findMembershipAccess(
+  database: Database,
+  organizationId: string,
+  userId: string,
+) {
+  const [record] = await database
+    .select({
+      id: organizationMembership.id,
+      organizationId: organizationMembership.organizationId,
+      userId: organizationMembership.userId,
+      status: organizationMembership.status,
+      createdAt: organizationMembership.createdAt,
+      updatedAt: organizationMembership.updatedAt,
+      role: accessRole.key,
+    })
+    .from(organizationMembership)
+    .innerJoin(membershipRoleAssignment, activePrimaryRoleAssignment())
+    .innerJoin(
+      accessRole,
+      and(
+        eq(accessRole.id, membershipRoleAssignment.roleId),
+        eq(accessRole.organizationId, organizationMembership.organizationId),
+      ),
+    )
+    .where(
+      and(
+        eq(organizationMembership.organizationId, organizationId),
+        eq(organizationMembership.userId, userId),
+      ),
+    )
+    .limit(1);
+
+  return record;
+}
 
 export type PermissionGrant = {
   membershipId: string;

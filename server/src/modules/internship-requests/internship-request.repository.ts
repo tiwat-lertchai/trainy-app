@@ -3,14 +3,20 @@ import type { Database } from "../../db";
 import {
   academicFaculty,
   academicMajor,
+  accessRole,
   internshipRequest,
   internshipRequestApproval,
   internshipRequestDocument,
   internshipRequestSubmission,
   organization,
   organizationMembership,
+  membershipRoleAssignment,
   user,
 } from "../../db/schema";
+import {
+  activePrimaryRoleAssignment,
+  findMembershipAccess,
+} from "../workspace-access/workspace-access.repository";
 import type { InternshipRequestStep } from "./internship-request.schema";
 
 export type RequestRecord = typeof internshipRequest.$inferSelect;
@@ -107,13 +113,8 @@ export class DrizzleInternshipRequestRepository implements InternshipRequestRepo
     return this.database.query.organization.findFirst({ where: eq(organization.id, id) });
   }
 
-  findMembership(organizationId: string, userId: string) {
-    return this.database.query.organizationMembership.findFirst({
-      where: and(
-        eq(organizationMembership.organizationId, organizationId),
-        eq(organizationMembership.userId, userId),
-      ),
-    });
+  async findMembership(organizationId: string, userId: string) {
+    return findMembershipAccess(this.database, organizationId, userId);
   }
 
   findById(id: string) {
@@ -127,11 +128,13 @@ export class DrizzleInternshipRequestRepository implements InternshipRequestRepo
     return this.database
       .select({ userId: user.id, name: user.name })
       .from(organizationMembership)
+      .innerJoin(membershipRoleAssignment, activePrimaryRoleAssignment())
+      .innerJoin(accessRole, eq(accessRole.id, membershipRoleAssignment.roleId))
       .innerJoin(user, eq(user.id, organizationMembership.userId))
       .where(
         and(
           eq(organizationMembership.organizationId, organizationId),
-          eq(organizationMembership.role, "advisor"),
+          eq(accessRole.key, "advisor"),
           eq(organizationMembership.status, "active"),
         ),
       )

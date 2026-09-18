@@ -6,15 +6,6 @@ export const organizationType = pgEnum("organization_type", ["university", "comp
 
 export const organizationStatus = pgEnum("organization_status", ["active", "inactive"]);
 
-export const organizationRole = pgEnum("organization_role", [
-  "university_admin",
-  "coordinator",
-  "advisor",
-  "student",
-  "company_admin",
-  "supervisor",
-]);
-
 // Keep the deployed lifecycle stable while the additive verification model is
 // introduced. Pending and rejected join states live on verification_claim;
 // widening this enum requires a coordinated API and workflow migration.
@@ -47,7 +38,6 @@ export const organizationMembership = pgTable(
     userId: text("user_id")
       .notNull()
       .references(() => user.id, { onDelete: "cascade" }),
-    role: organizationRole("role").notNull(),
     status: membershipStatus("status").default("active").notNull(),
     createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
     updatedAt: timestamp("updated_at", { withTimezone: true })

@@ -1,5 +1,6 @@
 import { afterAll, beforeAll, describe, expect, test } from "bun:test";
 import type { Database } from "../../db";
+import { insertMembershipsWithAccess } from "../../test/workspace-fixtures";
 
 let database: Database;
 let closeDatabase: () => Promise<void>;
@@ -68,7 +69,7 @@ beforeAll(async () => {
     ])
     .returning();
   if (!company || !university) throw new Error("Organizations were not created");
-  await database.insert(schema.organizationMembership).values([
+  await insertMembershipsWithAccess(database, [
     {
       organizationId: university.id,
       userId: "coordinator",

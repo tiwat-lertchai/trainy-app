@@ -1,15 +1,17 @@
 import { and, eq, sql } from "drizzle-orm";
 import type { Database } from "../../db";
 import {
+  accessRole,
   internship,
   internshipApplication,
   organization,
   organizationMembership,
+  membershipRoleAssignment,
   placement,
 } from "../../db/schema";
 export type ReportAccess = {
   organizationType: "university" | "company";
-  role: typeof organizationMembership.$inferSelect.role;
+  role: string;
   status: typeof organizationMembership.$inferSelect.status;
 };
 export type StatusCount = { status: string; count: number };
@@ -26,10 +28,18 @@ export class DrizzleReportRepository implements ReportRepository {
     const [r] = await this.database
       .select({
         organizationType: organization.type,
-        role: organizationMembership.role,
+        role: accessRole.key,
         status: organizationMembership.status,
       })
       .from(organizationMembership)
+      .innerJoin(
+        membershipRoleAssignment,
+        and(
+          eq(membershipRoleAssignment.membershipId, organizationMembership.id),
+          eq(membershipRoleAssignment.isPrimary, true),
+        ),
+      )
+      .innerJoin(accessRole, eq(accessRole.id, membershipRoleAssignment.roleId))
       .innerJoin(organization, eq(organization.id, organizationMembership.organizationId))
       .where(
         and(

@@ -25,9 +25,8 @@ export const academicMajor = pgTable(
       .references(() => academicFaculty.id, { onDelete: "cascade" }),
     name: text("name").notNull(),
     // The person who signs off the "program chair" approval step for an
-    // internship request in this major. Not a membership-level role (a user
-    // can only hold one organizationRole per org) — an explicit assignment
-    // instead, settable only by that university's university_admin.
+    // internship request in this major. This is an explicit responsibility,
+    // independent of the member's workspace RBAC assignments.
     programChairUserId: text("program_chair_user_id").references(() => user.id, {
       onDelete: "restrict",
     }),

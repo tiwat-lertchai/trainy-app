@@ -1,14 +1,17 @@
 import { and, desc, eq } from "drizzle-orm";
 import type { Database } from "../../db";
 import {
+  accessRole,
   internship,
   internshipApplication,
   internshipRequest,
   organization,
   organizationMembership,
+  membershipRoleAssignment,
   placement,
 } from "../../db/schema";
 import type { PlacementStatus } from "./placement.schema";
+import { activePrimaryRoleAssignment } from "../workspace-access/workspace-access.repository";
 
 export type PlacementRecord = typeof placement.$inferSelect;
 export type PlacementView = PlacementRecord & {
@@ -41,7 +44,7 @@ export type ApprovedRequest = Pick<
 export type PlacementMembership = {
   organizationId: string;
   organizationType: "university" | "company";
-  role: typeof organizationMembership.$inferSelect.role;
+  role: string;
   status: typeof organizationMembership.$inferSelect.status;
   userId: string;
 };
@@ -115,11 +118,13 @@ export class DrizzlePlacementRepository implements PlacementRepository {
       .select({
         organizationId: organizationMembership.organizationId,
         organizationType: organization.type,
-        role: organizationMembership.role,
+        role: accessRole.key,
         status: organizationMembership.status,
         userId: organizationMembership.userId,
       })
       .from(organizationMembership)
+      .innerJoin(membershipRoleAssignment, activePrimaryRoleAssignment())
+      .innerJoin(accessRole, eq(accessRole.id, membershipRoleAssignment.roleId))
       .innerJoin(organization, eq(organization.id, organizationMembership.organizationId))
       .where(
         and(
