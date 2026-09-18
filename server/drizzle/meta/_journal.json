@@ -134,6 +134,20 @@
       "when": 1789625609271,
       "tag": "0018_equal_morlun",
       "breakpoints": true
+    },
+    {
+      "idx": 19,
+      "version": "7",
+      "when": 1789725316272,
+      "tag": "0019_panoramic_dark_beast",
+      "breakpoints": true
+    },
+    {
+      "idx": 20,
+      "version": "7",
+      "when": 1789725432290,
+      "tag": "0020_cold_prima",
+      "breakpoints": true
     }
   ]
 }

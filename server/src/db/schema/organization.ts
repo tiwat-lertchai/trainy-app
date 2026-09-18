@@ -15,6 +15,9 @@ export const organizationRole = pgEnum("organization_role", [
   "supervisor",
 ]);
 
+// Keep the deployed lifecycle stable while the additive verification model is
+// introduced. Pending and rejected join states live on verification_claim;
+// widening this enum requires a coordinated API and workflow migration.
 export const membershipStatus = pgEnum("membership_status", ["active", "suspended"]);
 
 export const organization = pgTable(
@@ -54,6 +57,7 @@ export const organizationMembership = pgTable(
   },
   (table) => [
     uniqueIndex("organization_membership_org_user_uidx").on(table.organizationId, table.userId),
+    uniqueIndex("organization_membership_id_org_uidx").on(table.id, table.organizationId),
     index("organization_membership_user_idx").on(table.userId),
   ],
 );

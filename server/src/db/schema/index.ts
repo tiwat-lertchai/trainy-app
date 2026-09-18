@@ -16,3 +16,4 @@ export * from "./progress";
 export * from "./student-academic-record";
 export * from "./student-profile";
 export * from "./system";
+export * from "./workspace-core";
