@@ -113,6 +113,7 @@ export const env = Object.freeze({
     process.env.SMTP_FROM ??
       (process.env.NODE_ENV === "test" ? "Trainy <test@example.invalid>" : undefined),
   ),
+  TRUST_PROXY_IP_HEADERS: readBoolean(process.env.TRUST_PROXY_IP_HEADERS),
   UPLOAD_DIR: resolve(process.env.UPLOAD_DIR ?? "uploads"),
 });
 import { resolve } from "node:path";

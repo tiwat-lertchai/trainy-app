@@ -1,6 +1,7 @@
 import type { Context } from "hono";
 import { createMiddleware } from "hono/factory";
 import { getConnInfo } from "hono/bun";
+import { env } from "../config/env";
 import { AppError } from "../lib/app-error";
 
 /**
@@ -17,7 +18,12 @@ interface Bucket {
   resetAt: number;
 }
 
-function createLimiter(options: { windowMs: number; max: number; name: string }) {
+export function createRateLimiter(options: {
+  windowMs: number;
+  max: number;
+  name: string;
+  trustProxyIpHeaders: boolean;
+}) {
   const buckets = new Map<string, Bucket>();
 
   // Bound memory: sweep expired buckets every window instead of growing
@@ -30,7 +36,7 @@ function createLimiter(options: { windowMs: number; max: number; name: string })
   }, options.windowMs).unref();
 
   return createMiddleware(async (c, next) => {
-    const key = clientKey(c);
+    const key = clientKey(c, options.trustProxyIpHeaders);
     const now = Date.now();
     const bucket = buckets.get(key);
 
@@ -55,15 +61,14 @@ function createLimiter(options: { windowMs: number; max: number; name: string })
   });
 }
 
-function clientKey(c: Context) {
-  // Trusted only because the production topology (compose.yaml) never
-  // exposes the server directly — nginx is the sole entry point and sets
-  // this header from its own $remote_addr, so it cannot be spoofed by an
-  // external client in that deployment. If the server is ever exposed
-  // directly (no reverse proxy in front of it), this header becomes
-  // attacker-controlled and must not be trusted as-is.
-  const proxied = c.req.header("x-real-ip");
-  if (proxied) return proxied;
+function clientKey(c: Context, trustProxyIpHeaders: boolean) {
+  // Proxy headers are attacker-controlled when the server is reachable
+  // directly. Trust them only in an explicitly configured topology where a
+  // trusted reverse proxy is the sole entry point and overwrites X-Real-IP.
+  if (trustProxyIpHeaders) {
+    const proxied = c.req.header("x-real-ip");
+    if (proxied) return proxied;
+  }
 
   try {
     return getConnInfo(c).remote.address ?? "unknown";
@@ -74,17 +79,19 @@ function clientKey(c: Context) {
 
 // Sign-in/callback abuse (credential stuffing, OAuth state/CSRF probing):
 // tight per-IP budget.
-export const authRateLimit = createLimiter({
+export const authRateLimit = createRateLimiter({
   windowMs: 60_000,
   max: 20,
   name: "authentication",
+  trustProxyIpHeaders: env.TRUST_PROXY_IP_HEADERS,
 });
 
 // General API abuse/scraping backstop. Generous enough not to bother normal
 // interactive use (dashboards poll, forms submit), tight enough to blunt a
 // scripted loop against a single-instance deployment.
-export const apiRateLimit = createLimiter({
+export const apiRateLimit = createRateLimiter({
   windowMs: 60_000,
   max: 300,
   name: "the API",
+  trustProxyIpHeaders: env.TRUST_PROXY_IP_HEADERS,
 });

@@ -5,6 +5,7 @@ services:
       dockerfile: server/Dockerfile
     environment:
       NODE_ENV: production
+      TRUST_PROXY_IP_HEADERS: "true"
       LEGAL_INSTALLATION_ID: ${LEGAL_INSTALLATION_ID:-}
       PORT: 3000
       CORS_ORIGINS: ${CORS_ORIGINS:?set CORS_ORIGINS to the public app origin}

@@ -1,12 +1,20 @@
 import { describe, expect, test } from "bun:test";
 import { Hono } from "hono";
 import { errorHandler } from "./error-handler";
-import { apiRateLimit } from "./rate-limit";
+import { createRateLimiter } from "./rate-limit";
 
-function buildApp() {
+function buildApp(trustProxyIpHeaders = true) {
   const app = new Hono();
   app.onError(errorHandler);
-  app.use("*", apiRateLimit);
+  app.use(
+    "*",
+    createRateLimiter({
+      windowMs: 60_000,
+      max: 300,
+      name: "the API",
+      trustProxyIpHeaders,
+    }),
+  );
   app.get("/", (c) => c.json({ ok: true }));
   return app;
 }
@@ -45,5 +53,19 @@ describe("rate limit middleware", () => {
       last = await app.request("/", { headers: { "x-real-ip": ip } });
     }
     expect(last?.headers.get("Retry-After")).toBeTruthy();
+  });
+
+  test("ignores spoofed proxy IP headers unless proxy trust is enabled", async () => {
+    const app = buildApp(false);
+    let lastStatus = 0;
+
+    for (let i = 0; i < 301; i++) {
+      const res = await app.request("/", {
+        headers: { "x-real-ip": `203.0.113.${i}` },
+      });
+      lastStatus = res.status;
+    }
+
+    expect(lastStatus).toBe(429);
   });
 });
